@@ -66,25 +66,21 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Check if user exists and is ADMIN (only ADMIN can login to admin panel)
+    // Check if user exists
     if (!user) {
       return NextResponse.json(
-        { error: 'Invalid credentials or unauthorized access' },
-        { status: 403 }
+        { error: 'Invalid credentials' },
+        { status: 401 }
       );
     }
     
-    // Only ADMIN users can login to the admin panel
-    if (user.role !== 'ADMIN') {
-      console.log('❌ [API /auth/login] Non-ADMIN user attempted login:', {
-        email: user.email,
-        role: user.role,
-      });
-      return NextResponse.json(
-        { error: 'Only admin users can access this panel. Please contact administrator.' },
-        { status: 403 }
-      );
-    }
+    // Note: All users can login via API (for mobile apps)
+    // The middleware will restrict /admin routes to ADMIN users only
+    // This allows employers and candidates to login for mobile app access
+    console.log('✅ [API /auth/login] User authenticated:', {
+      email: user.email,
+      role: user.role,
+    });
     // Create response with token for mobile apps
     const response = NextResponse.json({
       success: true,
