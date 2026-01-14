@@ -1,0 +1,52 @@
+.signup-container {
+  background-image: url('../images/auth-bg.jpg');
+  background-size: cover;
+  min-height: 100vh;
+  min-width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.signup-container .sub-container {
+  width: 1200px;
+  min-height: 650px;
+  display: flex;
+  background-color: #ffffff;
+}
+.signup-container .sub-container .left-card {
+  background-image: url('../images/auth-bg-left.jpg');
+  background-size: cover;
+  padding: 30px 70px;
+  min-width: 50%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.p-inputgroup {
+  margin-bottom: 15px;
+  width: 400px;
+}
+
+.p-inputgroup-addon {
+  background-color: transparent;
+  color: grey;
+}
+
+.p-inputgroup .p-inputgroup-addon .inputText {
+  border: none;
+  background-color: #07c3f5;
+}
+.signin-btn {
+  background-color: #07c3f5;
+  width: 400px;
+  color: #fff;
+  border: none;
+}
+
+.signin-btn:hover {
+  background-color: #07c3f5 !important;
+}

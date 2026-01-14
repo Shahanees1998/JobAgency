@@ -1,0 +1,468 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                   String     @id @default(auto()) @map("_id") @db.ObjectId
+  email                String     @unique
+  password             String
+  firstName            String
+  lastName             String
+  phone                String?    @unique
+  phoneVerified        Boolean    @default(false)
+  emailVerified        Boolean    @default(false)
+  emailOtp             String?
+  emailOtpExpiry       DateTime?
+  phoneOtp             String?
+  phoneOtpExpiry       DateTime?
+  googleId              String?    @unique // For Google OAuth
+  role                 UserRole   @default(CANDIDATE)
+  status               UserStatus @default(PENDING)
+  isDeleted            Boolean    @default(false)
+  profileImage         String?
+  profileImagePublicId String? // Cloudinary public_id for profile image
+  lastLogin            DateTime?
+  resetToken           String?
+  resetTokenExpiry     DateTime?
+  isPasswordChanged    Boolean    @default(false)
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+
+  // Relations
+  notifications        Notification[]
+  supportRequests      SupportRequest[]
+  announcements        Announcement[]
+  adminEscalations     AdminEscalation[] // Escalations from this user
+  employer             Employer?    // If user is an employer
+  candidate            Candidate?   // If user is a candidate
+  adminLogs            AdminLog[]    // Admin actions performed by this user
+  // Job Portal Relations
+  employerVerified     Employer[]     @relation("EmployerVerifiedBy")
+  employerSuspended    Employer[]     @relation("EmployerSuspendedBy")
+  jobModerated         Job[]          @relation("JobModeratedBy")
+  applicationReviewed  Application[]  @relation("ApplicationReviewedBy")
+  messagesSent         Message[]      @relation("MessageSender")
+
+  @@map("users")
+}
+
+model AdminEscalation {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  subject     String
+  message     String
+  status      EscalationStatus @default(OPEN)
+  priority    Priority @default(MEDIUM)
+  adminResponse String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("admin_escalations")
+}
+
+model Notification {
+  id         String           @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String           @db.ObjectId
+  title      String
+  message    String
+  type       NotificationType
+  isRead     Boolean          @default(false)
+  isArchived Boolean          @default(false)
+  relatedId  String?          // ID of related entity (message, event, etc.)
+  relatedType String?         // Type of related entity
+  metadata   String?          // JSON string for additional data
+  createdAt  DateTime         @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model SupportRequest {
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String        @db.ObjectId
+  subject       String
+  message       String
+  status        SupportStatus @default(OPEN)
+  priority      Priority      @default(MEDIUM)
+  adminResponse String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("support_requests")
+}
+
+model Announcement {
+  id          String             @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  content     String
+  type        AnnouncementType
+  status      AnnouncementStatus @default(PUBLISHED)
+  createdById String             @db.ObjectId
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  // Relations
+  createdBy User @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@map("announcements")
+}
+
+model SystemSettings {
+  id                  String   @id @default(auto()) @map("_id") @db.ObjectId
+  siteName            String
+  siteDescription     String?
+  contactEmail        String
+  enableNotifications Boolean  @default(true)
+  stripePublicKey     String?
+  stripeSecretKey     String?
+  sendgridApiKey      String?
+  pusherAppId         String?
+  pusherKey           String?
+  pusherSecret        String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("system_settings")
+}
+
+// Enums
+enum UserRole {
+  ADMIN
+  EMPLOYER
+  CANDIDATE
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  DEACTIVATED
+}
+
+enum EscalationStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum NotificationType {
+  ESCALATION_RECEIVED
+  ESCALATION_RESPONDED
+  SYSTEM_ALERT
+  // Job Portal Notifications
+  NEW_JOB_POSTING
+  JOB_APPROVED
+  JOB_REJECTED
+  APPLICATION_RECEIVED
+  APPLICATION_APPROVED
+  APPLICATION_REJECTED
+  EMPLOYER_APPROVED
+  EMPLOYER_REJECTED
+  NEW_CHAT_MESSAGE
+  INTERVIEW_SCHEDULED
+}
+
+enum SupportStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum AnnouncementType {
+  GENERAL
+  IMPORTANT
+  URGENT
+  EVENT
+  UPDATE
+}
+
+enum AnnouncementStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum TargetAudience {
+  ALL
+  ADMINS
+  EMPLOYERS
+  CANDIDATES
+}
+
+// ============================================
+// JOB PORTAL MODELS
+// ============================================
+
+model Employer {
+  id                  String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId              String        @unique @db.ObjectId
+  companyName         String
+  companyDescription  String?
+  companyWebsite      String?
+  companyLogo         String?
+  companyLogoPublicId String?      // Cloudinary public_id
+  industry            String?
+  companySize         String?       // e.g., "1-10", "11-50", "51-200", etc.
+  address             String?
+  city                String?
+  country             String?
+  verificationStatus  VerificationStatus @default(PENDING)
+  verificationNotes   String?       // Admin notes for verification
+  verifiedAt          DateTime?
+  verifiedById        String?       @db.ObjectId // Admin who verified
+  isSuspended         Boolean       @default(false)
+  suspensionReason    String?
+  suspendedAt         DateTime?
+  suspendedById       String?       @db.ObjectId
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  // Relations
+  user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobs                Job[]
+  verifiedBy          User?         @relation("EmployerVerifiedBy", fields: [verifiedById], references: [id])
+  suspendedBy         User?         @relation("EmployerSuspendedBy", fields: [suspendedById], references: [id])
+
+  @@map("employers")
+}
+
+model Candidate {
+  id                  String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId              String        @unique @db.ObjectId
+  cvUrl               String?       // URL to stored CV
+  cvPublicId          String?       // Cloudinary public_id for CV
+  bio                 String?       // Professional bio/summary
+  skills              String[]      @default([])
+  experience          String?       // Years of experience or description
+  education           String?       // Education background
+  location            String?       // Preferred location
+  availability        String?       // e.g., "Immediate", "2 weeks notice", etc.
+  expectedSalary      String?       // Salary range or expectation
+  isProfileComplete   Boolean       @default(false)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  // Relations
+  user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applications        Application[]
+  chatParticipants    ChatParticipant[]
+
+  @@map("candidates")
+}
+
+model Job {
+  id                  String        @id @default(auto()) @map("_id") @db.ObjectId
+  employerId          String        @db.ObjectId
+  title               String
+  description         String
+  requirements        String?       // Job requirements
+  responsibilities    String?       // Job responsibilities
+  location            String?       // Job location (hidden until approval)
+  salaryRange         String?       // e.g., "$50k - $70k"
+  employmentType      EmploymentType @default(FULL_TIME)
+  category            String?       // Job category/industry
+  status              JobStatus     @default(PENDING) // PENDING, APPROVED, REJECTED, SUSPENDED, CLOSED
+  moderationNotes     String?       // Admin notes for moderation
+  moderatedAt         DateTime?
+  moderatedById       String?       @db.ObjectId
+  isSponsored         Boolean       @default(false) // For future monetization
+  isBoosted           Boolean       @default(false) // For future monetization
+  boostExpiresAt      DateTime?
+  views               Int           @default(0)
+  applicationCount    Int           @default(0)
+  expiresAt           DateTime?     // Job expiry date
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  // Relations
+  employer            Employer      @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  applications        Application[]
+  moderatedBy         User?         @relation("JobModeratedBy", fields: [moderatedById], references: [id])
+
+  @@map("jobs")
+}
+
+model Application {
+  id                  String            @id @default(auto()) @map("_id") @db.ObjectId
+  jobId               String            @db.ObjectId
+  candidateId         String            @db.ObjectId
+  status              ApplicationStatus @default(APPLIED)
+  coverLetter         String?           // Optional cover letter
+  appliedAt           DateTime          @default(now())
+  reviewedAt          DateTime?
+  reviewedById        String?           @db.ObjectId // Employer who reviewed
+  interviewScheduled Boolean           @default(false)
+  interviewDate       DateTime?        // Interview date/time (only visible after approval)
+  interviewLocation   String?          // Interview location (hidden until approval)
+  interviewNotes      String?           // Interview notes
+  rejectionReason     String?           // If rejected
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  // Relations
+  job                 Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  candidate           Candidate         @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  reviewedBy          User?             @relation("ApplicationReviewedBy", fields: [reviewedById], references: [id])
+  chat                Chat?             // Chat unlocked after approval
+
+  @@unique([jobId, candidateId]) // One application per candidate per job
+  @@map("applications")
+}
+
+model Chat {
+  id                  String            @id @default(auto()) @map("_id") @db.ObjectId
+  applicationId       String            @unique @db.ObjectId
+  isActive            Boolean           @default(true)
+  lastMessageAt       DateTime?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  // Relations
+  application         Application       @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  participants        ChatParticipant[]
+  messages            Message[]
+
+  @@map("chats")
+}
+
+model ChatParticipant {
+  id                  String            @id @default(auto()) @map("_id") @db.ObjectId
+  chatId              String            @db.ObjectId
+  userId              String            @db.ObjectId
+  candidateId         String?           @db.ObjectId // If participant is candidate
+  employerId          String?           @db.ObjectId // If participant is employer
+  lastReadAt          DateTime?
+  joinedAt            DateTime          @default(now())
+
+  // Relations
+  chat                Chat              @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  candidate           Candidate?        @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@unique([chatId, userId]) // One participant record per user per chat
+  @@map("chat_participants")
+}
+
+model Message {
+  id                  String            @id @default(auto()) @map("_id") @db.ObjectId
+  chatId              String            @db.ObjectId
+  senderId            String            @db.ObjectId
+  content             String
+  messageType         MessageType       @default(TEXT)
+  isEdited            Boolean           @default(false)
+  isDeleted           Boolean           @default(false)
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  // Relations
+  chat                Chat              @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender              User              @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+model AdminLog {
+  id                  String            @id @default(auto()) @map("_id") @db.ObjectId
+  adminId             String            @db.ObjectId
+  action              AdminAction
+  entityType          String            // e.g., "EMPLOYER", "JOB", "APPLICATION", "CANDIDATE"
+  entityId            String            // ID of the affected entity
+  description         String            // Human-readable description
+  metadata            String?           // JSON string for additional data
+  ipAddress           String?
+  userAgent           String?
+  createdAt           DateTime          @default(now())
+
+  // Relations
+  admin               User              @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@map("admin_logs")
+}
+
+// Job Portal Enums
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  TEMPORARY
+  INTERNSHIP
+  FREELANCE
+}
+
+enum JobStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+  CLOSED
+}
+
+enum ApplicationStatus {
+  APPLIED
+  REVIEWING
+  APPROVED
+  REJECTED
+  INTERVIEW_SCHEDULED
+  INTERVIEW_COMPLETED
+  OFFERED
+  ACCEPTED
+  DECLINED
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+  SYSTEM
+}
+
+enum AdminAction {
+  EMPLOYER_APPROVED
+  EMPLOYER_REJECTED
+  EMPLOYER_SUSPENDED
+  EMPLOYER_VERIFIED
+  JOB_APPROVED
+  JOB_REJECTED
+  JOB_SUSPENDED
+  JOB_CLOSED
+  APPLICATION_VIEWED
+  USER_SUSPENDED
+  USER_DELETED
+  CONTENT_MODERATED
+  CHAT_MODERATED
+  SYSTEM_SETTINGS_UPDATED
+}
