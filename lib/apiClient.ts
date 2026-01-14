@@ -470,6 +470,10 @@ class ApiClient {
         return this.get<any>('/admin/employers/pending');
     }
 
+    async getEmployerById(id: string) {
+        return this.get<any>(`/admin/employers/${id}`);
+    }
+
     async approveEmployer(id: string, notes?: string) {
         return this.put<any>(`/admin/employers/${id}/approve`, { notes });
     }
@@ -529,6 +533,10 @@ class ApiClient {
 
     async getPendingJobs() {
         return this.get<any>('/admin/jobs/pending');
+    }
+
+    async getJobById(id: string) {
+        return this.get<any>(`/admin/jobs/${id}`);
     }
 
     async approveJob(id: string, notes?: string) {

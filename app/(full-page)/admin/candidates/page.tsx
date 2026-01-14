@@ -157,7 +157,7 @@ export default function AdminCandidates() {
         <Button
           icon="pi pi-eye"
           className="p-button-info p-button-sm"
-          onClick={() => loadCandidateDetails(rowData.id)}
+          onClick={() => router.push(`/admin/candidates/${rowData.id}`)}
           tooltip="View Details"
         />
         <Button

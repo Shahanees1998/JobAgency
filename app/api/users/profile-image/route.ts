@@ -18,19 +18,76 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const formData = await request.formData();
-      const file = formData.get('image') as File;
-
-      if (!file) {
+      const contentType = request.headers.get('content-type') || '';
+      console.log('Content-Type:', contentType);
+      
+      let formData: FormData;
+      try {
+        formData = await request.formData();
+      } catch (error) {
+        console.error('Error parsing formData:', error);
         return NextResponse.json(
-          { success: false, error: 'Image file is required' },
+          { success: false, error: 'Failed to parse form data' },
+          { status: 400 }
+        );
+      }
+
+      console.log('FormData keys:', Array.from(formData.keys()));
+      
+      // Get the file - try 'image' first, then 'file'
+      let file = formData.get('image') as File | Blob | string | null;
+      if (!file) {
+        file = formData.get('file') as File | Blob | string | null;
+      }
+
+      // Log what we received
+      if (file) {
+        console.log('File received:', {
+          type: typeof file,
+          isFile: file instanceof File,
+          isBlob: file instanceof Blob,
+          isString: typeof file === 'string',
+          name: file instanceof File ? file.name : 'N/A',
+          size: file instanceof File || file instanceof Blob ? file.size : 'N/A',
+        });
+      } else {
+        // Log all entries for debugging
+        const entries = Array.from(formData.entries());
+        console.log('FormData entries:', entries.map(([key, value]) => [
+          key, 
+          typeof value, 
+          value instanceof File ? 'File' : value instanceof Blob ? 'Blob' : typeof value === 'string' ? 'String' : 'Other',
+          value instanceof File ? value.name : value instanceof Blob ? value.type : String(value).substring(0, 50)
+        ]));
+        return NextResponse.json(
+          { success: false, error: 'Image file is required. Please ensure the file is sent with field name "image". Received fields: ' + Array.from(formData.keys()).join(', ') },
+          { status: 400 }
+        );
+      }
+
+      // Handle different file types
+      let fileToUpload: File;
+      if (file instanceof File) {
+        fileToUpload = file;
+      } else if (file instanceof Blob) {
+        fileToUpload = new File([file], 'profile.png', { type: file.type || 'image/png' });
+      } else if (typeof file === 'string') {
+        // If it's a string (base64 or URI), we need to handle it differently
+        // This shouldn't happen with proper FormData, but handle it just in case
+        return NextResponse.json(
+          { success: false, error: 'Invalid file format received' },
+          { status: 400 }
+        );
+      } else {
+        return NextResponse.json(
+          { success: false, error: 'Invalid file type' },
           { status: 400 }
         );
       }
 
       // Validate file type and size
       const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-      const validation = validateFile(file, {
+      const validation = validateFile(fileToUpload, {
         allowedTypes,
         maxSize: 5 * 1024 * 1024, // 5MB
       });
@@ -49,7 +106,7 @@ export async function POST(request: NextRequest) {
       });
 
       // Upload image to Cloudinary with optimization
-      const cloudinaryResult = await uploadToCloudinary(file, {
+      const cloudinaryResult = await uploadToCloudinary(fileToUpload, {
         folder: 'jobportal/profile-images',
         resource_type: 'image',
         transformation: [

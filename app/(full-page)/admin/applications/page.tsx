@@ -173,7 +173,7 @@ export default function AdminApplications() {
         <Button
           icon="pi pi-eye"
           className="p-button-info p-button-sm"
-          onClick={() => loadApplicationDetails(rowData.id)}
+          onClick={() => router.push(`/admin/applications/${rowData.id}`)}
           tooltip="View Details"
         />
         <Button

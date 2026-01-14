@@ -248,12 +248,10 @@ const LoginContent = () => {
                             <Image 
                                 src="/images/logo.png" 
                                 alt="JobPortal Logo" 
-                                width={50} 
-                                height={50}
+                                width={200} 
+                                height={80}
                                 priority
                             />
-                            <div style={{ fontSize: '2rem' }}>|</div>
-                            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', fontStyle: 'italic' }}>Admin</div>
                         </div>
                         <div className="text-900 text-xl font-bold mb-2 mt-4">
                             Log in

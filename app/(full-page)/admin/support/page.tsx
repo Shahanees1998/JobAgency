@@ -58,7 +58,9 @@ export default function AdminSupport() {
     setLoading(true);
     try {
       const response = await apiClient.getAdminSupportRequests();
-      setRequests(response.data || []);
+      // apiClient wraps response, so structure is { data: { data: [...] } } or { data: [...] }
+      const requestsData = response.data?.data || response.data || [];
+      setRequests(Array.isArray(requestsData) ? requestsData : []);
     } catch (error) {
       console.error("Error loading support requests:", error);
       showToast("error", "Error", "Failed to load support requests");
@@ -201,14 +203,14 @@ export default function AdminSupport() {
     );
   };
 
-  const filteredRequests = requests.filter(req => {
+  const filteredRequests = Array.isArray(requests) ? requests.filter(req => {
     if (filters.status && req.status !== filters.status) return false;
     if (filters.priority && req.priority !== filters.priority) return false;
     if (filters.search && !req.subject.toLowerCase().includes(filters.search.toLowerCase()) &&
       !req.user.firstName.toLowerCase().includes(filters.search.toLowerCase()) &&
       !req.user.lastName.toLowerCase().includes(filters.search.toLowerCase())) return false;
     return true;
-  });
+  }) : [];
 
   const statusOptions = [
     { label: "All Statuses", value: "" },

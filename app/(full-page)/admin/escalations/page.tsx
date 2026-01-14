@@ -53,7 +53,9 @@ export default function AdminEscalations() {
     setLoading(true);
     try {
       const response = await apiClient.getAdminEscalations();
-      setEscalations(response.data || []);
+      // apiClient wraps response, so structure is { data: { data: [...] } } or { data: [...] }
+      const escalationsData = (response as any)?.data?.data || (response as any)?.data || [];
+      setEscalations(Array.isArray(escalationsData) ? escalationsData : []);
     } catch (error) {
       console.error("Error loading escalations:", error);
       showToast("error", "Error", "Failed to load escalations");
@@ -224,14 +226,22 @@ export default function AdminEscalations() {
     );
   };
 
-  const filteredEscalations = escalations.filter(esc => {
-    if (filters.status && esc.status !== filters.status) return false;
-    if (filters.priority && esc.priority !== filters.priority) return false;
-    if (filters.search && !esc.subject.toLowerCase().includes(filters.search.toLowerCase()) && 
-        !esc.userName.toLowerCase().includes(filters.search.toLowerCase()) &&
-        !esc.hotelName?.toLowerCase().includes(filters.search.toLowerCase())) return false;
-    return true;
-  });
+  const filteredEscalations = Array.isArray(escalations)
+    ? escalations.filter((esc) => {
+        if (filters.status && esc.status !== filters.status) return false;
+        if (filters.priority && esc.priority !== filters.priority) return false;
+
+        if (filters.search) {
+          const q = filters.search.toLowerCase();
+          const subject = (esc.subject || "").toLowerCase();
+          const userName = (esc.userName || "").toLowerCase();
+          const hotelName = (esc.hotelName || "").toLowerCase();
+          if (!subject.includes(q) && !userName.includes(q) && !hotelName.includes(q)) return false;
+        }
+
+        return true;
+      })
+    : [];
 
   const statusOptions = [
     { label: "All Statuses", value: "" },
