@@ -51,14 +51,13 @@ export async function POST(request: NextRequest) {
           size: file instanceof File || file instanceof Blob ? file.size : 'N/A',
         });
       } else {
-        // Log all entries for debugging
+        // Log all entries for debugging (value is FormDataEntryValue = string | File)
         const entries = Array.from(formData.entries());
-        console.log('FormData entries:', entries.map(([key, value]) => [
-          key, 
-          typeof value, 
-          value instanceof File ? 'File' : value instanceof Blob ? 'Blob' : typeof value === 'string' ? 'String' : 'Other',
-          value instanceof File ? value.name : value instanceof Blob ? value.type : String(value).substring(0, 50)
-        ]));
+        console.log('FormData entries:', entries.map(([key, value]) => {
+          const typeLabel = typeof value === 'string' ? 'String' : value instanceof File ? 'File' : 'Blob';
+          const label = typeof value === 'string' ? value.substring(0, 50) : value instanceof File ? value.name : '';
+          return [key, typeof value, typeLabel, label];
+        }));
         return NextResponse.json(
           { success: false, error: 'Image file is required. Please ensure the file is sent with field name "image". Received fields: ' + Array.from(formData.keys()).join(', ') },
           { status: 400 }

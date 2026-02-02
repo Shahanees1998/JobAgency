@@ -25,14 +25,10 @@ export async function GET(
       // Verify the job belongs to this employer
       const job = await prisma.job.findUnique({
         where: { id: jobId },
-        include: {
-          employer: {
-            where: { userId },
-          },
-        },
+        include: { employer: true },
       });
 
-      if (!job || !job.employer) {
+      if (!job || !job.employer || job.employer.userId !== userId) {
         return NextResponse.json(
           { success: false, error: 'Job not found or unauthorized' },
           { status: 404 }
