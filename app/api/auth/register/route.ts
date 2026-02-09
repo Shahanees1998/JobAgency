@@ -79,7 +79,10 @@ export async function POST(request: NextRequest) {
         });
       } else if (user.role === 'EMPLOYER') {
         await prisma.employer.create({
-          data: { userId: user.id },
+          data: {
+            userId: user.id,
+            companyName: `${user.firstName}'s Company`,
+          },
         });
       }
 
