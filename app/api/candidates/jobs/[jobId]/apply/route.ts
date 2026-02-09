@@ -42,14 +42,7 @@ export async function POST(
         });
       }
 
-      // Check if candidate has CV
-      if (!candidate.cvUrl) {
-        return NextResponse.json(
-          { success: false, error: 'Please upload your CV before applying' },
-          { status: 400 }
-        );
-      }
-
+      // Allow apply without CV for now; candidate can add resume later in My Resume
       // Get job
       const job = await prisma.job.findUnique({
         where: { id: jobId },
