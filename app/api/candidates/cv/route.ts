@@ -59,11 +59,18 @@ export async function POST(request: NextRequest) {
         max_bytes: 5 * 1024 * 1024, // 5MB
       });
 
-      // Get existing candidate to delete old CV if exists
-      const existingCandidate = await prisma.candidate.findUnique({
+      // Get or create candidate
+      let existingCandidate = await prisma.candidate.findUnique({
         where: { userId },
-        select: { cvPublicId: true },
+        select: { id: true, cvPublicId: true },
       });
+
+      if (!existingCandidate) {
+        existingCandidate = await prisma.candidate.create({
+          data: { userId },
+          select: { id: true, cvPublicId: true },
+        });
+      }
 
       // Update candidate with new CV
       const candidate = await prisma.candidate.update({
@@ -71,8 +78,7 @@ export async function POST(request: NextRequest) {
         data: {
           cvUrl: uploadResult.secure_url,
           cvPublicId: uploadResult.public_id,
-          // Update profile complete status
-          isProfileComplete: !!(uploadResult.secure_url && existingCandidate),
+          isProfileComplete: !!uploadResult.secure_url,
         },
         include: {
           user: {

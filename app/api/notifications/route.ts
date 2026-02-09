@@ -68,12 +68,15 @@ export async function GET(request: NextRequest) {
       ]);
       
       return NextResponse.json({
-        notifications,
-        pagination: {
-          page,
-          limit,
-          total,
-          totalPages: Math.ceil(total / limit),
+        success: true,
+        data: {
+          notifications,
+          pagination: {
+            page,
+            limit,
+            total,
+            totalPages: Math.ceil(total / limit),
+          },
         },
       });
     } catch (error) {

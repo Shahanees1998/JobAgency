@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { sendWelcomeEmail, sendOTPEmail } from '@/lib/emailService';
+import { AuthService } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
@@ -70,6 +71,17 @@ export async function POST(request: NextRequest) {
           createdAt: true,
         },
       });
+
+      // Create Candidate or Employer profile for app access
+      if (user.role === 'CANDIDATE') {
+        await prisma.candidate.create({
+          data: { userId: user.id },
+        });
+      } else if (user.role === 'EMPLOYER') {
+        await prisma.employer.create({
+          data: { userId: user.id },
+        });
+      }
 
       return NextResponse.json({
         success: true,
@@ -182,6 +194,34 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Create Candidate or Employer profile so app profile/apply/CV work
+    if (validRole === 'CANDIDATE') {
+      await prisma.candidate.create({
+        data: { userId: user.id },
+      });
+    } else if (validRole === 'EMPLOYER') {
+      await prisma.employer.create({
+        data: {
+          userId: user.id,
+          companyName: `${firstName}'s Company`,
+        },
+      });
+    }
+
+    // Generate tokens so mobile app can auto-login after register
+    const payload = {
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      status: user.status,
+    };
+    const [accessToken, refreshToken] = await Promise.all([
+      AuthService.generateAccessToken(payload),
+      AuthService.generateRefreshToken(payload),
+    ]);
+
     return NextResponse.json({
       success: true,
       message: email 
@@ -189,6 +229,8 @@ export async function POST(request: NextRequest) {
         : 'Registration successful. Please verify your phone with OTP.',
       user,
       requiresVerification: true,
+      accessToken,
+      refreshToken,
     }, { status: 201 });
 
   } catch (error) {

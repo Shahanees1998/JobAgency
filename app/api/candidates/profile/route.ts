@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      const candidate = await prisma.candidate.findUnique({
+      let candidate = await prisma.candidate.findUnique({
         where: { userId },
         include: {
           user: {
@@ -47,11 +47,27 @@ export async function GET(request: NextRequest) {
         },
       });
 
+      // Create candidate profile if missing (e.g. user registered before we added auto-creation)
       if (!candidate) {
-        return NextResponse.json(
-          { success: false, error: 'Candidate profile not found' },
-          { status: 404 }
-        );
+        candidate = await prisma.candidate.create({
+          data: { userId },
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                phone: true,
+                profileImage: true,
+                status: true,
+              },
+            },
+            _count: {
+              select: { applications: true },
+            },
+          },
+        });
       }
 
       return NextResponse.json({
@@ -66,6 +82,8 @@ export async function GET(request: NextRequest) {
           location: candidate.location,
           availability: candidate.availability,
           expectedSalary: candidate.expectedSalary,
+          languages: candidate.languages ?? [],
+          certifications: candidate.certifications ?? [],
           isProfileComplete: candidate.isProfileComplete,
           totalApplications: candidate._count.applications,
           createdAt: candidate.createdAt.toISOString(),
@@ -114,6 +132,8 @@ export async function PUT(request: NextRequest) {
         location,
         availability,
         expectedSalary,
+        languages,
+        certifications,
       } = body;
 
       // Check if profile is complete (has CV and basic info)
@@ -139,6 +159,8 @@ export async function PUT(request: NextRequest) {
           ...(location !== undefined && { location }),
           ...(availability !== undefined && { availability }),
           ...(expectedSalary !== undefined && { expectedSalary }),
+          ...(languages !== undefined && { languages: Array.isArray(languages) ? languages : [] }),
+          ...(certifications !== undefined && { certifications: Array.isArray(certifications) ? certifications : [] }),
           isProfileComplete,
         },
         include: {

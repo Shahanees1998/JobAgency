@@ -29,17 +29,17 @@ export async function POST(
 
       const { jobId } = params;
 
-      // Get candidate
-      const candidate = await prisma.candidate.findUnique({
+      // Get or create candidate (create if user registered before we added auto-creation)
+      let candidate = await prisma.candidate.findUnique({
         where: { userId },
         select: { id: true, cvUrl: true },
       });
 
       if (!candidate) {
-        return NextResponse.json(
-          { success: false, error: 'Candidate profile not found' },
-          { status: 404 }
-        );
+        candidate = await prisma.candidate.create({
+          data: { userId },
+          select: { id: true, cvUrl: true },
+        });
       }
 
       // Check if candidate has CV

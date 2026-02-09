@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
       console.log('📡 [API /auth/me] No user, returning null');
       return NextResponse.json({
         success: false,
+        data: null,
         user: null,
       });
     }
@@ -49,6 +50,7 @@ export async function GET(request: NextRequest) {
       console.log('📡 [API /auth/me] User not found in database');
       return NextResponse.json({
         success: false,
+        data: null,
         user: null,
       });
     }
@@ -59,9 +61,11 @@ export async function GET(request: NextRequest) {
       role: completeUser.role,
     });
 
+    // Return { success, data } so mobile app getCurrentUser() gets response.data = user
     return NextResponse.json({
       success: true,
-      user: completeUser,
+      data: completeUser,
+      user: completeUser, // keep for backward compatibility
     });
   });
 } 

@@ -262,11 +262,13 @@ model Candidate {
   cvPublicId          String?       // Cloudinary public_id for CV
   bio                 String?       // Professional bio/summary
   skills              String[]      @default([])
-  experience          String?       // Years of experience or description
-  education           String?       // Education background
+  experience          String?       // JSON: work experience array
+  education           String?       // JSON: education array
   location            String?       // Preferred location
   availability        String?       // e.g., "Immediate", "2 weeks notice", etc.
   expectedSalary      String?       // Salary range or expectation
+  languages           String[]      @default([])
+  certifications      String[]     @default([])
   isProfileComplete   Boolean       @default(false)
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
