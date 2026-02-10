@@ -349,28 +349,6 @@ const LoginContent = () => {
                             loading={loading || authLoading}
                             disabled={loading || authLoading}
                         ></Button>
-                       <div className="text-center">
-                           <span className="font-medium text-600">
-                               Don't have an account?{" "}
-                               <a
-                                   className="font-semibold cursor-pointer text-900 hover:text-primary transition-colors transition-duration-300"
-                                   onClick={() => router.push('/auth/register')}
-                               >
-                                   Sign Up
-                               </a>
-                           </span>
-                       </div>
-                       <div className="text-center mt-3">
-                           <span className="font-medium text-600">
-                               New to the platform?{" "}
-                               <a
-                                   className="font-semibold cursor-pointer text-900 hover:text-primary transition-colors transition-duration-300"
-                                   onClick={() => router.push('/auth/register')}
-                               >
-                                   Register Here
-                               </a>
-                           </span>
-                       </div>
                     </div>
                 </div>
             </div>
