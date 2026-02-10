@@ -19,6 +19,7 @@ export async function PUT(request: NextRequest) {
         firstName, 
         lastName, 
         phone, 
+        location,
         profileImage, 
         profileImagePublicId,
         isPasswordChanged 
@@ -39,6 +40,7 @@ export async function PUT(request: NextRequest) {
           ...(firstName && { firstName }),
           ...(lastName && { lastName }),
           ...(phone !== undefined && { phone }),
+          ...(location !== undefined && { location: location ?? null }),
           ...(profileImage !== undefined && { profileImage }),
           ...(profileImagePublicId !== undefined && { profileImagePublicId }),
           ...(isPasswordChanged !== undefined && { isPasswordChanged }),
@@ -49,6 +51,7 @@ export async function PUT(request: NextRequest) {
           lastName: true,
           email: true,
           phone: true,
+          location: true,
           profileImage: true,
           profileImagePublicId: true,
           isPasswordChanged: true,

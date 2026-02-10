@@ -35,6 +35,7 @@ export async function GET(request: NextRequest) {
         firstName: true,
         lastName: true,
         phone: true,
+        location: true,
         role: true,
         status: true,
         profileImage: true,

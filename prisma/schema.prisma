@@ -20,6 +20,7 @@ model User {
   firstName            String
   lastName             String
   phone                String?    @unique
+  location             String?    // User's location (e.g. city, country)
   phoneVerified        Boolean    @default(false)
   emailVerified        Boolean    @default(false)
   emailOtp             String?
