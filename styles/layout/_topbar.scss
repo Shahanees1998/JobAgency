@@ -1,8 +1,12 @@
 .layout-topbar {
-    margin-bottom: 2rem;
+    margin-bottom: 1.25rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    background: var(--surface-section);
+    border: 1px solid var(--surface-border);
+    border-radius: 12px;
+    padding: 0.5rem 0.75rem;
 
     .topbar-start {
         display: flex;

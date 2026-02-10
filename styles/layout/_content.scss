@@ -1,3 +1,95 @@
 .layout-content-wrapper {
-    padding: 2rem;
+    padding: 1.5rem 2rem;
+}
+
+// Admin UI polish to match reference design
+.layout-content-wrapper {
+    .content-breadcrumb {
+        display: none;
+    }
+
+    // Page header typography (many pages use PrimeFlex utilities)
+    h1 {
+        color: var(--text-color);
+        letter-spacing: -0.01em;
+    }
+
+    p.text-600 {
+        color: var(--text-color-secondary);
+    }
+
+    // Cards (Filters, tables, etc.)
+    .p-card {
+        border: 1px solid var(--surface-border);
+        border-radius: 12px;
+        box-shadow: none;
+        overflow: hidden;
+    }
+
+    .p-card .p-card-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-color);
+    }
+
+    .p-card .p-card-content {
+        padding-top: 0.75rem;
+    }
+
+    // Inputs / dropdowns inside filter panels
+    .p-inputtext,
+    .p-dropdown,
+    .p-inputtextarea {
+        border-radius: 10px;
+        border-color: var(--surface-border);
+    }
+
+    .p-inputtext:focus,
+    .p-dropdown:not(.p-disabled).p-focus,
+    .p-inputtextarea:focus {
+        box-shadow: var(--focus-ring);
+        border-color: var(--primary-color);
+    }
+
+    // Outlined buttons (Refresh / View / etc.)
+    .p-button.p-button-outlined {
+        border-color: #cbd5e1;
+        color: #334155;
+    }
+
+    .p-button.p-button-outlined:enabled:hover {
+        background: #f8fafc;
+        border-color: #94a3b8;
+        color: #0f172a;
+    }
+
+    // DataTable styling (header row like screenshot)
+    .p-datatable {
+        border: 1px solid var(--surface-border);
+        border-radius: 12px;
+        overflow: hidden;
+        background: var(--surface-section);
+    }
+
+    .p-datatable .p-datatable-thead > tr > th {
+        background: #f3e7d7;
+        color: #334155;
+        font-weight: 700;
+        font-size: 0.82rem;
+        border-color: #e5e7eb;
+        padding: 0.85rem 1rem;
+    }
+
+    .p-datatable .p-datatable-tbody > tr > td {
+        border-color: #e5e7eb;
+        padding: 0.9rem 1rem;
+        color: var(--text-color);
+        font-size: 0.9rem;
+    }
+
+    .p-datatable .p-paginator {
+        border: 0;
+        padding: 0.75rem 0.75rem;
+        background: transparent;
+    }
 }
