@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 
 /**
  * PUT /api/employers/jobs/[jobId]/applications/[applicationId]
- * Update application status (approve/reject)
+ * Update application status (approve/reject/schedule interview/etc.)
  */
 export async function PUT(
   request: NextRequest,
@@ -36,9 +36,18 @@ export async function PUT(
       }
 
       const body = await request.json();
-      const { status, notes } = body;
+      const { status, notes, interviewDate, interviewLocation, interviewNotes } = body;
 
-      if (!status || !['APPROVED', 'REJECTED', 'REVIEWING'].includes(status)) {
+      const allowedStatuses = [
+        'REVIEWING',
+        'APPROVED',
+        'REJECTED',
+        'INTERVIEW_SCHEDULED',
+        'INTERVIEW_COMPLETED',
+        'OFFERED',
+      ] as const;
+
+      if (!status || !allowedStatuses.includes(status)) {
         return NextResponse.json(
           { success: false, error: 'Invalid status' },
           { status: 400 }
@@ -64,6 +73,25 @@ export async function PUT(
         );
       }
 
+      // Interview scheduling validation
+      let interviewDateValue: Date | undefined;
+      if (status === 'INTERVIEW_SCHEDULED') {
+        if (!interviewDate || typeof interviewDate !== 'string') {
+          return NextResponse.json(
+            { success: false, error: 'interviewDate is required to schedule an interview' },
+            { status: 400 }
+          );
+        }
+        const parsed = new Date(interviewDate);
+        if (Number.isNaN(parsed.getTime())) {
+          return NextResponse.json(
+            { success: false, error: 'interviewDate must be a valid date string' },
+            { status: 400 }
+          );
+        }
+        interviewDateValue = parsed;
+      }
+
       // Update application
       const updatedApplication = await prisma.application.update({
         where: { id: applicationId },
@@ -71,7 +99,21 @@ export async function PUT(
           status,
           reviewedAt: new Date(),
           reviewedById: userId,
-          ...(notes && { rejectionReason: notes }),
+          // Only set rejection reason when rejected
+          ...(status === 'REJECTED' && { rejectionReason: (notes || '').trim() || 'Rejected' }),
+          ...(status !== 'REJECTED' && { rejectionReason: null }),
+          ...(status === 'REJECTED' && {
+            interviewScheduled: false,
+            interviewDate: null,
+            interviewLocation: null,
+            interviewNotes: null,
+          }),
+          ...(status === 'INTERVIEW_SCHEDULED' && {
+            interviewScheduled: true,
+            interviewDate: interviewDateValue!,
+            interviewLocation: interviewLocation ?? null,
+            interviewNotes: interviewNotes ?? null,
+          }),
         },
         include: {
           candidate: {
@@ -153,6 +195,17 @@ export async function PUT(
             title: 'Application Rejected',
             message: `Your application for ${job.title} has been rejected.`,
             type: 'APPLICATION_REJECTED',
+            relatedId: applicationId,
+            relatedType: 'APPLICATION',
+          },
+        });
+      } else if (status === 'INTERVIEW_SCHEDULED') {
+        await prisma.notification.create({
+          data: {
+            userId: application.candidate.userId,
+            title: 'Interview Scheduled',
+            message: `Your interview for ${job.title} has been scheduled.`,
+            type: 'INTERVIEW_SCHEDULED',
             relatedId: applicationId,
             relatedType: 'APPLICATION',
           },

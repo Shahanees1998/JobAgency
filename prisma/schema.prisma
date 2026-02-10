@@ -231,6 +231,8 @@ model Employer {
   companyWebsite      String?
   companyLogo         String?
   companyLogoPublicId String?      // Cloudinary public_id
+  companyBanner       String?
+  companyBannerPublicId String?    // Cloudinary public_id
   industry            String?
   companySize         String?       // e.g., "1-10", "11-50", "51-200", etc.
   address             String?

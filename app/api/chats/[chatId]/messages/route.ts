@@ -87,6 +87,7 @@ export async function GET(
 
       const transformedMessages = messages.reverse().map(msg => ({
         id: msg.id,
+        senderId: msg.senderId,
         content: msg.content,
         messageType: msg.messageType,
         isEdited: msg.isEdited,
@@ -172,9 +173,12 @@ export async function POST(
       }
 
       const body = await request.json();
-      const { content } = body;
+      const { content, messageType: rawMessageType } = body;
 
-      if (!content || !content.trim()) {
+      const messageType = rawMessageType === 'IMAGE' || rawMessageType === 'FILE' ? rawMessageType : 'TEXT';
+      const contentStr = typeof content === 'string' ? content.trim() : '';
+
+      if (!contentStr) {
         return NextResponse.json(
           { success: false, error: 'Message content is required' },
           { status: 400 }
@@ -186,8 +190,8 @@ export async function POST(
         data: {
           chatId,
           senderId: userId,
-          content: content.trim(),
-          messageType: 'TEXT',
+          content: contentStr,
+          messageType,
         },
         include: {
           sender: {
@@ -222,7 +226,7 @@ export async function POST(
           data: {
             userId: otherParticipant.userId,
             title: 'New Message',
-            message: content.length > 50 ? content.substring(0, 50) + '...' : content,
+            message: contentStr.length > 50 ? contentStr.substring(0, 50) + '...' : contentStr,
             type: 'NEW_CHAT_MESSAGE',
             relatedId: chatId,
             relatedType: 'CHAT',
@@ -234,6 +238,7 @@ export async function POST(
         success: true,
         data: {
           id: message.id,
+          senderId: message.senderId,
           content: message.content,
           messageType: message.messageType,
           createdAt: message.createdAt.toISOString(),

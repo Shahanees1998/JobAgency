@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import jwt from 'jsonwebtoken';
+
+const RESET_JWT_SECRET =
+  '6ac1ce8466e02c6383fb70103b51cdffd9cb3394970606ef0b2e2835afe77a7e';
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,7 +12,7 @@ export async function POST(request: NextRequest) {
 
     if ((!email && !phone) || !otp) {
       return NextResponse.json(
-        { error: 'Email/phone and OTP are required' },
+        { success: false, error: 'Email/phone and OTP are required' },
         { status: 400 }
       );
     }
@@ -20,9 +24,32 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json(
-        { error: 'User not found' },
+        { success: false, error: 'User not found' },
         { status: 404 }
       );
+    }
+
+    // Password reset OTP flow:
+    // If resetToken matches, issue a short-lived JWT to be used on /api/auth/reset-password
+    if (email && user.resetToken && user.resetTokenExpiry) {
+      if (user.resetToken !== otp) {
+        return NextResponse.json({ success: false, error: 'Invalid OTP' }, { status: 400 });
+      }
+      if (new Date() > user.resetTokenExpiry) {
+        return NextResponse.json({ success: false, error: 'OTP has expired. Please request a new code.' }, { status: 400 });
+      }
+
+      const token = jwt.sign(
+        { userId: user.id, resetToken: user.resetToken, type: 'password-reset' },
+        RESET_JWT_SECRET,
+        { expiresIn: '1h' }
+      );
+
+      return NextResponse.json({
+        success: true,
+        message: 'OTP verified',
+        data: { token },
+      });
     }
 
     // Check OTP
@@ -31,21 +58,21 @@ export async function POST(request: NextRequest) {
 
     if (!storedOtp || !otpExpiry) {
       return NextResponse.json(
-        { error: 'OTP not found. Please request a new OTP.' },
+        { success: false, error: 'OTP not found. Please request a new OTP.' },
         { status: 400 }
       );
     }
 
     if (storedOtp !== otp) {
       return NextResponse.json(
-        { error: 'Invalid OTP' },
+        { success: false, error: 'Invalid OTP' },
         { status: 400 }
       );
     }
 
     if (new Date() > otpExpiry) {
       return NextResponse.json(
-        { error: 'OTP has expired. Please request a new OTP.' },
+        { success: false, error: 'OTP has expired. Please request a new OTP.' },
         { status: 400 }
       );
     }
@@ -79,13 +106,13 @@ export async function POST(request: NextRequest) {
     
     if (error instanceof Error) {
       return NextResponse.json(
-        { error: error.message },
+        { success: false, error: error.message },
         { status: 500 }
       );
     }
 
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { success: false, error: 'Internal server error' },
       { status: 500 }
     );
   }

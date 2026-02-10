@@ -71,6 +71,7 @@ export async function GET(
         interviewScheduled: app.interviewScheduled,
         interviewDate: app.interviewDate?.toISOString(),
         interviewLocation: app.interviewLocation,
+        interviewNotes: app.interviewNotes,
         rejectionReason: app.rejectionReason,
         candidate: {
           id: app.candidate.id,

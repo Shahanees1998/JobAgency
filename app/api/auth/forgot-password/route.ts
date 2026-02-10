@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import crypto from 'crypto';
-import jwt from 'jsonwebtoken';
-import { sendPasswordResetEmail } from '@/lib/emailService';
+import { sendOTPEmail } from '@/lib/emailService';
 
 export async function POST(request: NextRequest) {
   try {
     const { email } = await request.json();
     if (!email) {
       return NextResponse.json(
-        { error: 'Email is required' },
+        { success: false, error: 'Email is required' },
         { status: 400 }
       );
     }
@@ -28,67 +26,48 @@ export async function POST(request: NextRequest) {
     if (!user) {
       // Don't reveal if user exists or not for security
       return NextResponse.json({
+        success: true,
         message: 'If an account with that email exists, a password reset link has been sent.',
       });
     }
 
-    // Generate reset token
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    // Generate 6-digit OTP for password reset
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const resetTokenExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     // Store reset token in database
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        resetToken,
+        resetToken: otp,
         resetTokenExpiry,
       },
     });
 
-    // Create JWT token for the reset link
-    const jwtToken = jwt.sign(
-      { 
-        userId: user.id, 
-        resetToken,
-        type: 'password-reset'
-      },
-      '6ac1ce8466e02c6383fb70103b51cdffd9cb3394970606ef0b2e2835afe77a7e',
-        // process.env.NEXTAUTH_SECRET || 'fallback-secret',
-      { expiresIn: '1h' }
-    );
-
-    // Create reset URL
-    const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000'}/auth/reset-password?token=${jwtToken}`;
-
-    // Send password reset email
+    // Send OTP email (fallback: return OTP in response for dev/testing)
+    let emailSent = false;
     try {
-      await sendPasswordResetEmail(user.email, jwtToken, user.firstName);
-      console.log(`Password reset email sent to ${user.email}`);
+      await sendOTPEmail(user.email, otp, user.firstName);
+      emailSent = true;
     } catch (emailError) {
       console.error('Failed to send password reset email:', emailError);
-      
-      // Log reset link to console for testing
-      console.log('========================================');
-      console.log('🔐 PASSWORD RESET (Console Log)');
-      console.log('========================================');
-      console.log(`Email: ${user.email}`);
-      console.log(`Name: ${user.firstName} ${user.lastName || ''}`);
-      console.log(`Reset Token: ${jwtToken}`);
-      console.log(`Reset Link: ${resetUrl}`);
-      console.log(`Expires: ${resetTokenExpiry.toLocaleString()}`);
-      console.log('========================================');
-      
-      // Don't clear the token - allow testing with console link
-      // The token is still valid and can be used
     }
 
     return NextResponse.json({
-      message: 'If an account with that email exists, a password reset link has been sent.',
+      success: true,
+      message: 'If an account with that email exists, a password reset code has been sent.',
+      ...(process.env.NODE_ENV !== 'production' && {
+        data: {
+          debugOtp: otp,
+          // For quick troubleshooting/testing on mobile when email isn't delivered
+          debugEmailSent: emailSent,
+        },
+      }),
     });
   } catch (error) {
     console.error('Forgot password error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { success: false, error: 'Internal server error' },
       { status: 500 }
     );
   }

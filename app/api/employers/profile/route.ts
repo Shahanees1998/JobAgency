@@ -62,6 +62,7 @@ export async function GET(request: NextRequest) {
           companyDescription: employer.companyDescription,
           companyWebsite: employer.companyWebsite,
           companyLogo: employer.companyLogo,
+          companyBanner: employer.companyBanner,
           industry: employer.industry,
           companySize: employer.companySize,
           address: employer.address,
