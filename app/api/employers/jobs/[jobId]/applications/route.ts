@@ -35,32 +35,42 @@ export async function GET(
         );
       }
 
-      const applications = await prisma.application.findMany({
-        where: { jobId },
-        include: {
-          candidate: {
-            include: {
-              user: {
-                select: {
-                  id: true,
-                  firstName: true,
-                  lastName: true,
-                  email: true,
-                  phone: true,
-                  profileImage: true,
+      const { searchParams } = new URL(request.url);
+      const page = parseInt(searchParams.get('page') || '1');
+      const limit = parseInt(searchParams.get('limit') || '20');
+      const skip = (page - 1) * limit;
+
+      const [applications, total] = await Promise.all([
+        prisma.application.findMany({
+          where: { jobId },
+          include: {
+            candidate: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                    phone: true,
+                    profileImage: true,
+                  },
                 },
               },
             },
-          },
-          job: {
-            select: {
-              id: true,
-              title: true,
+            job: {
+              select: {
+                id: true,
+                title: true,
+              },
             },
           },
-        },
-        orderBy: { appliedAt: 'desc' },
-      });
+          orderBy: { appliedAt: 'desc' },
+          skip,
+          take: limit,
+        }),
+        prisma.application.count({ where: { jobId } }),
+      ]);
 
       const transformedApplications = applications.map(app => ({
         id: app.id,
@@ -87,7 +97,13 @@ export async function GET(
 
       return NextResponse.json({
         success: true,
-        data: transformedApplications,
+        data: {
+          applications: transformedApplications,
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        },
       });
     } catch (error) {
       console.error('Error fetching applications:', error);

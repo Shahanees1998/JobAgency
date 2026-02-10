@@ -82,6 +82,8 @@ export async function GET(request: NextRequest) {
         reviewedAt: app.reviewedAt?.toISOString(),
         interviewScheduled: app.interviewScheduled,
         interviewDate: app.interviewDate?.toISOString(),
+        interviewLocation: app.interviewLocation,
+        interviewNotes: app.interviewNotes,
         rejectionReason: app.rejectionReason,
         job: {
           id: app.job.id,
