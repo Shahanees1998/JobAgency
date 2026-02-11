@@ -50,12 +50,11 @@ const styles = `
   }
 
   .employer-header-card {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    background: #1e3a5f;
     color: white;
     border-radius: 12px;
     padding: 2rem;
     margin-bottom: 1.5rem;
-    box-shadow: 0 10px 30px rgba(245, 87, 108, 0.3);
     animation: slideIn 0.6s ease-out;
   }
 

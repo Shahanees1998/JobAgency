@@ -446,38 +446,41 @@ export default function AdminDashboard() {
                 </Card>
             </div>
 
-            {/* Charts and Activity */}
-            <div className="col-12 lg:col-8">
-                <Card title="Platform Growth & Activity" className="mt-4">
+            {/* Charts and Activity - same height on lg+ */}
+            <div className="col-12 lg:col-8 flex">
+                <Card title="Platform Growth & Activity" className="mt-4 flex-1 h-full flex flex-column">
                     {loading ? (
-                        <div className="flex align-items-center justify-content-center" style={{ height: '300px' }}>
+                        <div className="flex align-items-center justify-content-center flex-1" style={{ minHeight: '300px' }}>
                             <div className="text-600">Loading chart data...</div>
                         </div>
                     ) : growthData.newEmployers.every(val => val === 0) && growthData.newCandidates.every(val => val === 0) ? (
-                        <div className="flex align-items-center justify-content-center flex-column" style={{ height: '300px' }}>
+                        <div className="flex align-items-center justify-content-center flex-column flex-1" style={{ minHeight: '300px' }}>
                             <i className="pi pi-chart-line text-4xl text-gray-400 mb-3"></i>
                             <div className="text-600 text-center">No growth data available</div>
                             <div className="text-sm text-gray-500 text-center">Growth data will appear here as employers, candidates, and jobs are added</div>
                         </div>
                     ) : (
-                        <ChartWrapper type="line" data={chartData} options={chartOptions} style={{ height: '300px' }} />
+                        <div className="flex-1" style={{ minHeight: '300px' }}>
+                            <ChartWrapper type="line" data={chartData} options={chartOptions} style={{ height: '300px' }} />
+                        </div>
                     )}
                 </Card>
             </div>
 
-            <div className="col-12 lg:col-4">
-                <Card title="Recent Activity" className="mt-4">
+            <div className="col-12 lg:col-4 flex">
+                <Card title="Recent Activity" className="mt-4 flex-1 h-full flex flex-column">
                     {loading ? (
-                        <div className="flex align-items-center justify-content-center" style={{ height: '200px' }}>
+                        <div className="flex align-items-center justify-content-center flex-1" style={{ minHeight: '200px' }}>
                             <div className="text-600">Loading activity...</div>
                         </div>
                     ) : recentActivity.length === 0 ? (
-                        <div className="flex align-items-center justify-content-center flex-column" style={{ height: '200px' }}>
+                        <div className="flex align-items-center justify-content-center flex-column flex-1" style={{ minHeight: '200px' }}>
                             <i className="pi pi-info-circle text-4xl text-gray-400 mb-3"></i>
                             <div className="text-600 text-center">No recent activity</div>
                             <div className="text-sm text-gray-500 text-center">Activities will appear here as they occur</div>
                         </div>
                     ) : (
+                        <div className="flex-1 overflow-auto">
                         <DataTable value={recentActivity} showGridlines>
                             <Column 
                                 field="type" 
@@ -509,6 +512,7 @@ export default function AdminDashboard() {
                                 )}
                             />
                         </DataTable>
+                        </div>
                     )}
                 </Card>
             </div>
