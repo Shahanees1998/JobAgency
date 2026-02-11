@@ -70,6 +70,22 @@ export async function middleware(req: NextRequest) {
     hasRefreshToken: !!req.cookies.get('refresh_token'),
     token: token ? `${token.substring(0, 20)}...` : 'null',
   });  
+
+  // Root should always forward users to the correct app section.
+  // Doing this in middleware avoids any caching/client-hydration edge cases on `/`.
+  if (pathname === '/') {
+    console.log('🏠 [MIDDLEWARE /] Root hit:', {
+      host,
+      forwardedProto: req.headers.get('x-forwarded-proto'),
+      hasToken: !!token,
+      hasAccessCookie: !!req.cookies.get('access_token'),
+    });
+    if (token) {
+      return NextResponse.redirect(new URL('/admin', req.url));
+    }
+    return NextResponse.redirect(new URL('/auth/login', req.url));
+  }
+
   // Protect admin routes (both frontend and API)
   if (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) {
     console.log('🔒 [MIDDLEWARE] Protecting admin route:', pathname);

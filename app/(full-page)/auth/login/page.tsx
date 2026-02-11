@@ -30,20 +30,23 @@ const LoginContent = () => {
 
     // Redirect if already logged in (using useEffect to avoid setState during render)
     useEffect(() => {
+        const callbackParam = searchParams.get('callbackUrl');
         console.log('🔄 [LOGIN PAGE] Redirect check:', {
             authLoading,
             hasUser: !!user,
             userId: user?.id,
+            role: user?.role,
             redirecting,
             loading,
             hasRedirected: hasRedirectedRef.current,
+            callbackUrlParam: callbackParam,
         });
         
         // Only redirect once and only if auth is fully loaded AND user exists
         if (!authLoading && user && user.id && !redirecting && !loading && !hasRedirectedRef.current) {
             console.log('✅ [LOGIN PAGE] Conditions met, preparing redirect...');
             
-            let callbackUrl = searchParams.get('callbackUrl') || getDefaultRedirectPath(user.role);
+            let callbackUrl = callbackParam || getDefaultRedirectPath(user.role);
             
             // If callbackUrl is /admin but user is not ADMIN, use default path for their role
             if (callbackUrl === '/admin' && user.role !== 'ADMIN') {
@@ -68,8 +71,23 @@ const LoginContent = () => {
                     window.location.replace(callbackUrl);
                 }
             }, 300);
+
+            // Debug: if we're still on the login page after a while, log state
+            const stuckTimer = setTimeout(() => {
+                console.warn('⚠️ [LOGIN PAGE] Still on login after redirect attempt', {
+                    pathname: window.location.pathname,
+                    callbackUrl,
+                    hasUser: !!user?.id,
+                    role: user?.role,
+                    redirecting: true,
+                    hasRedirected: hasRedirectedRef.current,
+                });
+            }, 2500);
             
-            return () => clearTimeout(redirectTimer);
+            return () => {
+                clearTimeout(redirectTimer);
+                clearTimeout(stuckTimer);
+            };
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user?.id, redirecting, loading, authLoading]); // Only depend on stable values

@@ -1,11 +1,7 @@
-"use client";
-import { LayoutProvider } from "../layout/context/layoutcontext";
-import { Providers } from "./providers";
-import ClientOnly from "@/components/ClientOnly";
+import { ClientProviders } from './ClientProviders';
 
 import "primeflex/primeflex.css";
 import "primeicons/primeicons.css";
-import { PrimeReactProvider } from "primereact/api";
 import "primereact/resources/primereact.css";
 import "../styles/demo/Demos.scss";
 import "../styles/layout/layout.scss";
@@ -25,15 +21,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                 <link rel="apple-touch-icon" href="/images/logo.png" />
             </head>
             <body>
-                <Providers>
-                    <PrimeReactProvider>
-                        <ClientOnly>
-                            <LayoutProvider>
-                                {children}
-                            </LayoutProvider>
-                        </ClientOnly>
-                    </PrimeReactProvider>
-                </Providers>
+                <ClientProviders>{children}</ClientProviders>
             </body>
         </html>
     );
