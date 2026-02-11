@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AuthService } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { getAuthCookieOptions } from '@/lib/authCookieOptions';
 
 export async function POST(request: NextRequest) {
   try {
@@ -102,35 +103,28 @@ export async function POST(request: NextRequest) {
         updatedAt: user?.updatedAt,
       },
     });
-    const isProd = process.env.NODE_ENV === 'production';
-    
     // Set authentication cookies for all web logins
     // In development (localhost), use secure: false and sameSite: 'lax'
     // In production, use secure: true and sameSite: 'none' (for cross-site)
+    const baseCookieOptions = getAuthCookieOptions(request);
     console.log('🍪 [API /auth/login] Setting cookies:', {
       hasAccessToken: !!accessToken,
       hasRefreshToken: !!refreshToken,
       accessTokenLength: accessToken?.length,
       refreshTokenLength: refreshToken?.length,
-      secure: isProd,
-      sameSite: isProd ? 'none' : 'lax',
-      environment: isProd ? 'production' : 'development',
+      secure: baseCookieOptions.secure,
+      sameSite: baseCookieOptions.sameSite,
+      environment: process.env.NODE_ENV,
     });
     
     response.cookies.set('access_token', accessToken, {
-      httpOnly: true,
-      secure: isProd, // true in production, false in development
-      sameSite: isProd ? 'none' : 'lax', // 'none' for production (cross-site), 'lax' for localhost
+      ...baseCookieOptions,
       maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
-      path: '/',
     });
 
     response.cookies.set('refresh_token', refreshToken, {
-      httpOnly: true,
-      secure: isProd, // true in production, false in development
-      sameSite: isProd ? 'none' : 'lax', // 'none' for production (cross-site), 'lax' for localhost
+      ...baseCookieOptions,
       maxAge: 30 * 24 * 60 * 60, // 30 days in seconds
-      path: '/',
     });
     
     // Verify cookies were set

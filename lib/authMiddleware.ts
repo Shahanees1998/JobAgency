@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AuthService, JWTPayload } from './auth';
+import { getAuthCookieOptions } from './authCookieOptions';
 
 export interface AuthenticatedRequest extends NextRequest {
   user?: JWTPayload;
@@ -48,7 +49,7 @@ export async function withAuth(
   } catch (error) {
     // If token is expired, try to refresh it
     if (error instanceof Error && error.message === 'Invalid token') {
-      const refreshToken = AuthService.getRefreshTokenFromCookies();
+      const refreshToken = req.cookies.get('refresh_token')?.value || null;
       
       if (refreshToken) {
         try {
@@ -56,14 +57,10 @@ export async function withAuth(
           
           // Set new access token in cookie
           const response = await handler(req as AuthenticatedRequest);
-          const isProd = process.env.NODE_ENV === 'production';
           // Add the new token to the response
           response.cookies.set('access_token', newAccessToken, {
-            httpOnly: true,
-            secure: isProd,
-            sameSite: isProd ? 'none' : 'lax',
+            ...getAuthCookieOptions(req),
             maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
-            path: '/',
           });
           
           return response;

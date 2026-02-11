@@ -87,7 +87,7 @@ const LoginContent = () => {
     }
 
     // Show redirecting only if we have a user and are redirecting
-    if (user && user.id && (redirecting || (!loading))) {
+    if (user && user.id && redirecting) {
         return (
             <div className="min-h-screen flex justify-content-center align-items-center">
                 <div className="text-center">

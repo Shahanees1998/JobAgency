@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AuthService } from '@/lib/auth';
+import { getAuthCookieOptions } from '@/lib/authCookieOptions';
 
 export async function POST(request: NextRequest) {
   try {
     // Get refresh token from cookies
-    const refreshToken = AuthService.getRefreshTokenFromCookies();
+    const refreshToken = request.cookies.get('refresh_token')?.value || null;
     
     if (!refreshToken) {
       return NextResponse.json(
@@ -21,14 +22,11 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'Token refreshed successfully',
     });
-    const isProd = process.env.NODE_ENV === 'production';
+    const baseCookieOptions = getAuthCookieOptions(request);
     // Set new access token in cookie
     response.cookies.set('access_token', newAccessToken, {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? 'none' : 'lax',
+      ...baseCookieOptions,
       maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
-      path: '/',
     });
 
     return response;

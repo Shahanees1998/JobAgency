@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AuthService } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { getAuthCookieOptions } from '@/lib/authCookieOptions';
 import bcrypt from 'bcryptjs';
 
 export async function POST(request: NextRequest) {
@@ -112,23 +113,17 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const isProd = process.env.NODE_ENV === 'production';
+    const baseCookieOptions = getAuthCookieOptions(request);
     
     // Set authentication cookies
     response.cookies.set('access_token', accessToken, {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? 'none' : 'lax',
+      ...baseCookieOptions,
       maxAge: 7 * 24 * 60 * 60,
-      path: '/',
     });
 
     response.cookies.set('refresh_token', refreshToken, {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? 'none' : 'lax',
+      ...baseCookieOptions,
       maxAge: 30 * 24 * 60 * 60,
-      path: '/',
     });
 
     return response;
