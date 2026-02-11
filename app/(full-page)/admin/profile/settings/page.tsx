@@ -150,9 +150,9 @@ export default function AdminProfileSettings() {
         </div>
       </div>
 
-      {/* Notification Settings */}
-      <div className="col-12 lg:col-8">
-        <Card title="Notification Preferences" className="mb-4">
+      {/* Row 1: Notification + Account Actions (same height on lg+) */}
+      <div className="col-12 lg:col-8 flex">
+        <Card title="Notification Preferences" className="mb-4 flex-1 h-full">
           <div className="grid">
             <div className="col-12">
               <div className="flex align-items-center gap-3 mb-4">
@@ -204,9 +204,42 @@ export default function AdminProfileSettings() {
             </div>
           </div>
         </Card>
+      </div>
 
-        {/* Display Settings */}
-        <Card title="Display Preferences" className="mb-4">
+      <div className="col-12 lg:col-4 flex">
+        <Card title="Account Actions" className="mb-4 flex-1 h-full">
+          <div className="flex flex-column gap-3">
+            <Button
+              label="Export Data"
+              icon="pi pi-download"
+              className="p-button-outlined"
+              onClick={() => showToast("info", "Info", "Data export initiated")}
+            />
+            <Button
+              label="Download Backup"
+              icon="pi pi-file"
+              className="p-button-outlined"
+              onClick={() => showToast("info", "Info", "Backup download started")}
+            />
+            <Button
+              label="Clear Cache"
+              icon="pi pi-refresh"
+              className="p-button-outlined"
+              onClick={() => showToast("info", "Info", "Cache cleared")}
+            />
+            <Button
+              label="Sign Out All Devices"
+              icon="pi pi-sign-out"
+              className="p-button-outlined p-button-danger"
+              onClick={() => showToast("warn", "Warning", "All devices will be signed out")}
+            />
+          </div>
+        </Card>
+      </div>
+
+      {/* Row 2: Display + Danger Zone (same height on lg+) */}
+      <div className="col-12 lg:col-8 flex">
+        <Card title="Display Preferences" className="mb-4 flex-1 h-full">
           <div className="grid">
             <div className="col-12 md:col-6">
               <label className="block text-900 font-medium mb-2">Language</label>
@@ -252,38 +285,8 @@ export default function AdminProfileSettings() {
         </Card>
       </div>
 
-      {/* Account Actions */}
-      <div className="col-12 lg:col-4">
-        <Card title="Account Actions" className="mb-4">
-          <div className="flex flex-column gap-3">
-            <Button
-              label="Export Data"
-              icon="pi pi-download"
-              className="p-button-outlined"
-              onClick={() => showToast("info", "Info", "Data export initiated")}
-            />
-            <Button
-              label="Download Backup"
-              icon="pi pi-file"
-              className="p-button-outlined"
-              onClick={() => showToast("info", "Info", "Backup download started")}
-            />
-            <Button
-              label="Clear Cache"
-              icon="pi pi-refresh"
-              className="p-button-outlined"
-              onClick={() => showToast("info", "Info", "Cache cleared")}
-            />
-            <Button
-              label="Sign Out All Devices"
-              icon="pi pi-sign-out"
-              className="p-button-outlined p-button-danger"
-              onClick={() => showToast("warn", "Warning", "All devices will be signed out")}
-            />
-          </div>
-        </Card>
-
-        <Card title="Danger Zone" className="mb-4">
+      <div className="col-12 lg:col-4 flex">
+        <Card title="Danger Zone" className="mb-4 flex-1 h-full">
           <div className="flex flex-column gap-3">
             <Button
               label="Deactivate Account"

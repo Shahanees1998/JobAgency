@@ -147,11 +147,6 @@ const AppMenu = () => {
                     to: "/admin/settings",
                 },
                 {
-                    label: "Integrations",
-                    icon: "pi pi-fw pi-plug",
-                    to: "/admin/integrations",
-                },
-                {
                     label: "Announcements",
                     icon: "pi pi-fw pi-megaphone",
                     to: "/admin/announcements",

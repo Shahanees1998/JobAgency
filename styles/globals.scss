@@ -103,6 +103,14 @@ a {
   text-overflow: ellipsis;
 }
 
+/* Admin table chips */
+.admin-status-chip {
+  min-width: 8.5rem;
+  display: inline-flex;
+  justify-content: center;
+  white-space: nowrap;
+}
+
 img {
   object-fit: contain;
   background: #eaeaea;

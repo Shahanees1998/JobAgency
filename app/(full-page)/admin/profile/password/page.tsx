@@ -82,8 +82,8 @@ export default function AdminProfilePassword() {
       </div>
 
       {/* Password Form */}
-      <div className="col-12 lg:col-8">
-        <Card title="Password Settings" className="mb-4">
+      <div className="col-12 lg:col-8 flex">
+        <Card title="Password Settings" className="w-full flex-1 mb-4 lg:mb-0">
           <div className="grid">
             <div className="col-12">
               <label className="block text-900 font-medium mb-2">Current Password *</label>
@@ -92,6 +92,7 @@ export default function AdminProfilePassword() {
                 onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
                 placeholder="Enter current password"
                 toggleMask
+                feedback={false}
                 className="w-full"
                 inputClassName="w-full"
               />
@@ -103,6 +104,7 @@ export default function AdminProfilePassword() {
                 onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
                 placeholder="Enter new password"
                 toggleMask
+                feedback={false}
                 className="w-full"
                 inputClassName="w-full"
               />
@@ -115,6 +117,7 @@ export default function AdminProfilePassword() {
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                 placeholder="Confirm new password"
                 toggleMask
+                feedback={false}
                 className="w-full"
                 inputClassName="w-full"
               />
@@ -124,8 +127,8 @@ export default function AdminProfilePassword() {
       </div>
 
       {/* Security Tips */}
-      <div className="col-12 lg:col-4">
-        <Card title="Security Tips" className="mb-4">
+      <div className="col-12 lg:col-4 flex">
+        <Card title="Security Tips" className="w-full flex-1 mb-4 lg:mb-0">
           <div className="flex flex-column gap-3">
             <div className="flex align-items-start gap-3 p-3 border-1 border-200 border-round">
               <i className="pi pi-shield text-2xl text-blue-500 mt-1"></i>

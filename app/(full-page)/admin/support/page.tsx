@@ -161,6 +161,7 @@ export default function AdminSupport() {
         <Tag
           value={rowData.status}
           severity={getStatusSeverity(rowData.status) as any}
+          className="admin-status-chip"
         />
         <Button
           icon="pi pi-cog"

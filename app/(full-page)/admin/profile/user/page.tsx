@@ -118,8 +118,8 @@ export default function AdminProfileUser() {
       </div>
 
       {/* Profile Form */}
-      <div className="col-12 lg:col-8">
-        <Card title="Profile Details" className="mb-4">
+      <div className="col-12 lg:col-8 flex">
+        <Card title="Profile Details" className="mb-4 flex-1 h-full">
           <div className="grid">
             <div className="col-12 md:col-6">
               <label className="block text-900 font-medium mb-2">First Name *</label>
@@ -163,8 +163,8 @@ export default function AdminProfileUser() {
       </div>
 
       {/* Account Info */}
-      <div className="col-12 lg:col-4">
-        <Card title="Account Information" className="mb-4">
+      <div className="col-12 lg:col-4 flex">
+        <Card title="Account Information" className="mb-4 flex-1 h-full">
           <div className="flex flex-column gap-3">
             <div className="flex justify-content-between align-items-center p-3 border-1 border-200 border-round">
               <div>

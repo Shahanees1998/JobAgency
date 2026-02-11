@@ -1461,6 +1461,45 @@
     background: #29c76f;
   }
 
+  /*
+   * PrimeReact v10+ uses IconField/InputIcon for toggleMask icons (Password, etc.)
+   * Our theme previously only styled legacy .p-input-icon-left/right, causing icons
+   * (e.g. password eye icon) to flow below inputs instead of inside the field.
+   */
+  .p-icon-field {
+    position: relative;
+    display: inline-flex;
+    width: 100%;
+  }
+
+  .p-icon-field > .p-input-icon {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #64748b;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 1;
+  }
+
+  .p-icon-field.p-icon-field-right > .p-input-icon {
+    right: 0.75rem;
+  }
+
+  .p-icon-field.p-icon-field-left > .p-input-icon {
+    left: 0.75rem;
+  }
+
+  .p-icon-field.p-icon-field-right > .p-inputtext {
+    width: 100%;
+    padding-right: 2.5rem;
+  }
+
+  .p-icon-field.p-icon-field-left > .p-inputtext {
+    width: 100%;
+    padding-left: 2.5rem;
+  }
+
   .p-radiobutton {
     width: 22px;
     height: 22px;
