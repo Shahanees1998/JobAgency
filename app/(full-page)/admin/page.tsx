@@ -44,7 +44,7 @@ interface GrowthData {
 export default function AdminDashboard() {
     const router = useRouter();
     const toast = useRef<Toast>(null);
-    const { user, loading: authLoading } = useAuth();
+    const { user, loading: authLoading, refreshUser } = useAuth();
     const [stats, setStats] = useState<DashboardStats>({
         totalEmployers: 0,
         totalCandidates: 0,
@@ -64,70 +64,42 @@ export default function AdminDashboard() {
     });
     const [loading, setLoading] = useState(true);
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-
-    const hasCheckedAuthRef = useRef(false);
-    const hasRedirectedRef = useRef(false);
+    const hasTriedRefreshRef = useRef(false);
 
     useEffect(() => {
-        console.log('🏠 [ADMIN PAGE] Auth check:', {
-            authLoading,
-            hasUser: !!user,
-            userId: user?.id,
-            role: user?.role,
-            hasChecked: hasCheckedAuthRef.current,
-            hasRedirected: hasRedirectedRef.current,
-        });
-        
-        // Only check auth once after loading completes
-        if (!authLoading && !hasCheckedAuthRef.current) {
-            hasCheckedAuthRef.current = true;
-            console.log('✅ [ADMIN PAGE] Starting auth check...');
-            
-            // Wait a bit for user state to be set
-            const checkTimer = setTimeout(() => {
-                console.log('⏳ [ADMIN PAGE] Checking user state after delay...');
-                
-                if (!user || !user.id) {
-                    console.log('❌ [ADMIN PAGE] No user, redirecting to login');
-                    // Not authenticated, redirect to login (only once)
-                    if (!hasRedirectedRef.current) {
-                        hasRedirectedRef.current = true;
-                        console.log('🔄 [ADMIN PAGE] Redirecting to login');
-                        window.location.replace('/auth/login?callbackUrl=/admin');
-                    }
-                    return;
-                }
-                
-                console.log('✅ [ADMIN PAGE] User found:', {
-                    id: user.id,
-                    role: user.role,
-                });
-                
-                // Redirect non-admin users to their allowed section
-                if (!canAccessSection(user.role, 'canAccessAll')) {
-                    const redirectPath = getDefaultRedirectPath(user.role);
-                    console.log('🔄 [ADMIN PAGE] User not admin, redirecting to:', redirectPath);
-                    if (!hasRedirectedRef.current) {
-                        hasRedirectedRef.current = true;
-                        window.location.replace(redirectPath);
-                    }
-                    return;
-                }
-                
-                // Load dashboard data for admin users
-                console.log('📊 [ADMIN PAGE] Loading dashboard data...');
-                loadDashboardData();
-            }, 500); // Increased delay to ensure auth state is stable
-            
-            return () => clearTimeout(checkTimer);
-        }
-    }, [user?.id, authLoading]);
+        if (authLoading) return;
 
+        // If user is missing, try one refresh before redirecting.
+        // This avoids getting stuck in a "loading" state after client navigation.
+        if (!user?.id) {
+            if (!hasTriedRefreshRef.current) {
+                hasTriedRefreshRef.current = true;
+                // fire-and-forget; if refresh fails, the next render will redirect
+                refreshUser().catch(() => {});
+                return;
+            }
+            router.replace("/auth/login?callbackUrl=/admin");
+            return;
+        }
+
+        // Redirect non-admin users to their allowed section
+        if (!canAccessSection(user.role, "canAccessAll")) {
+            router.replace(getDefaultRedirectPath(user.role));
+            return;
+        }
+
+        // Always load dashboard data when page is active for an admin user
+        loadDashboardData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [authLoading, user?.id, user?.role]);
+
+    const isFetchingDashboardRef = useRef(false);
     const loadDashboardData = async () => {
+        if (isFetchingDashboardRef.current) return;
+        isFetchingDashboardRef.current = true;
         setLoading(true);
         try {
             const response = await apiClient.getDashboard();
-            console.log(response,'<<<<<<<<<<<>>>>>>>>>>>>>> response');
             if (response.error) {
                 throw new Error(response.error);
             }
@@ -139,9 +111,6 @@ export default function AdminDashboard() {
                 setRecentActivity(dashboardData.recentActivity);
                 setGrowthData(dashboardData.growthData);
                 setLastUpdated(new Date());
-                console.log('Data set successfully');
-            } else {
-                console.log('No stats data in response:', response);
             }
         } catch (error) {
             console.error("Error loading dashboard data:", error);
@@ -166,6 +135,7 @@ export default function AdminDashboard() {
             });
         } finally {
             setLoading(false);
+            isFetchingDashboardRef.current = false;
         }
     };
 
@@ -286,18 +256,6 @@ export default function AdminDashboard() {
         );
     }
 
-    // Show loading while checking auth
-    if (authLoading) {
-        return (
-            <div className="flex align-items-center justify-content-center min-h-screen">
-                <div className="text-center">
-                    <i className="pi pi-spinner pi-spin text-4xl mb-3"></i>
-                    <p>Loading...</p>
-                </div>
-            </div>
-        );
-    }
-
     // Show redirecting message if not authenticated or not admin (redirect will happen in useEffect)
     if (!user || !canAccessSection(user.role, 'canAccessAll')) {
         return (
@@ -345,9 +303,6 @@ export default function AdminDashboard() {
         },
     ];
 
-    console.log('Current stats state:', stats);
-    console.log('Current loading state:', loading);
-    
     const cardData = [
         {
             value: stats.totalEmployers,
