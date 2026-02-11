@@ -1,4 +1,4 @@
-@import 'icons.css';
+/* icons.css removed: it references missing ../public/feather fonts and is unused */
 
 html,
 body {
@@ -105,15 +105,28 @@ a {
 
 /* Admin table chips */
 .admin-status-chip {
-  min-width: 8.5rem;
+  width: 9rem;
   display: inline-flex;
   justify-content: center;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Make all table chips/tags same width (alignment) */
+.p-datatable .p-datatable-tbody > tr > td .p-tag,
+.p-datatable .p-datatable-tbody > tr > td .p-chip {
+  width: 9rem;
+  display: inline-flex;
+  justify-content: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 img {
   object-fit: contain;
-  background: #eaeaea;
+  background: transparent;
 }
 
 .p-scrollpanel-content {

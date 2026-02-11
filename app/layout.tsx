@@ -4,6 +4,7 @@ import "primeflex/primeflex.css";
 import "primeicons/primeicons.css";
 import "primereact/resources/primereact.css";
 import "../styles/demo/Demos.scss";
+import "../styles/globals.scss";
 import "../styles/layout/layout.scss";
 import "../styles/theme.css";
 interface RootLayoutProps {

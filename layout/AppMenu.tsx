@@ -87,18 +87,6 @@ const AppMenu = () => {
             ],
         },
         
-        // Analytics & Reports
-        {
-            label: "Analytics",
-            icon: "pi pi-chart-bar",
-            items: [
-                {
-                    label: "System Overview",
-                    icon: "pi pi-fw pi-chart-line",
-                    to: "/admin/analytics",
-                },
-            ],
-        },
         
         // Chat Moderation
         {

@@ -13,6 +13,7 @@ import { useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { apiClient } from "@/lib/apiClient";
 import { useRouter } from "next/navigation";
+import TableLoader from "@/components/TableLoader";
 
 interface Job {
   id: string;
@@ -177,45 +178,48 @@ export default function AdminPendingJobs() {
           </p>
 
           {/* Data Table */}
-          <DataTable
-            value={jobs}
-            loading={loading}
-            paginator
-            rows={10}
-            rowsPerPageOptions={[10, 20, 50]}
-            emptyMessage="No pending jobs found"
-          >
-            <Column field="title" header="Job Title" sortable />
-            <Column
-              field="employer.companyName"
-              header="Company"
-              sortable
-            />
-            <Column
-              field="employmentType"
-              header="Type"
-              body={(rowData) => getEmploymentTypeLabel(rowData.employmentType)}
-            />
-            <Column
-              field="location"
-              header="Location"
-            />
-            <Column
-              field="salaryRange"
-              header="Salary"
-            />
-            <Column
-              field="createdAt"
-              header="Submitted"
-              body={(rowData) => formatDate(rowData.createdAt)}
-              sortable
-            />
-            <Column
-              header="Actions"
-              body={actionBodyTemplate}
-              style={{ width: "200px" }}
-            />
-          </DataTable>
+          {loading ? (
+            <TableLoader message="Loading pending jobs..." />
+          ) : (
+            <DataTable
+              value={jobs}
+              paginator
+              rows={10}
+              rowsPerPageOptions={[10, 20, 50]}
+              emptyMessage="No pending jobs found"
+            >
+              <Column field="title" header="Job Title" sortable />
+              <Column
+                field="employer.companyName"
+                header="Company"
+                sortable
+              />
+              <Column
+                field="employmentType"
+                header="Type"
+                body={(rowData) => getEmploymentTypeLabel(rowData.employmentType)}
+              />
+              <Column
+                field="location"
+                header="Location"
+              />
+              <Column
+                field="salaryRange"
+                header="Salary"
+              />
+              <Column
+                field="createdAt"
+                header="Submitted"
+                body={(rowData) => formatDate(rowData.createdAt)}
+                sortable
+              />
+              <Column
+                header="Actions"
+                body={actionBodyTemplate}
+                style={{ width: "200px" }}
+              />
+            </DataTable>
+          )}
         </Card>
       </div>
 

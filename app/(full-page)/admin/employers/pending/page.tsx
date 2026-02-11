@@ -13,6 +13,7 @@ import { useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { apiClient } from "@/lib/apiClient";
 import { useRouter } from "next/navigation";
+import TableLoader from "@/components/TableLoader";
 
 interface Employer {
   id: string;
@@ -173,49 +174,52 @@ export default function AdminPendingEmployers() {
           </p>
 
           {/* Data Table */}
-          <DataTable
-            value={employers}
-            loading={loading}
-            paginator
-            rows={10}
-            rowsPerPageOptions={[10, 20, 50]}
-            emptyMessage="No pending employers found"
-          >
-            <Column field="companyName" header="Company Name" sortable />
-            <Column
-              field="user.email"
-              header="Contact Email"
-              sortable
-            />
-            <Column
-              field="user.firstName"
-              header="Contact Name"
-              body={(rowData) => `${rowData.user.firstName} ${rowData.user.lastName}`}
-            />
-            <Column
-              field="industry"
-              header="Industry"
-            />
-            <Column
-              field="city"
-              header="City"
-            />
-            <Column
-              field="country"
-              header="Country"
-            />
-            <Column
-              field="createdAt"
-              header="Registered"
-              body={(rowData) => formatDate(rowData.createdAt)}
-              sortable
-            />
-            <Column
-              header="Actions"
-              body={actionBodyTemplate}
-              style={{ width: "200px" }}
-            />
-          </DataTable>
+          {loading ? (
+            <TableLoader message="Loading pending employers..." />
+          ) : (
+            <DataTable
+              value={employers}
+              paginator
+              rows={10}
+              rowsPerPageOptions={[10, 20, 50]}
+              emptyMessage="No pending employers found"
+            >
+              <Column field="companyName" header="Company Name" sortable />
+              <Column
+                field="user.email"
+                header="Contact Email"
+                sortable
+              />
+              <Column
+                field="user.firstName"
+                header="Contact Name"
+                body={(rowData) => `${rowData.user.firstName} ${rowData.user.lastName}`}
+              />
+              <Column
+                field="industry"
+                header="Industry"
+              />
+              <Column
+                field="city"
+                header="City"
+              />
+              <Column
+                field="country"
+                header="Country"
+              />
+              <Column
+                field="createdAt"
+                header="Registered"
+                body={(rowData) => formatDate(rowData.createdAt)}
+                sortable
+              />
+              <Column
+                header="Actions"
+                body={actionBodyTemplate}
+                style={{ width: "200px" }}
+              />
+            </DataTable>
+          )}
         </Card>
       </div>
 
