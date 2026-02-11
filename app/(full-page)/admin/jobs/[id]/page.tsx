@@ -50,7 +50,7 @@ const styles = `
   }
 
   .job-header-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #1e3a5f;
     color: white;
     border-radius: 12px;
     padding: 2rem;
@@ -110,22 +110,22 @@ const styles = `
   }
 
   .stat-badge.views {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #1e3a5f;
     color: white;
   }
 
   .stat-badge.applications {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    background: #1e3a5f;
     color: white;
   }
 
   .stat-badge.sponsored {
-    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    background: #1e3a5f;
     color: white;
   }
 
   .stat-badge.boosted {
-    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    background: #1e3a5f;
     color: white;
   }
 
@@ -139,7 +139,7 @@ const styles = `
   }
 
   .employer-card {
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    background: #1e3a5f;
     border-radius: 12px;
     padding: 2rem;
     margin-top: 1.5rem;
@@ -170,22 +170,22 @@ const styles = `
   }
 
   .icon-wrapper.blue {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #1e3a5f;
     color: white;
   }
 
   .icon-wrapper.green {
-    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    background: #1e3a5f;
     color: white;
   }
 
   .icon-wrapper.orange {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    background: #1e3a5f;
     color: white;
   }
 
   .icon-wrapper.purple {
-    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    background: #1e3a5f;
     color: white;
   }
 
@@ -417,7 +417,7 @@ export default function AdminJobDetailPage() {
               <div className="text-center p-6">
                 <div className="flex justify-content-center mb-4">
                   <div className="icon-wrapper" style={{ 
-                    background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', 
+                    background: '#1e3a5f', 
                     color: 'white',
                     width: '80px',
                     height: '80px'
@@ -434,7 +434,7 @@ export default function AdminJobDetailPage() {
                   className="action-button"
                   size="large"
                   style={{ 
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    background: '#1e3a5f',
                     border: 'none',
                     color: 'white'
                   }}
@@ -657,7 +657,7 @@ export default function AdminJobDetailPage() {
             {job.responsibilities && (
               <div className="info-card pink">
                 <div className="flex align-items-center mb-3">
-                  <div className="icon-wrapper" style={{ background: 'linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)', color: 'white' }}>
+                  <div className="icon-wrapper" style={{ background: '#1e3a5f', color: 'white' }}>
                     <i className="pi pi-check-circle text-xl"></i>
                   </div>
                   <h3 className="text-xl font-bold m-0">Responsibilities</h3>
@@ -788,7 +788,7 @@ export default function AdminJobDetailPage() {
             {job.moderationNotes && (
               <div className="info-card" style={{ borderLeft: '4px solid #f59e0b' }}>
                 <div className="flex align-items-center mb-3">
-                  <div className="icon-wrapper" style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', color: 'white' }}>
+                  <div className="icon-wrapper" style={{ background: '#1e3a5f', color: 'white' }}>
                     <i className="pi pi-comment text-xl"></i>
                   </div>
                   <h3 className="text-xl font-bold m-0">Moderation Notes</h3>
@@ -808,7 +808,7 @@ export default function AdminJobDetailPage() {
                 className="action-button"
                 size="large"
                 style={{ 
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  background: '#1e3a5f',
                   border: 'none',
                   color: 'white'
                 }}
@@ -820,7 +820,7 @@ export default function AdminJobDetailPage() {
                 className="action-button"
                 size="large"
                 style={{ 
-                  background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                  background: '#1e3a5f',
                   border: 'none',
                   color: 'white'
                 }}

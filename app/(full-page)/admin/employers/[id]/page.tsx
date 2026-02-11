@@ -109,12 +109,12 @@ const styles = `
   }
 
   .stat-badge.jobs {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #1e3a5f;
     color: white;
   }
 
   .stat-badge.verified {
-    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    background: #1e3a5f;
     color: white;
   }
 
@@ -150,22 +150,22 @@ const styles = `
   }
 
   .icon-wrapper.blue {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #1e3a5f;
     color: white;
   }
 
   .icon-wrapper.green {
-    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    background: #1e3a5f;
     color: white;
   }
 
   .icon-wrapper.orange {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    background: #1e3a5f;
     color: white;
   }
 
   .icon-wrapper.purple {
-    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    background: #1e3a5f;
     color: white;
   }
 
@@ -420,7 +420,7 @@ export default function AdminEmployerDetailPage() {
               <div className="text-center p-6">
                 <div className="flex justify-content-center mb-4">
                   <div className="icon-wrapper" style={{ 
-                    background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', 
+                    background: '#1e3a5f', 
                     color: 'white',
                     width: '80px',
                     height: '80px'
@@ -437,7 +437,7 @@ export default function AdminEmployerDetailPage() {
                   className="action-button"
                   size="large"
                   style={{ 
-                    background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                    background: '#1e3a5f',
                     border: 'none',
                     color: 'white'
                   }}
@@ -710,7 +710,7 @@ export default function AdminEmployerDetailPage() {
               {employer.verificationNotes && (
                 <div className="info-card" style={{ borderLeft: '4px solid #f59e0b' }}>
                   <div className="flex align-items-center mb-3">
-                    <div className="icon-wrapper" style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', color: 'white' }}>
+                    <div className="icon-wrapper" style={{ background: '#1e3a5f', color: 'white' }}>
                       <i className="pi pi-comment text-xl"></i>
                     </div>
                     <h3 className="text-xl font-bold m-0">Verification Notes</h3>
@@ -725,7 +725,7 @@ export default function AdminEmployerDetailPage() {
               {employer.isSuspended && employer.suspensionReason && (
                 <div className="info-card" style={{ borderLeft: '4px solid #ef4444' }}>
                   <div className="flex align-items-center mb-3">
-                    <div className="icon-wrapper" style={{ background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', color: 'white' }}>
+                    <div className="icon-wrapper" style={{ background: '#1e3a5f', color: 'white' }}>
                       <i className="pi pi-ban text-xl"></i>
                     </div>
                     <h3 className="text-xl font-bold m-0">Suspension Details</h3>
@@ -786,7 +786,7 @@ export default function AdminEmployerDetailPage() {
                   className="action-button"
                   size="large"
                   style={{ 
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    background: '#1e3a5f',
                     border: 'none',
                     color: 'white'
                   }}

@@ -249,7 +249,7 @@ function createWelcomeEmail(firstName: string, loginUrl: string, email: string, 
                 overflow: hidden;
             }
             .header {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: #1e3a5f;
                 color: white;
                 padding: 30px;
                 text-align: center;
@@ -278,7 +278,7 @@ function createWelcomeEmail(firstName: string, loginUrl: string, email: string, 
             }
             .primary-button {
                 display: inline-block;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: #1e3a5f;
                 color: white;
                 text-decoration: none;
                 padding: 15px 30px;

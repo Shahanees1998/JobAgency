@@ -25,7 +25,7 @@ const AppSidebar = () => {
         <>
             <div className="sidebar-header">
                 <Link style={{display:'flex', alignItems: 'center', color: '#ffffff' }} href={dashboardPath} className="app-logo flex items-center justify-content-center gap-3">
-                    <img src="/images/logo.png" alt="JobPortal Logo"  style={{height:'60px', filter: 'brightness(0) invert(1)'}}/>
+                    <img src="/images/logo.png" alt="JobPortal Logo"  style={{height:'100px', filter: 'brightness(0) invert(1)'}}/>
                 </Link>
                 <button
                     className="layout-sidebar-anchor p-link z-2 mb-2"

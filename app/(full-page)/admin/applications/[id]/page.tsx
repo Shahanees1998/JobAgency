@@ -48,7 +48,7 @@ const styles = `
   }
 
   .application-header-card {
-    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    background: #1e3a5f;
     color: white;
     border-radius: 12px;
     padding: 2rem;
@@ -124,22 +124,22 @@ const styles = `
   }
 
   .icon-wrapper.blue {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #1e3a5f;
     color: white;
   }
 
   .icon-wrapper.green {
-    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    background: #1e3a5f;
     color: white;
   }
 
   .icon-wrapper.orange {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    background: #1e3a5f;
     color: white;
   }
 
   .icon-wrapper.purple {
-    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    background: #1e3a5f;
     color: white;
   }
 
@@ -311,7 +311,7 @@ export default function AdminApplicationDetailPage() {
               <div className="text-center p-6">
                 <div className="flex justify-content-center mb-4">
                   <div className="icon-wrapper" style={{ 
-                    background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', 
+                    background: '#1e3a5f', 
                     color: 'white',
                     width: '80px',
                     height: '80px'
@@ -328,7 +328,7 @@ export default function AdminApplicationDetailPage() {
                   className="action-button"
                   size="large"
                   style={{ 
-                    background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                    background: '#1e3a5f',
                     border: 'none',
                     color: 'white'
                   }}
@@ -550,7 +550,7 @@ export default function AdminApplicationDetailPage() {
               {/* Candidate Information */}
               <div className="info-card" style={{ borderLeft: '4px solid #ec4899' }}>
                 <div className="flex align-items-center mb-3">
-                  <div className="icon-wrapper" style={{ background: 'linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)', color: 'white' }}>
+                  <div className="icon-wrapper" style={{ background: '#1e3a5f', color: 'white' }}>
                     <i className="pi pi-user text-xl"></i>
                   </div>
                   <h3 className="text-xl font-bold m-0">Candidate Information</h3>
@@ -653,7 +653,7 @@ export default function AdminApplicationDetailPage() {
                   className="action-button"
                   size="large"
                   style={{ 
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    background: '#1e3a5f',
                     border: 'none',
                     color: 'white'
                   }}
@@ -665,7 +665,7 @@ export default function AdminApplicationDetailPage() {
                   className="action-button"
                   size="large"
                   style={{ 
-                    background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                    background: '#1e3a5f',
                     border: 'none',
                     color: 'white'
                   }}
@@ -678,7 +678,7 @@ export default function AdminApplicationDetailPage() {
                     className="action-button"
                     size="large"
                     style={{ 
-                      background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                      background: '#1e3a5f',
                       border: 'none',
                       color: 'white'
                     }}

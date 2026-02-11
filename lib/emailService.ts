@@ -67,7 +67,7 @@ export async function sendOTPEmail(email: string, otp: string, firstName?: strin
       <title>Verification Code</title>
     </head>
     <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+      <div style="background: #1e3a5f; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
         <h1 style="color: white; margin: 0;">Job Portal</h1>
       </div>
       <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
@@ -112,7 +112,7 @@ export async function sendWelcomeEmail(
       <title>Welcome</title>
     </head>
     <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+      <div style="background: #1e3a5f; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
         <h1 style="color: white; margin: 0;">Welcome to Job Portal!</h1>
       </div>
       <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
@@ -162,7 +162,7 @@ export async function sendPasswordResetEmail(
       <title>Reset Password</title>
     </head>
     <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+      <div style="background: #1e3a5f; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
         <h1 style="color: white; margin: 0;">Password Reset</h1>
       </div>
       <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
