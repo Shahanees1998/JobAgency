@@ -73,7 +73,7 @@ const styles = `
   }
 
   .info-card.blue {
-    border-left-color: #3b82f6;
+    border-left-color: ##000000;
   }
 
   .info-card.green {
@@ -510,7 +510,7 @@ export default function AdminApplicationDetailPage() {
               )}
 
               {/* Job Information */}
-              <div className="info-card" style={{ borderLeft: '4px solid #3b82f6' }}>
+              <div className="info-card" style={{ borderLeft: '4px solid ##000000' }}>
                 <div className="flex align-items-center mb-3">
                   <div className="icon-wrapper blue">
                     <i className="pi pi-briefcase text-xl"></i>
@@ -519,7 +519,7 @@ export default function AdminApplicationDetailPage() {
                 </div>
                 <div className="grid">
                   <div className="col-12 md:col-6">
-                    <div className="p-3 bg-white border-round" style={{ borderLeft: '4px solid #3b82f6' }}>
+                    <div className="p-3 bg-white border-round" style={{ borderLeft: '4px solid ##000000' }}>
                       <label className="font-bold text-600 block mb-2">
                         <i className="pi pi-briefcase mr-2 text-blue-500"></i>Job Title
                       </label>
@@ -542,7 +542,7 @@ export default function AdminApplicationDetailPage() {
                     onClick={() => router.push(`/admin/jobs/${application.jobId}`)}
                     className="action-button"
                     outlined
-                    style={{ borderColor: '#3b82f6', color: '#3b82f6' }}
+                    style={{ borderColor: '##000000', color: '##000000' }}
                   />
                 </div>
               </div>
@@ -580,7 +580,7 @@ export default function AdminApplicationDetailPage() {
                   </div>
                   {application.candidate.user.phone && (
                     <div className="col-12 md:col-6">
-                      <div className="p-3 bg-white border-round" style={{ borderLeft: '4px solid #3b82f6' }}>
+                      <div className="p-3 bg-white border-round" style={{ borderLeft: '4px solid ##000000' }}>
                         <label className="font-bold text-600 block mb-2">
                           <i className="pi pi-phone mr-2 text-blue-500"></i>Phone
                         </label>

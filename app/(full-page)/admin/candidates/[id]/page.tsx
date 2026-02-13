@@ -73,7 +73,7 @@ const styles = `
   }
 
   .info-card.blue {
-    border-left-color: #3b82f6;
+    border-left-color: ##000000;
   }
 
   .info-card.green {
@@ -552,7 +552,7 @@ export default function AdminCandidateDetailPage() {
 
               {/* Experience */}
               {candidate.experience && (
-                <div className="info-card" style={{ borderLeft: '4px solid #3b82f6' }}>
+                <div className="info-card" style={{ borderLeft: '4px solid ##000000' }}>
                   <div className="flex align-items-center mb-3">
                     <div className="icon-wrapper blue">
                       <i className="pi pi-briefcase text-xl"></i>

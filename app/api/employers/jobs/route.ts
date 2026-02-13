@@ -31,6 +31,7 @@ export async function GET(request: NextRequest) {
 
       const { searchParams } = new URL(request.url);
       const status = searchParams.get('status');
+      const search = searchParams.get('search');
       const page = parseInt(searchParams.get('page') || '1');
       const limit = parseInt(searchParams.get('limit') || '20');
 
@@ -40,6 +41,15 @@ export async function GET(request: NextRequest) {
 
       if (status) {
         where.status = status;
+      }
+
+      if (search && search.trim()) {
+        const term = search.trim();
+        where.OR = [
+          { title: { contains: term } },
+          { description: { contains: term } },
+          { location: { contains: term } },
+        ];
       }
 
       const skip = (page - 1) * limit;
@@ -71,6 +81,7 @@ export async function GET(request: NextRequest) {
         salaryRange: job.salaryRange,
         employmentType: job.employmentType,
         category: job.category,
+        benefits: job.benefits || [],
         status: job.status,
         views: job.views,
         applicationCount: job.applicationCount,
@@ -152,6 +163,7 @@ export async function POST(request: NextRequest) {
         salaryRange,
         employmentType,
         category,
+        benefits,
       } = body;
 
       if (!title || !description) {
@@ -172,6 +184,7 @@ export async function POST(request: NextRequest) {
           salaryRange: salaryRange || null,
           employmentType: employmentType || 'FULL_TIME',
           category: category || null,
+          benefits: Array.isArray(benefits) ? benefits : [],
           status: 'PENDING', // Jobs need admin approval
         },
         include: {

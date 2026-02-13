@@ -23,7 +23,7 @@ const AppConfig = (props: AppConfigProps) => {
     const scales = [12, 13, 14, 15, 16];
     const componentThemes = [
         { name: "indigo", color: "#6366F1" },
-        { name: "blue", color: "#3B82F6" },
+        { name: "blue", color: "##000000" },
         { name: "purple", color: "#8B5CF6" },
         { name: "teal", color: "#14B8A6" },
         { name: "cyan", color: "#06b6d4" },

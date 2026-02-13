@@ -75,7 +75,7 @@ const styles = `
   }
 
   .info-card.blue {
-    border-left-color: #3b82f6;
+    border-left-color: ##000000;
   }
 
   .info-card.green {
@@ -680,7 +680,7 @@ export default function AdminJobDetailPage() {
                 <div className="grid">
                   <div className="col-12 md:col-6">
                     <div className="flex flex-column gap-4">
-                      <div className="p-3 bg-white border-round" style={{ borderLeft: '4px solid #3b82f6' }}>
+                      <div className="p-3 bg-white border-round" style={{ borderLeft: '4px solid ##000000' }}>
                         <label className="font-bold text-600 block mb-2">
                           <i className="pi pi-building mr-2 text-blue-500"></i>Company Name
                         </label>
@@ -737,7 +737,7 @@ export default function AdminJobDetailPage() {
                         </>
                       )}
                       {job.employer.companyWebsite && (
-                        <div className="p-3 bg-white border-round" style={{ borderLeft: '4px solid #3b82f6' }}>
+                        <div className="p-3 bg-white border-round" style={{ borderLeft: '4px solid ##000000' }}>
                           <label className="font-bold text-600 block mb-2">
                             <i className="pi pi-globe mr-2 text-blue-500"></i>Website
                           </label>

@@ -635,7 +635,7 @@ export default function NotificationBell() {
                             <button
                                 style={{
                                     padding: '6px 12px',
-                                    backgroundColor: unreadCount === 0 ? '#f3f4f6' : '#3b82f6',
+                                    backgroundColor: unreadCount === 0 ? '#f3f4f6' : '##000000',
                                     color: unreadCount === 0 ? '#9ca3af' : '#ffffff',
                                     border: 'none',
                                     borderRadius: '6px',

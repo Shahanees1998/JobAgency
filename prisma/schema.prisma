@@ -295,6 +295,7 @@ model Job {
   salaryRange         String?       // e.g., "$50k - $70k"
   employmentType      EmploymentType @default(FULL_TIME)
   category            String?       // Job category/industry
+  benefits            String[]      @default([]) // Perks and benefits (e.g. Health Insurance, Paid time off)
   status              JobStatus     @default(PENDING) // PENDING, APPROVED, REJECTED, SUSPENDED, CLOSED
   moderationNotes     String?       // Admin notes for moderation
   moderatedAt         DateTime?

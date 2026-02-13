@@ -1,6 +1,6 @@
 .layout-primarycolor-menu {
     --logo-color: var(--primary-color-text);
-    --menu-bg: #1e3a5f;
+    --menu-bg: #111827;
     --root-menuitem-text-color: var(--primary-color-text);
     --menuitem-text-color: var(--primary-color-text);
     --menuitem-icon-color: var(--primary-color-text);
@@ -12,5 +12,5 @@
 
 .layout-dark.layout-primarycolor-menu,
 .layout-dim.layout-primarycolor-menu {
-    --menu-bg: #1e3a5f;
+    --menu-bg: #111827;
 }

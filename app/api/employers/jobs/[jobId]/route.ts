@@ -58,6 +58,7 @@ export async function GET(
           salaryRange: job.salaryRange,
           employmentType: job.employmentType,
           category: job.category,
+          benefits: job.benefits || [],
           status: job.status,
           views: job.views,
           applicationCount: job.applicationCount,
@@ -134,6 +135,7 @@ export async function PUT(
         salaryRange,
         employmentType,
         category,
+        benefits,
         status,
       } = body;
 
@@ -156,6 +158,7 @@ export async function PUT(
           ...(salaryRange !== undefined && { salaryRange }),
           ...(employmentType !== undefined && { employmentType }),
           ...(category !== undefined && { category }),
+          ...(benefits !== undefined && { benefits: Array.isArray(benefits) ? benefits : [] }),
           ...(status === 'CLOSED' && { status: 'CLOSED' }),
         },
       });
@@ -172,6 +175,7 @@ export async function PUT(
           salaryRange: updatedJob.salaryRange,
           employmentType: updatedJob.employmentType,
           category: updatedJob.category,
+          benefits: updatedJob.benefits || [],
           status: updatedJob.status,
           views: updatedJob.views,
           applicationCount: updatedJob.applicationCount,

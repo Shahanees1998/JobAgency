@@ -74,7 +74,7 @@ const styles = `
   }
 
   .info-card.blue {
-    border-left-color: #3b82f6;
+    border-left-color: ##000000;
   }
 
   .info-card.green {
@@ -677,7 +677,7 @@ export default function AdminEmployerDetailPage() {
                   </div>
                   {employer.user.phone && (
                     <div className="col-12 md:col-6">
-                      <div className="p-3 bg-white border-round" style={{ borderLeft: '4px solid #3b82f6' }}>
+                      <div className="p-3 bg-white border-round" style={{ borderLeft: '4px solid ##000000' }}>
                         <label className="font-bold text-600 block mb-2">
                           <i className="pi pi-phone mr-2 text-blue-500"></i>Phone
                         </label>

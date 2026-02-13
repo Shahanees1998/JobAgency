@@ -71,6 +71,7 @@ export async function GET(
           salaryRange: job.salaryRange,
           employmentType: job.employmentType,
           category: job.category,
+          benefits: job.benefits || [],
           status: job.status,
           views: job.views + 1,
           applicationCount: job._count.applications,

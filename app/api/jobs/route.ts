@@ -142,6 +142,7 @@ export async function GET(request: NextRequest) {
         salaryRange: job.salaryRange,
         employmentType: job.employmentType,
         category: job.category,
+        benefits: job.benefits || [],
         status: job.status,
         isSponsored: job.isSponsored,
         isBoosted: job.isBoosted,
