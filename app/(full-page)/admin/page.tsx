@@ -268,6 +268,7 @@ export default function AdminDashboard() {
         );
     }
 
+    const quickActionColors: Record<string, string> = { blue: "#2196F3", green: "#4CAF50", orange: "#FF9800", purple: "#9C27B0" };
     const quickActions = [
         {
             title: "Manage Employers",
@@ -303,53 +304,93 @@ export default function AdminDashboard() {
         },
     ];
 
+    // Compute trend from growthData: compare current month vs previous month
+    const getTrend = (arr: number[]) => {
+        if (!arr?.length || arr.length < 2) return null;
+        const current = arr[arr.length - 1] ?? 0;
+        const prev = arr[arr.length - 2] ?? 0;
+        if (prev === 0) return current > 0 ? { direction: "up" as const, percent: 100 } : null;
+        const percent = Math.round(((current - prev) / prev) * 100);
+        return { direction: percent >= 0 ? ("up" as const) : ("down" as const), percent: Math.abs(percent) };
+    };
+
+    const colorMap: Record<string, { bg: string; text: string }> = {
+        blue: { bg: "#E3F2FD", text: "#1976D2" },
+        orange: { bg: "#FFF3E0", text: "#E65100" },
+        yellow: { bg: "#FFFDE7", text: "#F9A825" },
+        red: { bg: "#FFEBEE", text: "#C62828" },
+        purple: { bg: "#F3E5F5", text: "#7B1FA2" },
+        gray: { bg: "#ECEFF1", text: "#546E7A" },
+    };
+
     const cardData = [
         {
             value: stats.totalEmployers,
             label: "Total Employers",
-            color: "text-blue-500",
+            color: "blue",
+            icon: "pi pi-building",
             route: "/admin/employers",
             canAccess: true,
+            trend: getTrend(growthData.newEmployers),
         },
         {
             value: stats.totalCandidates,
             label: "Total Candidates",
-            color: "text-green-500",
+            color: "orange",
+            icon: "pi pi-star",
             route: "/admin/candidates",
             canAccess: true,
+            trend: getTrend(growthData.newCandidates),
         },
         {
             value: stats.totalJobs,
             label: "Total Jobs",
-            color: "text-orange-500",
+            color: "yellow",
+            icon: "pi pi-clock",
             route: "/admin/jobs",
             canAccess: true,
+            trend: getTrend(growthData.newJobs),
         },
         {
             value: stats.totalApplications,
             label: "Total Applications",
-            color: "text-purple-500",
+            color: "red",
+            icon: "pi pi-question-circle",
             route: "/admin/applications",
             canAccess: true,
+            trend: getTrend(growthData.newApplications),
         },
         {
             value: stats.pendingEmployerApprovals,
             label: "Pending Employer Approvals",
-            color: "text-yellow-500",
+            color: "gray",
+            icon: "pi pi-clock",
             route: "/admin/employers/pending",
             canAccess: true,
+            trend: null,
         },
         {
             value: stats.pendingJobModerations,
             label: "Pending Job Moderation",
-            color: "text-red-500",
+            color: "blue",
+            icon: "pi pi-star",
             route: "/admin/jobs/pending",
             canAccess: true,
+            trend: null,
+        },
+        {
+            value: stats.supportRequests,
+            label: "Support Requests",
+            color: "purple",
+            icon: "pi pi-question-circle",
+            route: "/admin/support",
+            canAccess: true,
+            trend: null,
         },
     ];
 
     return (
-        <div className="grid">
+        <div className="grid row-gap-2">
             {/* Header */}
             <div className="col-12">
                 <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center gap-3 mb-4">
@@ -391,11 +432,16 @@ export default function AdminDashboard() {
             {loading ? (
                 // Loading skeleton for stats cards
                 <>
-                    {Array.from({ length: 6 }).map((_, index) => (
-                        <div key={index} className="col-12 md:col-6 lg:col-4">
-                            <Card className="text-center">
-                                <div className="text-3xl font-bold text-gray-300 animate-pulse">--</div>
-                                <div className="text-600 animate-pulse">Loading...</div>
+                    {Array.from({ length: 7 }).map((_, index) => (
+                        <div key={index} className="col-12 md:col-6 xl:col-3">
+                            <Card style={{ minHeight: "88px" }} className="border-round-lg dashboard-stat-card">
+                                <div className="flex align-items-start gap-2">
+                                    <div className="flex-shrink-0 border-round bg-gray-200 animate-pulse" style={{ width: "40px", height: "40px" }} />
+                                    <div className="flex-1">
+                                        <div className="text-xl font-bold text-gray-300 animate-pulse">--</div>
+                                        <div className="text-600 animate-pulse text-sm">Loading...</div>
+                                    </div>
+                                </div>
                             </Card>
                         </div>
                     ))}
@@ -403,40 +449,64 @@ export default function AdminDashboard() {
             ) : (
                 <>
                     {cardData.map((card) => (
-                        <div className="col-12 md:col-6 lg:col-4" key={card.label}>
-                            <Card
-                                style={{ height: "150px" }}
-                                className="text-center cursor-pointer hover:shadow-lg transition-shadow"
-                                onClick={() => router.push(card.route)}
-                                role="button"
-                                tabIndex={0}
-                                onKeyPress={e => { if (e.key === "Enter") router.push(card.route); }}
-                            >
-                                <div className={`text-3xl font-bold ${card.color}`}>{card.value}</div>
-                                <div className="text-600">{card.label}</div>
-                            </Card>
+                        <div className="col-12 md:col-6 xl:col-3" key={card.label}>
+                            <div className="relative">
+                                {card.trend && (
+                                    <div
+                                        className="flex align-items-center gap-1 px-2 py-1 border-round text-xs font-medium absolute z-1"
+                                        style={{
+                                            top: "0.5rem",
+                                            right: "0.5rem",
+                                            backgroundColor: card.trend.direction === "up" ? "#dcfce7" : "#fee2e2",
+                                            color: card.trend.direction === "up" ? "#16a34a" : "#dc2626",
+                                        }}
+                                    >
+                                        <i className={`pi pi-arrow-${card.trend.direction}`}></i>
+                                        <span>{card.trend.percent}%</span>
+                                    </div>
+                                )}
+                                <Card
+                                    style={{ minHeight: "88px" }}
+                                    className="cursor-pointer hover:shadow-lg transition-shadow border-round-lg dashboard-stat-card"
+                                    onClick={() => router.push(card.route)}
+                                    role="button"
+                                    tabIndex={0}
+                                    onKeyPress={e => { if (e.key === "Enter") router.push(card.route); }}
+                                >
+                                    <div className="flex align-items-start gap-2">
+                                        <div
+                                            className="flex-shrink-0 flex align-items-center justify-content-center border-round p-1"
+                                            style={{ width: "40px", height: "40px", backgroundColor: colorMap[card.color]?.bg || "#ECEFF1" }}
+                                        >
+                                            <i className={`${card.icon} text-lg`} style={{ color: colorMap[card.color]?.text || "#546E7A" }}></i>
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="text-xl font-bold text-900">{card.value}</div>
+                                            <div className="text-600 text-sm">{card.label}</div>
+                                        </div>
+                                    </div>
+                                </Card>
+                            </div>
                         </div>
                     ))}
                 </>
             )}
 
-            {/* Quick Actions */}
+            {/* Quick Actions - single row */}
             <div className="col-12">
-                <Card title="Quick Actions" className="mt-4">
-                    <div className="grid">
+                <Card title="Quick Actions" className="mt-3">
+                    <div className="flex flex-wrap md:flex-nowrap gap-2 overflow-x-auto">
                         {quickActions.map((action, index) => (
-                            <div key={index} className="col-12 md:col-6 lg:col-4">
-                                <Card style={{height : '120px'}} className="cursor-pointer hover:shadow-lg transition-shadow">
-                                    <div className="flex align-items-center justify-content-between h-full">
-                                        <div 
-                                            className="flex align-items-center gap-3 flex-1 cursor-pointer"
-                                            onClick={() => router.push(action.route)}
-                                        >
-                                            <i className={`${action.icon} text-2xl text-${action.color}-500`}></i>
-                                            <div>
-                                                <h3 className="text-lg font-semibold m-0">{action.title}</h3>
-                                                <p className="text-600 text-sm m-0">{action.description}</p>
-                                            </div>
+                            <div
+                                key={index}
+                                className="flex-1 min-w-[200px] md:min-w-0"
+                            >
+                                <Card style={{ minHeight: "80px" }} className="cursor-pointer hover:shadow-lg transition-shadow h-full dashboard-stat-card" onClick={() => router.push(action.route)}>
+                                    <div className="flex align-items-center gap-3">
+                                        <i className={`${action.icon} text-2xl`} style={{ color: quickActionColors[action.color] || "#64748b" }}></i>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="text-base font-semibold m-0 truncate">{action.title}</h3>
+                                            <p className="text-600 text-sm m-0">{action.description}</p>
                                         </div>
                                     </div>
                                 </Card>

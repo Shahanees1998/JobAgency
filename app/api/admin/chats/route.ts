@@ -16,13 +16,18 @@ export async function GET(request: NextRequest) {
 
       const { searchParams } = new URL(request.url);
       const search = searchParams.get('search');
-      const page = parseInt(searchParams.get('page') || '1');
-      const limit = parseInt(searchParams.get('limit') || '20');
+      const applicationIdParam = searchParams.get('applicationId');
+      const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+      const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
 
-      // Build where clause for filtering
+      // Build where clause for filtering (server-side)
       const where: any = {};
       
-      if (search) {
+      if (applicationIdParam && applicationIdParam.trim() !== '') {
+        where.applicationId = applicationIdParam;
+      }
+      
+      if (search && search.trim() !== '') {
         where.OR = [
           { application: { job: { title: { contains: search, mode: 'insensitive' } } } },
           { application: { candidate: { user: { firstName: { contains: search, mode: 'insensitive' } } } } },

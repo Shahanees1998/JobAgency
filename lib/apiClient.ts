@@ -319,15 +319,15 @@ class ApiClient {
         // Filter out empty strings, null values, and undefined values
         const filteredParams: Record<string, string | number> = {};
         
-        if (params?.page) filteredParams.page = params.page;
-        if (params?.limit) filteredParams.limit = params.limit;
+        if (params?.page !== undefined && params.page >= 1) filteredParams.page = params.page;
+        if (params?.limit !== undefined && params.limit >= 1) filteredParams.limit = params.limit;
         if (params?.search && params.search.trim()) filteredParams.search = params.search.trim();
         if (params?.type && params.type.trim()) filteredParams.type = params.type.trim();
         if (params?.status && params.status.trim()) filteredParams.status = params.status.trim();
         if (params?.sortField && params.sortField.trim()) filteredParams.sortField = params.sortField.trim();
         if (params?.sortOrder !== undefined) filteredParams.sortOrder = params.sortOrder;
         return this.get<{
-            announcements: any[];
+            data: any[];
             pagination: {
                 page: number;
                 limit: number;
@@ -374,12 +374,30 @@ class ApiClient {
 
 
     // Admin Support & Escalations
-    async getAdminSupportRequests() {
-        return this.get<any>('/admin/support');
+    async getAdminSupportRequests(params?: {
+        page?: number;
+        limit?: number;
+        search?: string;
+        status?: string;
+        priority?: string;
+    }) {
+        return this.get<{
+            data: any[];
+            pagination: { page: number; limit: number; total: number; totalPages: number };
+        }>('/admin/support', params);
     }
 
-    async getAdminEscalations() {
-        return this.get<any>('/admin/escalations');
+    async getAdminEscalations(params?: {
+        page?: number;
+        limit?: number;
+        search?: string;
+        status?: string;
+        priority?: string;
+    }) {
+        return this.get<{
+            data: any[];
+            pagination: { page: number; limit: number; total: number; totalPages: number };
+        }>('/admin/escalations', params);
     }
 
     async respondToEscalation(id: string, response: string) {
@@ -390,11 +408,12 @@ class ApiClient {
     async getNotifications(params?: {
         page?: number;
         limit?: number;
+        search?: string;
         status?: string;
         type?: string;
     }) {
         return this.get<{
-            notifications: Array<{
+            data: Array<{
                 id: string;
                 title: string;
                 message: string;
@@ -405,7 +424,7 @@ class ApiClient {
                 metadata?: any;
                 createdAt: string;
             }>;
-            pagination: {
+            pagination?: {
                 page: number;
                 limit: number;
                 total: number;
@@ -466,8 +485,20 @@ class ApiClient {
         }>('/admin/employers', params);
     }
 
-    async getPendingEmployers() {
-        return this.get<any>('/admin/employers/pending');
+    async getPendingEmployers(params?: {
+        page?: number;
+        limit?: number;
+        search?: string;
+    }) {
+        return this.get<{
+            data: any[];
+            pagination: {
+                page: number;
+                limit: number;
+                total: number;
+                totalPages: number;
+            };
+        }>('/admin/employers/pending', params);
     }
 
     async getEmployerById(id: string) {
@@ -531,8 +562,20 @@ class ApiClient {
         }>('/admin/jobs', params);
     }
 
-    async getPendingJobs() {
-        return this.get<any>('/admin/jobs/pending');
+    async getPendingJobs(params?: {
+        page?: number;
+        limit?: number;
+        search?: string;
+    }) {
+        return this.get<{
+            data: any[];
+            pagination: {
+                page: number;
+                limit: number;
+                total: number;
+                totalPages: number;
+            };
+        }>('/admin/jobs/pending', params);
     }
 
     async getJobById(id: string) {
@@ -580,6 +623,7 @@ class ApiClient {
         page?: number;
         limit?: number;
         search?: string;
+        applicationId?: string;
     }) {
         return this.get<{
             data: any[];

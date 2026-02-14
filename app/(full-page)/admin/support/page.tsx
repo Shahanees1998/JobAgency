@@ -12,8 +12,9 @@ import { InputTextarea } from "primereact/inputtextarea";
 import { Dialog } from "primereact/dialog";
 import { Toast } from "primereact/toast";
 import { useRef } from "react";
-import { useAuth } from "@/hooks/useAuth";
 import { apiClient } from "@/lib/apiClient";
+import { useDebounce } from "@/hooks/useDebounce";
+import TableLoader from "@/components/TableLoader";
 
 interface SupportRequest {
   id: string;
@@ -37,7 +38,6 @@ interface SupportRequest {
 }
 
 export default function AdminSupport() {
-  const { user } = useAuth();
   const [requests, setRequests] = useState<SupportRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -45,26 +45,43 @@ export default function AdminSupport() {
     priority: "",
     search: "",
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalRecords, setTotalRecords] = useState(0);
   const [selectedRequest, setSelectedRequest] = useState<SupportRequest | null>(null);
   const [responseText, setResponseText] = useState("");
   const [showResponseModal, setShowResponseModal] = useState(false);
   const toast = useRef<Toast>(null);
 
+  const debouncedSearch = useDebounce(filters.search, 500);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters.status, filters.priority, debouncedSearch]);
+
   useEffect(() => {
     loadSupportRequests();
-  }, []);
+  }, [currentPage, rowsPerPage, filters.status, filters.priority, debouncedSearch]);
 
   const loadSupportRequests = async () => {
     setLoading(true);
     try {
-      const response = await apiClient.getAdminSupportRequests();
-      // apiClient wraps response, so structure is { data: { data: [...] } } or { data: [...] }
-      const requestsData = response.data?.data || response.data || [];
+      const response = await apiClient.getAdminSupportRequests({
+        page: currentPage,
+        limit: rowsPerPage,
+        search: debouncedSearch || undefined,
+        status: filters.status || undefined,
+        priority: filters.priority || undefined,
+      });
+      if (response.error) throw new Error(response.error);
+      const requestsData = response.data?.data ?? [];
       setRequests(Array.isArray(requestsData) ? requestsData : []);
+      setTotalRecords(response.data?.pagination?.total ?? 0);
     } catch (error) {
       console.error("Error loading support requests:", error);
       showToast("error", "Error", "Failed to load support requests");
       setRequests([]);
+      setTotalRecords(0);
     } finally {
       setLoading(false);
     }
@@ -204,15 +221,6 @@ export default function AdminSupport() {
     );
   };
 
-  const filteredRequests = Array.isArray(requests) ? requests.filter(req => {
-    if (filters.status && req.status !== filters.status) return false;
-    if (filters.priority && req.priority !== filters.priority) return false;
-    if (filters.search && !req.subject.toLowerCase().includes(filters.search.toLowerCase()) &&
-      !req.user.firstName.toLowerCase().includes(filters.search.toLowerCase()) &&
-      !req.user.lastName.toLowerCase().includes(filters.search.toLowerCase())) return false;
-    return true;
-  }) : [];
-
   const statusOptions = [
     { label: "All Statuses", value: "" },
     { label: "Open", value: "OPEN" },
@@ -268,7 +276,9 @@ export default function AdminSupport() {
               <Dropdown
                 value={filters.status}
                 options={statusOptions}
-                onChange={(e) => setFilters(prev => ({ ...prev, status: e.value }))}
+                optionLabel="label"
+                optionValue="value"
+                onChange={(e) => setFilters(prev => ({ ...prev, status: e.value ?? "" }))}
                 placeholder="All Statuses"
                 className="w-full"
               />
@@ -278,7 +288,9 @@ export default function AdminSupport() {
               <Dropdown
                 value={filters.priority}
                 options={priorityOptions}
-                onChange={(e) => setFilters(prev => ({ ...prev, priority: e.value }))}
+                optionLabel="label"
+                optionValue="value"
+                onChange={(e) => setFilters(prev => ({ ...prev, priority: e.value ?? "" }))}
                 placeholder="All Priorities"
                 className="w-full"
               />
@@ -287,34 +299,32 @@ export default function AdminSupport() {
         </Card>
       </div>
 
-      {/* Support Requests Table */}
+      {/* Support Requests Table - server-side pagination */}
       <div className="col-12">
         <Card>
           {loading ? (
-            <div className="flex align-items-center justify-content-center" style={{ height: '200px' }}>
-              <div className="text-center">
-                <i className="pi pi-spinner pi-spin text-2xl mb-2"></i>
-                <p>Loading support requests...</p>
-              </div>
-            </div>
-          ) : filteredRequests.length === 0 ? (
+            <TableLoader message="Loading support requests..." />
+          ) : requests.length === 0 ? (
             <div className="text-center py-6">
               <i className="pi pi-question-circle text-4xl text-400 mb-3"></i>
               <h3 className="text-900 mb-2">No Support Requests Found</h3>
-              <p className="text-600 mb-4">
-                {requests.length === 0
-                  ? "No support requests have been submitted yet."
-                  : "No support requests match your current filters."
-                }
-              </p>
+              <p className="text-600 mb-4">No support requests have been submitted yet or match your filters.</p>
             </div>
           ) : (
             <DataTable
-              value={filteredRequests}
+              value={requests}
               showGridlines
               paginator
-              rows={10}
+              lazy
+              rows={rowsPerPage}
+              first={(currentPage - 1) * rowsPerPage}
+              totalRecords={totalRecords}
               rowsPerPageOptions={[5, 10, 25]}
+              onPage={(e) => {
+                setCurrentPage((e.page ?? 0) + 1);
+                setRowsPerPage(e.rows ?? 10);
+              }}
+              emptyMessage="No support requests found"
             >
               <Column field="subject" header="Subject" sortable />
               <Column field="user" header="User" body={userBodyTemplate} />

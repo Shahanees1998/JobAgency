@@ -219,7 +219,9 @@ export default function AdminApplications() {
                   { label: "Accepted", value: "ACCEPTED" },
                   { label: "Declined", value: "DECLINED" },
                 ]}
-                onChange={(e) => setFilters({ ...filters, status: e.value })}
+                optionLabel="label"
+                optionValue="value"
+                onChange={(e) => setFilters({ ...filters, status: e.value ?? "" })}
                 placeholder="Filter by Status"
                 className="w-full"
               />

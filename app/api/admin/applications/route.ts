@@ -15,29 +15,29 @@ export async function GET(request: NextRequest) {
       }
 
       const { searchParams } = new URL(request.url);
-      const status = searchParams.get('status');
-      const jobId = searchParams.get('jobId');
-      const candidateId = searchParams.get('candidateId');
+      const statusParam = searchParams.get('status');
+      const jobIdParam = searchParams.get('jobId');
+      const candidateIdParam = searchParams.get('candidateId');
       const search = searchParams.get('search');
-      const page = parseInt(searchParams.get('page') || '1');
-      const limit = parseInt(searchParams.get('limit') || '20');
+      const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+      const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
 
-      // Build where clause for filtering
+      // Build where clause for filtering (server-side)
       const where: any = {};
       
-      if (status) {
-        where.status = status;
+      if (statusParam && statusParam.trim() !== '') {
+        where.status = statusParam;
       }
       
-      if (jobId) {
-        where.jobId = jobId;
+      if (jobIdParam && jobIdParam.trim() !== '') {
+        where.jobId = jobIdParam;
       }
       
-      if (candidateId) {
-        where.candidateId = candidateId;
+      if (candidateIdParam && candidateIdParam.trim() !== '') {
+        where.candidateId = candidateIdParam;
       }
       
-      if (search) {
+      if (search && search.trim() !== '') {
         where.OR = [
           { job: { title: { contains: search, mode: 'insensitive' } } },
           { candidate: { user: { firstName: { contains: search, mode: 'insensitive' } } } },

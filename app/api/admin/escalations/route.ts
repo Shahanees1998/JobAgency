@@ -10,7 +10,31 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
 
-      const escalations = await prisma.adminEscalation.findMany({
+      const { searchParams } = new URL(request.url);
+      const search = searchParams.get('search');
+      const statusParam = searchParams.get('status');
+      const priorityParam = searchParams.get('priority');
+      const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+      const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
+
+      const where: any = {};
+      if (statusParam && statusParam.trim() !== '') where.status = statusParam;
+      if (priorityParam && priorityParam.trim() !== '') where.priority = priorityParam;
+      if (search && search.trim() !== '') {
+        where.OR = [
+          { subject: { contains: search, mode: 'insensitive' } },
+          { message: { contains: search, mode: 'insensitive' } },
+          { user: { firstName: { contains: search, mode: 'insensitive' } } },
+          { user: { lastName: { contains: search, mode: 'insensitive' } } },
+          { user: { email: { contains: search, mode: 'insensitive' } } },
+        ];
+      }
+
+      const skip = (page - 1) * limit;
+
+      const [escalations, total] = await Promise.all([
+        prisma.adminEscalation.findMany({
+        where,
         include: {
           user: {
             select: {
@@ -23,7 +47,11 @@ export async function GET(request: NextRequest) {
           },
         },
         orderBy: { createdAt: 'desc' },
-      });
+        skip,
+        take: limit,
+      }),
+        prisma.adminEscalation.count({ where }),
+      ]);
 
       // Transform the data to match the expected interface
       const transformedEscalations = escalations.map(escalation => ({
@@ -40,7 +68,10 @@ export async function GET(request: NextRequest) {
         adminResponse: escalation.adminResponse,
       }));
 
-      return NextResponse.json({ data: transformedEscalations });
+      return NextResponse.json({
+        data: transformedEscalations,
+        pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+      });
     } catch (error) {
       console.error('Error fetching escalations:', error);
       return NextResponse.json(

@@ -68,6 +68,7 @@ export default function AdminChats() {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     search: "",
+    applicationId: "",
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -82,21 +83,17 @@ export default function AdminChats() {
   const debouncedSearch = useDebounce(filters.search, 500);
 
   useEffect(() => {
-    if (searchParams?.get("applicationId")) {
-      // Find chat by application ID
-      const applicationId = searchParams.get("applicationId");
-      // This would need to be handled by filtering or a separate API call
-    }
+    const appId = searchParams?.get("applicationId") || "";
+    setFilters((prev) => ({ ...prev, applicationId: appId }));
   }, [searchParams]);
 
   useEffect(() => {
-    // Reset to first page when filters change
     setCurrentPage(1);
-  }, [debouncedSearch]);
+  }, [debouncedSearch, filters.applicationId]);
 
   useEffect(() => {
     loadChats();
-  }, [currentPage, rowsPerPage, debouncedSearch]);
+  }, [currentPage, rowsPerPage, debouncedSearch, filters.applicationId]);
 
   const loadChats = async () => {
     setLoading(true);
@@ -105,6 +102,7 @@ export default function AdminChats() {
         page: currentPage,
         limit: rowsPerPage,
         search: debouncedSearch || undefined,
+        applicationId: filters.applicationId || undefined,
       });
       if (response.error) {
         throw new Error(response.error);
@@ -195,7 +193,7 @@ export default function AdminChats() {
             Chats are only unlocked after employer approves a candidate's application.
           </p>
 
-          {/* Filters */}
+          {/* Filters - server-side */}
           <div className="grid mb-4">
             <div className="col-12 md:col-6">
               <span className="p-input-icon-left w-full">
@@ -208,6 +206,20 @@ export default function AdminChats() {
                 />
               </span>
             </div>
+            {filters.applicationId && (
+              <div className="col-12 md:col-6 flex align-items-center gap-2">
+                <span className="text-sm text-600">Filtered by application</span>
+                <Button
+                  label="Clear"
+                  icon="pi pi-times"
+                  className="p-button-text p-button-sm"
+                  onClick={() => {
+                    setFilters((prev) => ({ ...prev, applicationId: "" }));
+                    router.replace("/admin/chats");
+                  }}
+                />
+              </div>
+            )}
           </div>
 
           {/* Data Table */}

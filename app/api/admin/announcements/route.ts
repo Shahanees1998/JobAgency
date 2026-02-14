@@ -10,21 +10,49 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
 
-      const announcements = await prisma.announcement.findMany({
-        include: {
-          createdBy: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true,
+      const { searchParams } = new URL(request.url);
+      const search = searchParams.get('search');
+      const typeParam = searchParams.get('type');
+      const statusParam = searchParams.get('status');
+      const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+      const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
+
+      const where: any = {};
+      if (typeParam && typeParam.trim() !== '') {
+        where.type = typeParam;
+      }
+      if (statusParam && statusParam.trim() !== '') {
+        where.status = statusParam;
+      }
+      if (search && search.trim() !== '') {
+        where.OR = [
+          { title: { contains: search, mode: 'insensitive' } },
+          { content: { contains: search, mode: 'insensitive' } },
+        ];
+      }
+
+      const skip = (page - 1) * limit;
+
+      const [announcements, total] = await Promise.all([
+        prisma.announcement.findMany({
+          where,
+          include: {
+            createdBy: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
             },
           },
-        },
-        orderBy: { createdAt: 'desc' },
-      });
+          orderBy: { createdAt: 'desc' },
+          skip,
+          take: limit,
+        }),
+        prisma.announcement.count({ where }),
+      ]);
 
-      // Transform the data to match the expected interface
       const transformedAnnouncements = announcements.map(announcement => ({
         id: announcement.id,
         title: announcement.title,
@@ -37,7 +65,15 @@ export async function GET(request: NextRequest) {
         updatedAt: announcement.updatedAt.toISOString(),
       }));
 
-      return NextResponse.json({ data: transformedAnnouncements });
+      return NextResponse.json({
+        data: transformedAnnouncements,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      });
     } catch (error) {
       console.error('Error fetching announcements:', error);
       return NextResponse.json(

@@ -15,24 +15,24 @@ export async function GET(request: NextRequest) {
       }
 
       const { searchParams } = new URL(request.url);
-      const status = searchParams.get('status'); // PENDING, APPROVED, REJECTED, SUSPENDED, CLOSED
+      const statusParam = searchParams.get('status');
       const search = searchParams.get('search');
-      const employerId = searchParams.get('employerId');
-      const page = parseInt(searchParams.get('page') || '1');
-      const limit = parseInt(searchParams.get('limit') || '20');
+      const employerIdParam = searchParams.get('employerId');
+      const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+      const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
 
-      // Build where clause for filtering
+      // Build where clause for filtering (server-side)
       const where: any = {};
       
-      if (status) {
-        where.status = status;
+      if (statusParam && statusParam.trim() !== '') {
+        where.status = statusParam;
       }
       
-      if (employerId) {
-        where.employerId = employerId;
+      if (employerIdParam && employerIdParam.trim() !== '') {
+        where.employerId = employerIdParam;
       }
       
-      if (search) {
+      if (search && search.trim() !== '') {
         where.OR = [
           { title: { contains: search, mode: 'insensitive' } },
           { description: { contains: search, mode: 'insensitive' } },

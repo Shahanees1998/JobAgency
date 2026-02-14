@@ -297,7 +297,9 @@ export default function AdminEmployers() {
                   { label: "Approved", value: "APPROVED" },
                   { label: "Rejected", value: "REJECTED" },
                 ]}
-                onChange={(e) => setFilters({ ...filters, status: e.value })}
+                optionLabel="label"
+                optionValue="value"
+                onChange={(e) => setFilters({ ...filters, status: e.value ?? "" })}
                 placeholder="Filter by Status"
                 className="w-full"
               />
@@ -310,7 +312,9 @@ export default function AdminEmployers() {
                   { label: "Suspended", value: "true" },
                   { label: "Not Suspended", value: "false" },
                 ]}
-                onChange={(e) => setFilters({ ...filters, isSuspended: e.value })}
+                optionLabel="label"
+                optionValue="value"
+                onChange={(e) => setFilters({ ...filters, isSuspended: e.value ?? "" })}
                 placeholder="Filter by Suspension"
                 className="w-full"
               />

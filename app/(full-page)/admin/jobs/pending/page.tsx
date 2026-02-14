@@ -5,14 +5,14 @@ import { Card } from "primereact/card";
 import { Button } from "primereact/button";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-import { Tag } from "primereact/tag";
 import { Dialog } from "primereact/dialog";
+import { InputText } from "primereact/inputtext";
 import { InputTextarea } from "primereact/inputtextarea";
 import { Toast } from "primereact/toast";
 import { useRef } from "react";
-import { useAuth } from "@/hooks/useAuth";
 import { apiClient } from "@/lib/apiClient";
 import { useRouter } from "next/navigation";
+import { useDebounce } from "@/hooks/useDebounce";
 import TableLoader from "@/components/TableLoader";
 
 interface Job {
@@ -41,9 +41,12 @@ interface Job {
 
 export default function AdminPendingJobs() {
   const router = useRouter();
-  const { user } = useAuth();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalRecords, setTotalRecords] = useState(0);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [approveDialogVisible, setApproveDialogVisible] = useState(false);
   const [rejectDialogVisible, setRejectDialogVisible] = useState(false);
@@ -52,30 +55,39 @@ export default function AdminPendingJobs() {
   const [processing, setProcessing] = useState(false);
   const toast = useRef<Toast>(null);
 
+  const debouncedSearch = useDebounce(search, 500);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch]);
+
   useEffect(() => {
     loadPendingJobs();
-  }, []);
+  }, [currentPage, rowsPerPage, debouncedSearch]);
 
   const loadPendingJobs = async () => {
     setLoading(true);
     try {
-      const response = await apiClient.getPendingJobs();
+      const response = await apiClient.getPendingJobs({
+        page: currentPage,
+        limit: rowsPerPage,
+        search: debouncedSearch || undefined,
+      });
       if (response.error) {
         throw new Error(response.error);
       }
-      // apiClient wraps response, so structure is { data: { data: [...] } }
       if (response.data && response.data.data && Array.isArray(response.data.data)) {
         setJobs(response.data.data);
-      } else if (response.data && Array.isArray(response.data)) {
-        // Fallback for direct array response
-        setJobs(response.data);
+        setTotalRecords(response.data.pagination?.total ?? 0);
       } else {
         setJobs([]);
+        setTotalRecords(0);
       }
     } catch (error) {
       console.error("Error loading pending jobs:", error);
       showToast("error", "Error", "Failed to load pending jobs");
       setJobs([]);
+      setTotalRecords(0);
     } finally {
       setLoading(false);
     }
@@ -177,15 +189,37 @@ export default function AdminPendingJobs() {
             Review and moderate job listings that are awaiting approval.
           </p>
 
-          {/* Data Table */}
+          {/* Filters - server-side */}
+          <div className="grid mb-4">
+            <div className="col-12 md:col-4">
+              <span className="p-input-icon-left w-full">
+                <i className="pi pi-search" />
+                <InputText
+                  placeholder="Search title, company, location, category..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full"
+                />
+              </span>
+            </div>
+          </div>
+
+          {/* Data Table - server-side pagination */}
           {loading ? (
             <TableLoader message="Loading pending jobs..." />
           ) : (
             <DataTable
               value={jobs}
               paginator
-              rows={10}
+              lazy
+              rows={rowsPerPage}
+              first={(currentPage - 1) * rowsPerPage}
+              totalRecords={totalRecords}
               rowsPerPageOptions={[10, 20, 50]}
+              onPage={(e) => {
+                setCurrentPage((e.page ?? 0) + 1);
+                setRowsPerPage(e.rows ?? 10);
+              }}
               emptyMessage="No pending jobs found"
             >
               <Column field="title" header="Job Title" sortable />

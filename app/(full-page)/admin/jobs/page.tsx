@@ -284,7 +284,9 @@ export default function AdminJobs() {
                   { label: "Suspended", value: "SUSPENDED" },
                   { label: "Closed", value: "CLOSED" },
                 ]}
-                onChange={(e) => setFilters({ ...filters, status: e.value })}
+                optionLabel="label"
+                optionValue="value"
+                onChange={(e) => setFilters({ ...filters, status: e.value ?? "" })}
                 placeholder="Filter by Status"
                 className="w-full"
               />

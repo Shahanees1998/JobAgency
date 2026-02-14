@@ -12,8 +12,9 @@ import { InputTextarea } from "primereact/inputtextarea";
 import { Dialog } from "primereact/dialog";
 import { Toast } from "primereact/toast";
 import { useRef } from "react";
-import { useAuth } from "@/hooks/useAuth";
 import { apiClient } from "@/lib/apiClient";
+import { useDebounce } from "@/hooks/useDebounce";
+import TableLoader from "@/components/TableLoader";
 
 interface Announcement {
   id: string;
@@ -28,7 +29,6 @@ interface Announcement {
 }
 
 export default function AdminAnnouncements() {
-  const { user } = useAuth();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -36,6 +36,9 @@ export default function AdminAnnouncements() {
     status: "",
     search: "",
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalRecords, setTotalRecords] = useState(0);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newAnnouncement, setNewAnnouncement] = useState<{
     title: string;
@@ -48,20 +51,41 @@ export default function AdminAnnouncements() {
   });
   const toast = useRef<Toast>(null);
 
+  const debouncedSearch = useDebounce(filters.search, 500);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters.type, filters.status, debouncedSearch]);
+
   useEffect(() => {
     loadAnnouncements();
-  }, []);
+  }, [currentPage, rowsPerPage, filters.type, filters.status, debouncedSearch]);
 
   const loadAnnouncements = async () => {
     setLoading(true);
     try {
-      const response = await apiClient.getAnnouncements();
-      setAnnouncements(response.data?.announcements || []);
+      const response = await apiClient.getAnnouncements({
+        page: currentPage,
+        limit: rowsPerPage,
+        search: debouncedSearch || undefined,
+        type: filters.type || undefined,
+        status: filters.status || undefined,
+      });
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      if (response.data?.data && Array.isArray(response.data.data)) {
+        setAnnouncements(response.data.data);
+        setTotalRecords(response.data.pagination?.total ?? 0);
+      } else {
+        setAnnouncements([]);
+        setTotalRecords(0);
+      }
     } catch (error) {
       console.error("Error loading announcements:", error);
       showToast("error", "Error", "Failed to load announcements");
-      // Fallback to empty array if API fails
       setAnnouncements([]);
+      setTotalRecords(0);
     } finally {
       setLoading(false);
     }
@@ -79,7 +103,8 @@ export default function AdminAnnouncements() {
 
     try {
       const response = await apiClient.createAnnouncement(newAnnouncement);
-      setAnnouncements(prev => [response.data, ...prev]);
+      const created = (response as any).data?.data ?? (response as any).data;
+      if (created) setAnnouncements(prev => [created, ...prev]);
       setNewAnnouncement({ title: "", content: "", type: "GENERAL" });
       setShowCreateModal(false);
       showToast("success", "Success", "Announcement created successfully");
@@ -205,14 +230,6 @@ export default function AdminAnnouncements() {
     );
   };
 
-  const filteredAnnouncements = announcements.filter(announcement => {
-    if (filters.type && announcement.type !== filters.type) return false;
-    if (filters.status && announcement.status !== filters.status) return false;
-    if (filters.search && !announcement.title.toLowerCase().includes(filters.search.toLowerCase()) && 
-        !announcement.content.toLowerCase().includes(filters.search.toLowerCase())) return false;
-    return true;
-  });
-
   const typeOptions = [
     { label: "All Types", value: "" },
     { label: "General", value: "GENERAL" },
@@ -274,7 +291,9 @@ export default function AdminAnnouncements() {
               <Dropdown
                 value={filters.type}
                 options={typeOptions}
-                onChange={(e) => setFilters(prev => ({ ...prev, type: e.value }))}
+                optionLabel="label"
+                optionValue="value"
+                onChange={(e) => setFilters(prev => ({ ...prev, type: e.value ?? "" }))}
                 placeholder="All Types"
                 className="w-full"
               />
@@ -284,7 +303,9 @@ export default function AdminAnnouncements() {
               <Dropdown
                 value={filters.status}
                 options={statusOptions}
-                onChange={(e) => setFilters(prev => ({ ...prev, status: e.value }))}
+                optionLabel="label"
+                optionValue="value"
+                onChange={(e) => setFilters(prev => ({ ...prev, status: e.value ?? "" }))}
                 placeholder="All Statuses"
                 className="w-full"
               />
@@ -293,34 +314,34 @@ export default function AdminAnnouncements() {
         </Card>
       </div>
 
-      {/* Announcements Table */}
+      {/* Announcements Table - server-side pagination */}
       <div className="col-12">
         <Card>
           {loading ? (
-            <div className="flex align-items-center justify-content-center" style={{ height: '200px' }}>
-              <div className="text-center">
-                <i className="pi pi-spinner pi-spin text-2xl mb-2"></i>
-                <p>Loading announcements...</p>
-              </div>
-            </div>
-          ) : filteredAnnouncements.length === 0 ? (
+            <TableLoader message="Loading announcements..." />
+          ) : announcements.length === 0 ? (
             <div className="text-center py-6">
               <i className="pi pi-megaphone text-4xl text-400 mb-3"></i>
               <h3 className="text-900 mb-2">No Announcements Found</h3>
               <p className="text-600 mb-4">
-                {announcements.length === 0 
-                  ? "No announcements have been created yet." 
-                  : "No announcements match your current filters."
-                }
+                No announcements have been created yet or match your filters.
               </p>
             </div>
           ) : (
             <DataTable 
-              value={filteredAnnouncements} 
+              value={announcements} 
               showGridlines
               paginator
-              rows={10}
+              lazy
+              rows={rowsPerPage}
+              first={(currentPage - 1) * rowsPerPage}
+              totalRecords={totalRecords}
               rowsPerPageOptions={[5, 10, 25]}
+              onPage={(e) => {
+                setCurrentPage((e.page ?? 0) + 1);
+                setRowsPerPage(e.rows ?? 10);
+              }}
+              emptyMessage="No announcements found"
             >
               <Column field="content" header="Announcement" body={contentBodyTemplate} sortable />
               <Column field="type" header="Type" body={typeBodyTemplate} sortable />
@@ -362,6 +383,8 @@ export default function AdminAnnouncements() {
           <Dropdown
             value={newAnnouncement.type}
             options={typeOptions.filter(opt => opt.value !== "")}
+            optionLabel="label"
+            optionValue="value"
             onChange={(e) => setNewAnnouncement(prev => ({ ...prev, type: e.value }))}
             placeholder="Select type..."
             className="w-full"

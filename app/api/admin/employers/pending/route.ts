@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 
 /**
  * GET /api/admin/employers/pending
- * Get all pending employer approvals
+ * Get pending employer approvals with server-side pagination and search
  */
 export async function GET(request: NextRequest) {
   return withAuth(request, async (authenticatedReq: AuthenticatedRequest) => {
@@ -14,26 +14,53 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
 
-      const employers = await prisma.employer.findMany({
-        where: {
-          verificationStatus: 'PENDING',
-          isSuspended: false,
-        },
-        include: {
-          user: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true,
-              phone: true,
-              status: true,
-              createdAt: true,
+      const { searchParams } = new URL(request.url);
+      const search = searchParams.get('search');
+      const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+      const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
+
+      // Base where: only PENDING, not suspended
+      const where: any = {
+        verificationStatus: 'PENDING',
+        isSuspended: false,
+      };
+
+      if (search && search.trim() !== '') {
+        where.OR = [
+          { companyName: { contains: search, mode: 'insensitive' } },
+          { industry: { contains: search, mode: 'insensitive' } },
+          { city: { contains: search, mode: 'insensitive' } },
+          { country: { contains: search, mode: 'insensitive' } },
+          { user: { firstName: { contains: search, mode: 'insensitive' } } },
+          { user: { lastName: { contains: search, mode: 'insensitive' } } },
+          { user: { email: { contains: search, mode: 'insensitive' } } },
+        ];
+      }
+
+      const skip = (page - 1) * limit;
+
+      const [employers, total] = await Promise.all([
+        prisma.employer.findMany({
+          where,
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                phone: true,
+                status: true,
+                createdAt: true,
+              },
             },
           },
-        },
-        orderBy: { createdAt: 'asc' }, // Oldest first
-      });
+          orderBy: { createdAt: 'asc' }, // Oldest first
+          skip,
+          take: limit,
+        }),
+        prisma.employer.count({ where }),
+      ]);
 
       const transformedEmployers = employers.map(employer => ({
         id: employer.id,
@@ -60,7 +87,15 @@ export async function GET(request: NextRequest) {
         },
       }));
 
-      return NextResponse.json({ data: transformedEmployers });
+      return NextResponse.json({
+        data: transformedEmployers,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      });
     } catch (error) {
       console.error('Error fetching pending employers:', error);
       return NextResponse.json(

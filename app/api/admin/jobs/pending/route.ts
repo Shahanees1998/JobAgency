@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 
 /**
  * GET /api/admin/jobs/pending
- * Get all pending job moderations
+ * Get pending job moderations with server-side pagination and search
  */
 export async function GET(request: NextRequest) {
   return withAuth(request, async (authenticatedReq: AuthenticatedRequest) => {
@@ -14,25 +14,46 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
 
-      const jobs = await prisma.job.findMany({
-        where: {
-          status: 'PENDING',
-        },
-        include: {
-          employer: {
-            include: {
-              user: {
-                select: {
-                  firstName: true,
-                  lastName: true,
-                  email: true,
+      const { searchParams } = new URL(request.url);
+      const search = searchParams.get('search');
+      const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+      const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
+
+      const where: any = { status: 'PENDING' };
+      if (search && search.trim() !== '') {
+        where.OR = [
+          { title: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } },
+          { category: { contains: search, mode: 'insensitive' } },
+          { location: { contains: search, mode: 'insensitive' } },
+          { employer: { companyName: { contains: search, mode: 'insensitive' } } },
+        ];
+      }
+
+      const skip = (page - 1) * limit;
+
+      const [jobs, total] = await Promise.all([
+        prisma.job.findMany({
+          where,
+          include: {
+            employer: {
+              include: {
+                user: {
+                  select: {
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                  },
                 },
               },
             },
           },
-        },
-        orderBy: { createdAt: 'asc' }, // Oldest first
-      });
+          orderBy: { createdAt: 'asc' },
+          skip,
+          take: limit,
+        }),
+        prisma.job.count({ where }),
+      ]);
 
       const transformedJobs = jobs.map(job => ({
         id: job.id,
@@ -54,7 +75,15 @@ export async function GET(request: NextRequest) {
         },
       }));
 
-      return NextResponse.json({ data: transformedJobs });
+      return NextResponse.json({
+        data: transformedJobs,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      });
     } catch (error) {
       console.error('Error fetching pending jobs:', error);
       return NextResponse.json(

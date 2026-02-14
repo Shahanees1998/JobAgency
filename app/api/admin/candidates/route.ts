@@ -16,18 +16,18 @@ export async function GET(request: NextRequest) {
 
       const { searchParams } = new URL(request.url);
       const search = searchParams.get('search');
-      const isProfileComplete = searchParams.get('isProfileComplete');
-      const page = parseInt(searchParams.get('page') || '1');
-      const limit = parseInt(searchParams.get('limit') || '20');
+      const isProfileCompleteParam = searchParams.get('isProfileComplete');
+      const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+      const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
 
-      // Build where clause for filtering
+      // Build where clause for filtering (server-side)
       const where: any = {};
       
-      if (isProfileComplete !== null && isProfileComplete !== undefined) {
-        where.isProfileComplete = isProfileComplete === 'true';
+      if (isProfileCompleteParam !== null && isProfileCompleteParam !== undefined && isProfileCompleteParam.trim() !== '') {
+        where.isProfileComplete = isProfileCompleteParam === 'true';
       }
       
-      if (search) {
+      if (search && search.trim() !== '') {
         where.OR = [
           { user: { firstName: { contains: search, mode: 'insensitive' } } },
           { user: { lastName: { contains: search, mode: 'insensitive' } } },

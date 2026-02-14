@@ -15,21 +15,21 @@ export async function GET(request: NextRequest) {
       }
 
       const { searchParams } = new URL(request.url);
-      const status = searchParams.get('status'); // PENDING, APPROVED, REJECTED
-      const isSuspended = searchParams.get('isSuspended');
+      const statusParam = searchParams.get('status'); // PENDING, APPROVED, REJECTED - omit for "All"
+      const isSuspendedParam = searchParams.get('isSuspended');
       const search = searchParams.get('search');
-      const page = parseInt(searchParams.get('page') || '1');
-      const limit = parseInt(searchParams.get('limit') || '20');
+      const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+      const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
 
-      // Build where clause for filtering
+      // Build where clause for filtering (server-side)
       const where: any = {};
       
-      if (status) {
-        where.verificationStatus = status;
+      if (statusParam && statusParam.trim() !== '') {
+        where.verificationStatus = statusParam;
       }
       
-      if (isSuspended !== null && isSuspended !== undefined) {
-        where.isSuspended = isSuspended === 'true';
+      if (isSuspendedParam !== null && isSuspendedParam !== undefined && isSuspendedParam !== '') {
+        where.isSuspended = isSuspendedParam === 'true';
       }
       
       if (search) {

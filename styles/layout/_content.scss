@@ -36,6 +36,11 @@
         padding-top: 0.75rem;
     }
 
+    // Dashboard stat cards: reduced padding and height
+    .dashboard-stat-card .p-card-body {
+        padding: 0.65rem 1rem;
+    }
+
     // Inputs / dropdowns inside filter panels
     .p-inputtext,
     .p-dropdown,

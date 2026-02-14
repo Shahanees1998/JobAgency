@@ -10,12 +10,29 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
 
-      console.log('User ID:', authenticatedReq.user?.userId, 'Role:', authenticatedReq.user?.role);
-      
-      const notifications = await prisma.notification.findMany({
-        where: {
-          userId: authenticatedReq.user?.userId,
-        },
+      const { searchParams } = new URL(request.url);
+      const search = searchParams.get('search');
+      const typeParam = searchParams.get('type');
+      const statusParam = searchParams.get('status'); // "true" = read, "false" = unread
+      const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+      const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
+
+      const where: any = { userId: authenticatedReq.user?.userId };
+      if (typeParam && typeParam.trim() !== '') where.type = typeParam;
+      if (statusParam === 'true') where.isRead = true;
+      else if (statusParam === 'false') where.isRead = false;
+      if (search && search.trim() !== '') {
+        where.OR = [
+          { title: { contains: search, mode: 'insensitive' } },
+          { message: { contains: search, mode: 'insensitive' } },
+        ];
+      }
+
+      const skip = (page - 1) * limit;
+
+      const [notifications, total] = await Promise.all([
+        prisma.notification.findMany({
+        where,
         include: {
           user: {
             select: {
@@ -27,9 +44,11 @@ export async function GET(request: NextRequest) {
           },
         },
         orderBy: { createdAt: 'desc' },
-      });
-      
-      console.log('Found notifications:', notifications.length);
+        skip,
+        take: limit,
+      }),
+        prisma.notification.count({ where }),
+      ]);
 
       // Transform the data to match the expected interface
       const transformedNotifications = notifications.map(notification => ({
@@ -47,7 +66,10 @@ export async function GET(request: NextRequest) {
         createdAt: notification.createdAt.toISOString(),
       }));
 
-      return NextResponse.json({ data: transformedNotifications });
+      return NextResponse.json({
+        data: transformedNotifications,
+        pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+      });
     } catch (error) {
       console.error('Error fetching notifications:', error);
       return NextResponse.json(

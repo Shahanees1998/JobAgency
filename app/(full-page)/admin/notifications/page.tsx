@@ -10,8 +10,9 @@ import { Dropdown } from "primereact/dropdown";
 import { InputText } from "primereact/inputtext";
 import { Toast } from "primereact/toast";
 import { useRef } from "react";
-import { useAuth } from "@/hooks/useAuth";
 import { apiClient } from "@/lib/apiClient";
+import { useDebounce } from "@/hooks/useDebounce";
+import TableLoader from "@/components/TableLoader";
 
 interface Notification {
   id: string;
@@ -26,7 +27,6 @@ interface Notification {
 }
 
 export default function AdminNotifications() {
-  const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -34,22 +34,40 @@ export default function AdminNotifications() {
     status: "",
     search: "",
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalRecords, setTotalRecords] = useState(0);
   const toast = useRef<Toast>(null);
+
+  const debouncedSearch = useDebounce(filters.search, 500);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters.type, filters.status, debouncedSearch]);
 
   useEffect(() => {
     loadNotifications();
-  }, []);
+  }, [currentPage, rowsPerPage, filters.type, filters.status, debouncedSearch]);
 
   const loadNotifications = async () => {
     setLoading(true);
     try {
-      const response = await apiClient.getNotifications();
-      setNotifications(response.data?.notifications || []);
+      const response = await apiClient.getNotifications({
+        page: currentPage,
+        limit: rowsPerPage,
+        search: debouncedSearch || undefined,
+        type: filters.type || undefined,
+        status: filters.status || undefined,
+      });
+      if (response.error) throw new Error(response.error);
+      const data = (response.data as any)?.data ?? (response.data as any)?.notifications;
+      setNotifications(Array.isArray(data) ? data : []);
+      setTotalRecords((response.data as any)?.pagination?.total ?? 0);
     } catch (error) {
       console.error("Error loading notifications:", error);
       showToast("error", "Error", "Failed to load notifications");
-      // Fallback to empty array if API fails
       setNotifications([]);
+      setTotalRecords(0);
     } finally {
       setLoading(false);
     }
@@ -191,14 +209,6 @@ export default function AdminNotifications() {
     );
   };
 
-  const filteredNotifications = notifications.filter(notif => {
-    if (filters.type && notif.type !== filters.type) return false;
-    if (filters.status && notif.isRead.toString() !== filters.status) return false;
-    if (filters.search && !notif.title.toLowerCase().includes(filters.search.toLowerCase()) && 
-        !notif.message.toLowerCase().includes(filters.search.toLowerCase())) return false;
-    return true;
-  });
-
   const typeOptions = [
     { label: "All Types", value: "" },
     { label: "New Review", value: "NEW_REVIEW" },
@@ -262,7 +272,9 @@ export default function AdminNotifications() {
               <Dropdown
                 value={filters.type}
                 options={typeOptions}
-                onChange={(e) => setFilters(prev => ({ ...prev, type: e.value }))}
+                optionLabel="label"
+                optionValue="value"
+                onChange={(e) => setFilters(prev => ({ ...prev, type: e.value ?? "" }))}
                 placeholder="All Types"
                 className="w-full"
               />
@@ -272,7 +284,9 @@ export default function AdminNotifications() {
               <Dropdown
                 value={filters.status}
                 options={statusOptions}
-                onChange={(e) => setFilters(prev => ({ ...prev, status: e.value }))}
+                optionLabel="label"
+                optionValue="value"
+                onChange={(e) => setFilters(prev => ({ ...prev, status: e.value ?? "" }))}
                 placeholder="All Statuses"
                 className="w-full"
               />
@@ -281,34 +295,32 @@ export default function AdminNotifications() {
         </Card>
       </div>
 
-      {/* Notifications Table */}
+      {/* Notifications Table - server-side pagination */}
       <div className="col-12">
         <Card>
           {loading ? (
-            <div className="flex align-items-center justify-content-center" style={{ height: '200px' }}>
-              <div className="text-center">
-                <i className="pi pi-spinner pi-spin text-2xl mb-2"></i>
-                <p>Loading notifications...</p>
-              </div>
-            </div>
-          ) : filteredNotifications.length === 0 ? (
+            <TableLoader message="Loading notifications..." />
+          ) : notifications.length === 0 ? (
             <div className="text-center py-6">
               <i className="pi pi-bell text-4xl text-400 mb-3"></i>
               <h3 className="text-900 mb-2">No Notifications Found</h3>
-              <p className="text-600 mb-4">
-                {notifications.length === 0 
-                  ? "No notifications have been generated yet." 
-                  : "No notifications match your current filters."
-                }
-              </p>
+              <p className="text-600 mb-4">No notifications have been generated yet or match your filters.</p>
             </div>
           ) : (
             <DataTable 
-              value={filteredNotifications} 
+              value={notifications} 
               showGridlines
               paginator
-              rows={10}
+              lazy
+              rows={rowsPerPage}
+              first={(currentPage - 1) * rowsPerPage}
+              totalRecords={totalRecords}
               rowsPerPageOptions={[5, 10, 25]}
+              onPage={(e) => {
+                setCurrentPage((e.page ?? 0) + 1);
+                setRowsPerPage(e.rows ?? 10);
+              }}
+              emptyMessage="No notifications found"
             >
               <Column field="title" header="Title" sortable />
               <Column field="message" header="Message" style={{ maxWidth: '300px' }} />

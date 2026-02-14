@@ -195,7 +195,9 @@ export default function AdminCandidates() {
                   { label: "Complete Profiles", value: "true" },
                   { label: "Incomplete Profiles", value: "false" },
                 ]}
-                onChange={(e) => setFilters({ ...filters, isProfileComplete: e.value })}
+                optionLabel="label"
+                optionValue="value"
+                onChange={(e) => setFilters({ ...filters, isProfileComplete: e.value ?? "" })}
                 placeholder="Filter by Profile Status"
                 className="w-full"
               />

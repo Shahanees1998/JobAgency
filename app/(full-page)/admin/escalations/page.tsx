@@ -10,10 +10,11 @@ import { Dropdown } from "primereact/dropdown";
 import { InputText } from "primereact/inputtext";
 import { Toast } from "primereact/toast";
 import { useRef } from "react";
-import { useAuth } from "@/hooks/useAuth";
 import { apiClient } from "@/lib/apiClient";
 import { InputTextarea } from "primereact/inputtextarea";
 import { Dialog } from "primereact/dialog";
+import { useDebounce } from "@/hooks/useDebounce";
+import TableLoader from "@/components/TableLoader";
 
 interface Escalation {
   id: string;
@@ -32,7 +33,6 @@ interface Escalation {
 }
 
 export default function AdminEscalations() {
-  const { user } = useAuth();
   const [escalations, setEscalations] = useState<Escalation[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -40,26 +40,43 @@ export default function AdminEscalations() {
     priority: "",
     search: "",
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalRecords, setTotalRecords] = useState(0);
   const [selectedEscalation, setSelectedEscalation] = useState<Escalation | null>(null);
   const [responseText, setResponseText] = useState("");
   const [showResponseModal, setShowResponseModal] = useState(false);
   const toast = useRef<Toast>(null);
 
+  const debouncedSearch = useDebounce(filters.search, 500);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters.status, filters.priority, debouncedSearch]);
+
   useEffect(() => {
     loadEscalations();
-  }, []);
+  }, [currentPage, rowsPerPage, filters.status, filters.priority, debouncedSearch]);
 
   const loadEscalations = async () => {
     setLoading(true);
     try {
-      const response = await apiClient.getAdminEscalations();
-      // apiClient wraps response, so structure is { data: { data: [...] } } or { data: [...] }
-      const escalationsData = (response as any)?.data?.data || (response as any)?.data || [];
+      const response = await apiClient.getAdminEscalations({
+        page: currentPage,
+        limit: rowsPerPage,
+        search: debouncedSearch || undefined,
+        status: filters.status || undefined,
+        priority: filters.priority || undefined,
+      });
+      if (response.error) throw new Error(response.error);
+      const escalationsData = (response as any)?.data?.data ?? [];
       setEscalations(Array.isArray(escalationsData) ? escalationsData : []);
+      setTotalRecords((response as any)?.data?.pagination?.total ?? 0);
     } catch (error) {
       console.error("Error loading escalations:", error);
       showToast("error", "Error", "Failed to load escalations");
       setEscalations([]);
+      setTotalRecords(0);
     } finally {
       setLoading(false);
     }
@@ -226,23 +243,6 @@ export default function AdminEscalations() {
     );
   };
 
-  const filteredEscalations = Array.isArray(escalations)
-    ? escalations.filter((esc) => {
-        if (filters.status && esc.status !== filters.status) return false;
-        if (filters.priority && esc.priority !== filters.priority) return false;
-
-        if (filters.search) {
-          const q = filters.search.toLowerCase();
-          const subject = (esc.subject || "").toLowerCase();
-          const userName = (esc.userName || "").toLowerCase();
-          const hotelName = (esc.hotelName || "").toLowerCase();
-          if (!subject.includes(q) && !userName.includes(q) && !hotelName.includes(q)) return false;
-        }
-
-        return true;
-      })
-    : [];
-
   const statusOptions = [
     { label: "All Statuses", value: "" },
     { label: "Open", value: "OPEN" },
@@ -298,7 +298,9 @@ export default function AdminEscalations() {
               <Dropdown
                 value={filters.status}
                 options={statusOptions}
-                onChange={(e) => setFilters(prev => ({ ...prev, status: e.value }))}
+                optionLabel="label"
+                optionValue="value"
+                onChange={(e) => setFilters(prev => ({ ...prev, status: e.value ?? "" }))}
                 placeholder="All Statuses"
                 className="w-full"
               />
@@ -308,7 +310,9 @@ export default function AdminEscalations() {
               <Dropdown
                 value={filters.priority}
                 options={priorityOptions}
-                onChange={(e) => setFilters(prev => ({ ...prev, priority: e.value }))}
+                optionLabel="label"
+                optionValue="value"
+                onChange={(e) => setFilters(prev => ({ ...prev, priority: e.value ?? "" }))}
                 placeholder="All Priorities"
                 className="w-full"
               />
@@ -317,34 +321,32 @@ export default function AdminEscalations() {
         </Card>
       </div>
 
-      {/* Escalations Table */}
+      {/* Escalations Table - server-side pagination */}
       <div className="col-12">
         <Card>
           {loading ? (
-            <div className="flex align-items-center justify-content-center" style={{ height: '200px' }}>
-              <div className="text-center">
-                <i className="pi pi-spinner pi-spin text-2xl mb-2"></i>
-                <p>Loading escalations...</p>
-              </div>
-            </div>
-          ) : filteredEscalations.length === 0 ? (
+            <TableLoader message="Loading escalations..." />
+          ) : escalations.length === 0 ? (
             <div className="text-center py-6">
               <i className="pi pi-exclamation-triangle text-4xl text-400 mb-3"></i>
               <h3 className="text-900 mb-2">No Escalations Found</h3>
-              <p className="text-600 mb-4">
-                {escalations.length === 0 
-                  ? "No escalations have been submitted yet." 
-                  : "No escalations match your current filters."
-                }
-              </p>
+              <p className="text-600 mb-4">No escalations have been submitted yet or match your filters.</p>
             </div>
           ) : (
             <DataTable 
-              value={filteredEscalations} 
+              value={escalations} 
               showGridlines
               paginator
-              rows={10}
+              lazy
+              rows={rowsPerPage}
+              first={(currentPage - 1) * rowsPerPage}
+              totalRecords={totalRecords}
               rowsPerPageOptions={[5, 10, 25]}
+              onPage={(e) => {
+                setCurrentPage((e.page ?? 0) + 1);
+                setRowsPerPage(e.rows ?? 10);
+              }}
+              emptyMessage="No escalations found"
             >
               <Column field="hotel" header="Hotel" body={hotelBodyTemplate} sortable />
               <Column field="user" header="User" body={userBodyTemplate} />
