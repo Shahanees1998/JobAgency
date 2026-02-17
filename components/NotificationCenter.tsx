@@ -75,8 +75,9 @@ export default function NotificationCenter() {
     try {
       const response = await apiClient.getNotifications({ limit: 20 });
       if (response.data) {
-        setNotifications((response.data.notifications || []) as Notification[]);
-        setUnreadCount((response.data.notifications as Notification[])?.filter((n: Notification) => !n.isRead).length || 0);
+        const list = (response.data as { data?: Notification[] }).data ?? [];
+        setNotifications(list);
+        setUnreadCount(list.filter((n: Notification) => !n.isRead).length);
       }
     } catch (error) {
       console.error('Error loading notifications:', error);

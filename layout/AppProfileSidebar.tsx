@@ -65,7 +65,7 @@ const AppProfileSidebar = () => {
             setMessages([]);
 
             if (!notificationsResponse.error) {
-                setNotifications(notificationsResponse.data?.notifications || []);
+                setNotifications(((notificationsResponse.data as { data?: Notification[] })?.data ?? []) as Notification[]);
             }
         } catch (error) {
             console.error('Error loading sidebar data:', error);

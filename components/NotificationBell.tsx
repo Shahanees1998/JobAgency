@@ -390,7 +390,7 @@ export default function NotificationBell() {
             });
 
             if (!response.error) {
-                const notificationsData = response.data?.notifications || [];
+                const notificationsData = (response.data as { data?: Notification[] })?.data ?? [];
                 const pagination = response.data?.pagination;
                 
                 if (append) {
