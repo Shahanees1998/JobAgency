@@ -348,7 +348,8 @@ class ApiClient {
     async updateAnnouncement(id: string, data: {
         title?: string;
         content?: string;
-        type?: 'GENERAL' | 'IMPORTANT' | 'URGENT' | 'UPDATE';
+        type?: 'GENERAL' | 'IMPORTANT' | 'URGENT' | 'UPDATE' | 'EVENT';
+        status?: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
     }) {
         return this.put<any>(`/admin/announcements/${id}`, data);
     }

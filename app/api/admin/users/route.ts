@@ -249,7 +249,7 @@ function createWelcomeEmail(firstName: string, loginUrl: string, email: string, 
                 overflow: hidden;
             }
             .header {
-                background: #1e3a5f;
+                background: #000000;
                 color: white;
                 padding: 30px;
                 text-align: center;
@@ -278,7 +278,7 @@ function createWelcomeEmail(firstName: string, loginUrl: string, email: string, 
             }
             .primary-button {
                 display: inline-block;
-                background: #1e3a5f;
+                background: #000000;
                 color: white;
                 text-decoration: none;
                 padding: 15px 30px;

@@ -48,7 +48,7 @@ const styles = `
   }
 
   .candidate-header-card {
-    background: #1e3a5f;
+    background: #000000;
     color: white;
     border-radius: 12px;
     padding: 2rem;
@@ -108,12 +108,12 @@ const styles = `
   }
 
   .stat-badge.applications {
-    background: #1e3a5f;
+    background: #000000;
     color: white;
   }
 
   .stat-badge.complete {
-    background: #1e3a5f;
+    background: #000000;
     color: white;
   }
 
@@ -149,22 +149,22 @@ const styles = `
   }
 
   .icon-wrapper.blue {
-    background: #1e3a5f;
+    background: #000000;
     color: white;
   }
 
   .icon-wrapper.green {
-    background: #1e3a5f;
+    background: #000000;
     color: white;
   }
 
   .icon-wrapper.orange {
-    background: #1e3a5f;
+    background: #000000;
     color: white;
   }
 
   .icon-wrapper.purple {
-    background: #1e3a5f;
+    background: #000000;
     color: white;
   }
 
@@ -315,7 +315,7 @@ export default function AdminCandidateDetailPage() {
               <div className="text-center p-6">
                 <div className="flex justify-content-center mb-4">
                   <div className="icon-wrapper" style={{ 
-                    background: '#1e3a5f', 
+                    background: '#000000', 
                     color: 'white',
                     width: '80px',
                     height: '80px'
@@ -332,7 +332,7 @@ export default function AdminCandidateDetailPage() {
                   className="action-button"
                   size="large"
                   style={{ 
-                    background: '#1e3a5f',
+                    background: '#000000',
                     border: 'none',
                     color: 'white'
                   }}
@@ -584,7 +584,7 @@ export default function AdminCandidateDetailPage() {
               {candidate.applications && candidate.applications.length > 0 && (
                 <div className="info-card pink">
                   <div className="flex align-items-center mb-3">
-                    <div className="icon-wrapper" style={{ background: '#1e3a5f', color: 'white' }}>
+                    <div className="icon-wrapper" style={{ background: '#000000', color: 'white' }}>
                       <i className="pi pi-file text-xl"></i>
                     </div>
                     <h3 className="text-xl font-bold m-0">Recent Applications ({candidate.totalApplications} total)</h3>
@@ -630,7 +630,7 @@ export default function AdminCandidateDetailPage() {
                   className="action-button"
                   size="large"
                   style={{ 
-                    background: '#1e3a5f',
+                    background: '#000000',
                     border: 'none',
                     color: 'white'
                   }}

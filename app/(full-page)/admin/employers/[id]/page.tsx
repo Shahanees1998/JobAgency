@@ -50,7 +50,7 @@ const styles = `
   }
 
   .employer-header-card {
-    background: #1e3a5f;
+    background: #000000;
     color: white;
     border-radius: 12px;
     padding: 2rem;
@@ -64,33 +64,12 @@ const styles = `
     padding: 1.5rem;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
     transition: all 0.3s ease;
-    border-left: 4px solid transparent;
     animation: fadeIn 0.5s ease-out;
   }
 
   .info-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
-  }
-
-  .info-card.blue {
-    border-left-color: ##000000;
-  }
-
-  .info-card.green {
-    border-left-color: #10b981;
-  }
-
-  .info-card.orange {
-    border-left-color: #f59e0b;
-  }
-
-  .info-card.purple {
-    border-left-color: #8b5cf6;
-  }
-
-  .info-card.pink {
-    border-left-color: #ec4899;
   }
 
   .stat-badge {
@@ -109,12 +88,12 @@ const styles = `
   }
 
   .stat-badge.jobs {
-    background: #1e3a5f;
+    background: #000000;
     color: white;
   }
 
   .stat-badge.verified {
-    background: #1e3a5f;
+    background: #000000;
     color: white;
   }
 
@@ -150,22 +129,22 @@ const styles = `
   }
 
   .icon-wrapper.blue {
-    background: #1e3a5f;
+    background: #000000;
     color: white;
   }
 
   .icon-wrapper.green {
-    background: #1e3a5f;
+    background: #000000;
     color: white;
   }
 
   .icon-wrapper.orange {
-    background: #1e3a5f;
+    background: #000000;
     color: white;
   }
 
   .icon-wrapper.purple {
-    background: #1e3a5f;
+    background: #000000;
     color: white;
   }
 
@@ -420,7 +399,7 @@ export default function AdminEmployerDetailPage() {
               <div className="text-center p-6">
                 <div className="flex justify-content-center mb-4">
                   <div className="icon-wrapper" style={{ 
-                    background: '#1e3a5f', 
+                    background: '#000000', 
                     color: 'white',
                     width: '80px',
                     height: '80px'
@@ -437,7 +416,7 @@ export default function AdminEmployerDetailPage() {
                   className="action-button"
                   size="large"
                   style={{ 
-                    background: '#1e3a5f',
+                    background: '#000000',
                     border: 'none',
                     color: 'white'
                   }}
@@ -654,7 +633,7 @@ export default function AdminEmployerDetailPage() {
                 </div>
                 <div className="grid">
                   <div className="col-12 md:col-6">
-                    <div className="p-3 bg-white border-round" style={{ borderLeft: '4px solid #ec4899' }}>
+                    <div className="p-3 bg-white border-round">
                       <label className="font-bold text-600 block mb-2">
                         <i className="pi pi-user mr-2 text-pink-500"></i>Contact Person
                       </label>
@@ -664,7 +643,7 @@ export default function AdminEmployerDetailPage() {
                     </div>
                   </div>
                   <div className="col-12 md:col-6">
-                    <div className="p-3 bg-white border-round" style={{ borderLeft: '4px solid #06b6d4' }}>
+                    <div className="p-3 bg-white border-round">
                       <label className="font-bold text-600 block mb-2">
                         <i className="pi pi-envelope mr-2 text-cyan-500"></i>Email
                       </label>
@@ -677,7 +656,7 @@ export default function AdminEmployerDetailPage() {
                   </div>
                   {employer.user.phone && (
                     <div className="col-12 md:col-6">
-                      <div className="p-3 bg-white border-round" style={{ borderLeft: '4px solid ##000000' }}>
+                      <div className="p-3 bg-white border-round">
                         <label className="font-bold text-600 block mb-2">
                           <i className="pi pi-phone mr-2 text-blue-500"></i>Phone
                         </label>
@@ -690,7 +669,7 @@ export default function AdminEmployerDetailPage() {
                     </div>
                   )}
                   <div className="col-12 md:col-6">
-                    <div className="p-3 bg-white border-round" style={{ borderLeft: '4px solid #10b981' }}>
+                    <div className="p-3 bg-white border-round">
                       <label className="font-bold text-600 block mb-2">
                         <i className="pi pi-shield mr-2 text-green-500"></i>User Status
                       </label>
@@ -708,9 +687,9 @@ export default function AdminEmployerDetailPage() {
 
               {/* Verification Notes */}
               {employer.verificationNotes && (
-                <div className="info-card" style={{ borderLeft: '4px solid #f59e0b' }}>
+                <div className="info-card">
                   <div className="flex align-items-center mb-3">
-                    <div className="icon-wrapper" style={{ background: '#1e3a5f', color: 'white' }}>
+                    <div className="icon-wrapper" style={{ background: '#000000', color: 'white' }}>
                       <i className="pi pi-comment text-xl"></i>
                     </div>
                     <h3 className="text-xl font-bold m-0">Verification Notes</h3>
@@ -723,9 +702,9 @@ export default function AdminEmployerDetailPage() {
 
               {/* Suspension Info */}
               {employer.isSuspended && employer.suspensionReason && (
-                <div className="info-card" style={{ borderLeft: '4px solid #ef4444' }}>
+                <div className="info-card">
                   <div className="flex align-items-center mb-3">
-                    <div className="icon-wrapper" style={{ background: '#1e3a5f', color: 'white' }}>
+                    <div className="icon-wrapper" style={{ background: '#000000', color: 'white' }}>
                       <i className="pi pi-ban text-xl"></i>
                     </div>
                     <h3 className="text-xl font-bold m-0">Suspension Details</h3>
@@ -759,7 +738,6 @@ export default function AdminEmployerDetailPage() {
                       <div 
                         key={job.id}
                         className="p-3 bg-white border-round cursor-pointer"
-                        style={{ borderLeft: '4px solid #f59e0b' }}
                         onClick={() => router.push(`/admin/jobs/${job.id}`)}
                       >
                         <div className="flex justify-content-between align-items-center">
@@ -786,7 +764,7 @@ export default function AdminEmployerDetailPage() {
                   className="action-button"
                   size="large"
                   style={{ 
-                    background: '#1e3a5f',
+                    background: '#000000',
                     border: 'none',
                     color: 'white'
                   }}

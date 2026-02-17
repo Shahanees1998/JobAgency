@@ -1,3 +1,4 @@
+import { NotificationType } from '@prisma/client';
 import { pusherServer } from './realtime';
 import { prisma } from './prisma';
 
@@ -106,6 +107,57 @@ export async function sendAdminNotification(data: AdminNotificationData) {
   }
 }
 
+// Send announcement as notification to all users (DB + real-time)
+export async function sendAnnouncementToAllUsers(data: {
+  announcementId: string;
+  title: string;
+  content: string;
+  type: string;
+}) {
+  try {
+    const users = await prisma.user.findMany({
+      where: { isDeleted: false },
+      select: { id: true },
+    });
+
+    const notifications = await Promise.all(
+      users.map((user) =>
+        prisma.notification.create({
+          data: {
+            userId: user.id,
+            title: data.title,
+            message: data.content,
+            type: NotificationType.ANNOUNCEMENT,
+            relatedId: data.announcementId,
+            relatedType: 'announcement',
+            metadata: JSON.stringify({ announcementType: data.type }),
+          },
+        })
+      )
+    );
+
+    await Promise.all(
+      users.map((user) =>
+        pusherServer.trigger(`user-${user.id}`, 'new-notification', {
+          id: notifications.find((n) => n.userId === user.id)?.id,
+          title: data.title,
+          message: data.content,
+          type: 'ANNOUNCEMENT',
+          relatedId: data.announcementId,
+          relatedType: 'announcement',
+          metadata: { announcementType: data.type },
+          createdAt: new Date(),
+        })
+      )
+    );
+
+    return notifications;
+  } catch (error) {
+    console.error('Error sending announcement to users:', error);
+    throw error;
+  }
+}
+
 // Send notification to global channel (for system-wide announcements)
 export async function sendGlobalNotification(data: {
   title: string;
@@ -140,6 +192,16 @@ export class NotificationService {
   // Send notification to all admins
   static async sendAdminNotification(data: AdminNotificationData) {
     return sendAdminNotification(data);
+  }
+
+  // Send announcement to all users (DB + real-time)
+  static async sendAnnouncementToAllUsers(data: {
+    announcementId: string;
+    title: string;
+    content: string;
+    type: string;
+  }) {
+    return sendAnnouncementToAllUsers(data);
   }
 
   // Send notification to global channel

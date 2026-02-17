@@ -11,6 +11,7 @@ import { InputText } from "primereact/inputtext";
 import { InputTextarea } from "primereact/inputtextarea";
 import { Dialog } from "primereact/dialog";
 import { Toast } from "primereact/toast";
+import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 import { useRef } from "react";
 import { apiClient } from "@/lib/apiClient";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -40,6 +41,14 @@ export default function AdminAnnouncements() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalRecords, setTotalRecords] = useState(0);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [statusModalAnnouncement, setStatusModalAnnouncement] = useState<Announcement | null>(null);
+  const [newStatus, setNewStatus] = useState("");
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [viewAnnouncement, setViewAnnouncement] = useState<Announcement | null>(null);
+  const [updating, setUpdating] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [newAnnouncement, setNewAnnouncement] = useState<{
     title: string;
     content: string;
@@ -101,40 +110,85 @@ export default function AdminAnnouncements() {
       return;
     }
 
+    setCreating(true);
     try {
       const response = await apiClient.createAnnouncement(newAnnouncement);
+      if ((response as any).error) {
+        throw new Error((response as any).error);
+      }
       const created = (response as any).data?.data ?? (response as any).data;
       if (created) setAnnouncements(prev => [created, ...prev]);
       setNewAnnouncement({ title: "", content: "", type: "GENERAL" });
       setShowCreateModal(false);
-      showToast("success", "Success", "Announcement created successfully");
+      const notificationsSent = (response as any).data?.notificationsSent;
+      showToast(
+        "success",
+        "Success",
+        notificationsSent === false
+          ? "Announcement created, but notifications could not be sent to users."
+          : "Announcement created and notifications sent to all users."
+      );
     } catch (error) {
-      showToast("error", "Error", "Failed to create announcement");
+      showToast("error", "Error", error instanceof Error ? error.message : "Failed to create announcement");
+    } finally {
+      setCreating(false);
     }
   };
 
-  const handleStatusChange = async (announcementId: string, newStatus: string) => {
+  const openStatusModal = (announcement: Announcement) => {
+    setStatusModalAnnouncement(announcement);
+    setNewStatus(announcement.status);
+    setShowStatusModal(true);
+  };
+
+  const handleStatusChange = async () => {
+    if (!statusModalAnnouncement || !newStatus || newStatus === statusModalAnnouncement.status) {
+      setShowStatusModal(false);
+      return;
+    }
+    setUpdating(true);
     try {
-      // Note: The API doesn't support status updates, so we'll just update the local state
-      // In a real implementation, you'd need to add a status update endpoint
-      setAnnouncements(prev => prev.map(announcement => 
-        announcement.id === announcementId 
-          ? { ...announcement, status: newStatus }
-          : announcement
-      ));
+      await apiClient.updateAnnouncement(statusModalAnnouncement.id, { status: newStatus as "DRAFT" | "PUBLISHED" | "ARCHIVED" });
       showToast("success", "Success", "Announcement status updated");
+      setShowStatusModal(false);
+      setStatusModalAnnouncement(null);
+      loadAnnouncements();
     } catch (error) {
       showToast("error", "Error", "Failed to update announcement status");
+    } finally {
+      setUpdating(false);
     }
+  };
+
+  const openViewModal = (announcement: Announcement) => {
+    setViewAnnouncement(announcement);
+    setShowViewModal(true);
+  };
+
+  const confirmDeleteAnnouncement = (announcement: Announcement) => {
+    confirmDialog({
+      message: `Are you sure you want to delete "${announcement.title}"?`,
+      header: "Delete Confirmation",
+      icon: "pi pi-exclamation-triangle",
+      acceptClassName: "p-button-danger",
+      accept: () => handleDeleteAnnouncement(announcement.id),
+    });
   };
 
   const handleDeleteAnnouncement = async (announcementId: string) => {
+    setDeletingId(announcementId);
     try {
-      await apiClient.deleteAnnouncement(announcementId);
+      const response = await apiClient.deleteAnnouncement(announcementId);
+      if ((response as any).error) {
+        throw new Error((response as any).error);
+      }
       setAnnouncements(prev => prev.filter(announcement => announcement.id !== announcementId));
       showToast("success", "Success", "Announcement deleted successfully");
+      loadAnnouncements();
     } catch (error) {
-      showToast("error", "Error", "Failed to delete announcement");
+      showToast("error", "Error", error instanceof Error ? error.message : "Failed to delete announcement");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -195,15 +249,17 @@ export default function AdminAnnouncements() {
     return (
       <div className="flex align-items-center gap-2">
         <Tag 
-          value={rowData.status} 
-          severity={getStatusSeverity(rowData.status) as any} 
+          value={rowData.status}
+          severity={getStatusSeverity(rowData.status) as any}
         />
         <Button
           icon="pi pi-cog"
           size="small"
           className="p-button-outlined p-button-sm"
-          onClick={() => {/* TODO: Open status management modal */}}
+          onClick={() => openStatusModal(rowData)}
           tooltip="Change Status"
+          loading={updating && statusModalAnnouncement?.id === rowData.id}
+          disabled={updating}
         />
       </div>
     );
@@ -216,15 +272,17 @@ export default function AdminAnnouncements() {
           icon="pi pi-eye"
           size="small"
           className="p-button-outlined p-button-sm"
-          onClick={() => {/* TODO: Open detail modal */}}
+          onClick={() => openViewModal(rowData)}
           tooltip="View Details"
         />
         <Button
           icon="pi pi-trash"
           size="small"
           className="p-button-outlined p-button-sm p-button-danger"
-          onClick={() => handleDeleteAnnouncement(rowData.id)}
+          onClick={() => confirmDeleteAnnouncement(rowData)}
           tooltip="Delete"
+          loading={deletingId === rowData.id}
+          disabled={deletingId === rowData.id}
         />
       </div>
     );
@@ -406,15 +464,69 @@ export default function AdminAnnouncements() {
             icon="pi pi-times"
             className="p-button-outlined"
             onClick={() => setShowCreateModal(false)}
+            disabled={creating}
           />
           <Button
             label="Create Announcement"
             icon="pi pi-check"
             onClick={handleCreateAnnouncement}
+            loading={creating}
+            disabled={creating}
           />
         </div>
       </Dialog>
 
+      {/* Change Status Dialog */}
+      <Dialog
+        header="Change Status"
+        visible={showStatusModal && !!statusModalAnnouncement}
+        style={{ width: "400px" }}
+        onHide={() => { setShowStatusModal(false); setStatusModalAnnouncement(null); }}
+        footer={
+          <div>
+            <Button label="Cancel" icon="pi pi-times" className="p-button-text" onClick={() => setShowStatusModal(false)} />
+            <Button label="Update Status" icon="pi pi-check" onClick={handleStatusChange} loading={updating} disabled={!newStatus || newStatus === statusModalAnnouncement?.status} />
+          </div>
+        }
+      >
+        {statusModalAnnouncement && (
+          <div>
+            <p className="mb-3"><strong>Announcement:</strong> {statusModalAnnouncement.title}</p>
+            <label className="block text-900 font-medium mb-2">New Status</label>
+            <Dropdown
+              value={newStatus}
+              options={statusOptions.filter((o) => o.value !== "")}
+              optionLabel="label"
+              optionValue="value"
+              onChange={(e) => setNewStatus(e.value)}
+              className="w-full"
+            />
+          </div>
+        )}
+      </Dialog>
+
+      {/* View Details Dialog */}
+      <Dialog
+        header="Announcement Details"
+        visible={showViewModal && !!viewAnnouncement}
+        style={{ width: "600px" }}
+        onHide={() => { setShowViewModal(false); setViewAnnouncement(null); }}
+        footer={<Button label="Close" icon="pi pi-times" onClick={() => setShowViewModal(false)} />}
+      >
+        {viewAnnouncement && (
+          <div className="flex flex-column gap-3">
+            <div><strong>Title:</strong> {viewAnnouncement.title}</div>
+            <div><strong>Type:</strong> <Tag value={viewAnnouncement.type} severity={getTypeSeverity(viewAnnouncement.type) as any} /></div>
+            <div><strong>Status:</strong> <Tag value={viewAnnouncement.status} severity={getStatusSeverity(viewAnnouncement.status) as any} /></div>
+            <div><strong>Created By:</strong> {viewAnnouncement.createdByName}</div>
+            <div><strong>Created:</strong> {formatDate(viewAnnouncement.createdAt)}</div>
+            <div><strong>Content:</strong></div>
+            <div className="p-3 bg-gray-50 border-round line-height-3">{viewAnnouncement.content}</div>
+          </div>
+        )}
+      </Dialog>
+
+      <ConfirmDialog />
       <Toast ref={toast} />
     </div>
   );

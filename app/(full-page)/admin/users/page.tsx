@@ -103,6 +103,8 @@ export default function MembersPage() {
     const [sortField, setSortField] = useState<string | undefined>(undefined);
     const [sortOrder, setSortOrder] = useState<number | undefined>(undefined);
     const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [bulkDeleting, setBulkDeleting] = useState(false);
 
     // Use debounce hook for search
     const debouncedFilterValue = useDebounce(globalFilterValue, 500);
@@ -262,19 +264,23 @@ export default function MembersPage() {
     const bulkDeleteUsers = async () => {
         if (selectedUsers.length === 0) return;
 
+        setBulkDeleting(true);
         try {
             const deletePromises = selectedUsers.map(user => apiClient.deleteUser(user.id));
             await Promise.all(deletePromises);
 
             setSelectedUsers([]);
             showToast("success", "Success", `${selectedUsers.length} user(s) deleted successfully`);
-            loadMembers(); // Reload the list
+            loadMembers();
         } catch (error) {
             showToast("error", "Error", "Failed to delete some users");
+        } finally {
+            setBulkDeleting(false);
         }
     };
 
     const deleteUser = async (userId: string) => {
+        setDeletingId(userId);
         try {
             const response = await apiClient.deleteUser(userId);
 
@@ -286,6 +292,8 @@ export default function MembersPage() {
             showToast("success", "Success", "Member deleted successfully");
         } catch (error) {
             showToast("error", "Error", "Failed to delete member");
+        } finally {
+            setDeletingId(null);
         }
     };
 
@@ -488,8 +496,10 @@ Jane,Smith,jane.smith@example.com,+1234567891,ACTIVE,primo1235,2024-01-16,2024-0
                     text
                     severity="danger"
                     tooltip="Delete Member"
-                        onClick={() => confirmDeleteUser(rowData)}
-                    />}
+                    onClick={() => confirmDeleteUser(rowData)}
+                    loading={deletingId === rowData.id}
+                    disabled={deletingId === rowData.id || bulkDeleting}
+                />}
                 </div>
             );
         };
@@ -504,6 +514,8 @@ Jane,Smith,jane.smith@example.com,+1234567891,ACTIVE,primo1235,2024-01-16,2024-0
                             onClick={confirmBulkDeleteUsers}
                             severity="danger"
                             className="p-button-raised mb-4"
+                            loading={bulkDeleting}
+                            disabled={bulkDeleting}
                         />
                     )}
                 </div>
@@ -540,7 +552,7 @@ Jane,Smith,jane.smith@example.com,+1234567891,ACTIVE,primo1235,2024-01-16,2024-0
             </div>
         </>
 
-    ), [globalFilterValue]);
+    ), [globalFilterValue, selectedUsers, bulkDeleting]);
 
     return (
         <div className="grid">
@@ -679,9 +691,10 @@ Jane,Smith,jane.smith@example.com,+1234567891,ACTIVE,primo1235,2024-01-16,2024-0
                     <div className="flex gap-2 justify-content-end">
                         <Button label="Cancel" icon="pi pi-times" text onClick={() => setShowUserDialog(false)} disabled={saveLoading} />
                         <Button
-                            label={saveLoading ? "Saving..." : "Save"}
-                            icon={saveLoading ? "pi pi-spin pi-spinner" : "pi pi-check"}
+                            label="Save"
+                            icon="pi pi-check"
                             onClick={saveUser}
+                            loading={saveLoading}
                             disabled={saveLoading}
                         />
                     </div>

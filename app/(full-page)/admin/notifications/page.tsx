@@ -9,6 +9,7 @@ import { Tag } from "primereact/tag";
 import { Dropdown } from "primereact/dropdown";
 import { InputText } from "primereact/inputtext";
 import { Toast } from "primereact/toast";
+import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 import { useRef } from "react";
 import { apiClient } from "@/lib/apiClient";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -37,6 +38,9 @@ export default function AdminNotifications() {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalRecords, setTotalRecords] = useState(0);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [markingReadId, setMarkingReadId] = useState<string | null>(null);
+  const [markAllReadLoading, setMarkAllReadLoading] = useState(false);
   const toast = useRef<Toast>(null);
 
   const debouncedSearch = useDebounce(filters.search, 500);
@@ -78,6 +82,7 @@ export default function AdminNotifications() {
   };
 
   const handleMarkAsRead = async (notificationId: string) => {
+    setMarkingReadId(notificationId);
     try {
       await apiClient.markNotificationAsRead(notificationId);
       setNotifications(prev => prev.map(notif => 
@@ -86,26 +91,47 @@ export default function AdminNotifications() {
       showToast("success", "Success", "Notification marked as read");
     } catch (error) {
       showToast("error", "Error", "Failed to mark notification as read");
+    } finally {
+      setMarkingReadId(null);
     }
   };
 
+  const confirmDelete = (notification: Notification) => {
+    confirmDialog({
+      message: `Are you sure you want to delete "${notification.title}"?`,
+      header: "Delete Confirmation",
+      icon: "pi pi-exclamation-triangle",
+      acceptClassName: "p-button-danger",
+      accept: () => handleDelete(notification.id),
+    });
+  };
+
   const handleDelete = async (notificationId: string) => {
+    setDeletingId(notificationId);
     try {
-      await apiClient.deleteNotification(notificationId);
+      const response = await apiClient.deleteNotification(notificationId);
+      if ((response as any).error) throw new Error((response as any).error);
       setNotifications(prev => prev.filter(notif => notif.id !== notificationId));
+      setTotalRecords(prev => Math.max(0, prev - 1));
       showToast("success", "Success", "Notification deleted");
     } catch (error) {
       showToast("error", "Error", "Failed to delete notification");
+    } finally {
+      setDeletingId(null);
     }
   };
 
   const handleMarkAllAsRead = async () => {
+    setMarkAllReadLoading(true);
     try {
-      await apiClient.markAllNotificationsAsRead();
+      const response = await apiClient.markAllNotificationsAsRead();
+      if ((response as any).error) throw new Error((response as any).error);
       setNotifications(prev => prev.map(notif => ({ ...notif, isRead: true })));
       showToast("success", "Success", "All notifications marked as read");
     } catch (error) {
       showToast("error", "Error", "Failed to mark all notifications as read");
+    } finally {
+      setMarkAllReadLoading(false);
     }
   };
 
@@ -124,6 +150,7 @@ export default function AdminNotifications() {
       case "ESCALATION_RECEIVED": return "danger";
       case "ESCALATION_RESPONDED": return "info";
       case "SYSTEM_ALERT": return "warning";
+      case "ANNOUNCEMENT": return "info";
       default: return "info";
     }
   };
@@ -143,6 +170,7 @@ export default function AdminNotifications() {
       case "ESCALATION_RECEIVED": return "Escalation Received";
       case "ESCALATION_RESPONDED": return "Escalation Responded";
       case "SYSTEM_ALERT": return "System Alert";
+      case "ANNOUNCEMENT": return "Announcement";
       default: return type;
     }
   };
@@ -196,14 +224,18 @@ export default function AdminNotifications() {
             className="p-button-outlined p-button-sm p-button-success"
             onClick={() => handleMarkAsRead(rowData.id)}
             tooltip="Mark as Read"
+            loading={markingReadId === rowData.id}
+            disabled={markingReadId === rowData.id || deletingId === rowData.id}
           />
         )}
         <Button
           icon="pi pi-trash"
           size="small"
           className="p-button-outlined p-button-sm p-button-danger"
-          onClick={() => handleDelete(rowData.id)}
+          onClick={() => confirmDelete(rowData)}
           tooltip="Delete"
+          loading={deletingId === rowData.id}
+          disabled={deletingId === rowData.id || markingReadId === rowData.id}
         />
       </div>
     );
@@ -219,6 +251,7 @@ export default function AdminNotifications() {
     { label: "Escalation Received", value: "ESCALATION_RECEIVED" },
     { label: "Escalation Responded", value: "ESCALATION_RESPONDED" },
     { label: "System Alert", value: "SYSTEM_ALERT" },
+    { label: "Announcement", value: "ANNOUNCEMENT" },
   ];
 
   const statusOptions = [
@@ -242,6 +275,8 @@ export default function AdminNotifications() {
               icon="pi pi-check"
               onClick={handleMarkAllAsRead}
               className="p-button-success"
+              loading={markAllReadLoading}
+              disabled={markAllReadLoading}
             />
             <Button
               label="Refresh"
@@ -340,6 +375,7 @@ export default function AdminNotifications() {
       </div>
 
       <Toast ref={toast} />
+      <ConfirmDialog />
     </div>
   );
 }

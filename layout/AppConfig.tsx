@@ -22,7 +22,7 @@ const AppConfig = (props: AppConfigProps) => {
     const { changeTheme } = useContext(PrimeReactContext);
     const scales = [12, 13, 14, 15, 16];
     const componentThemes = [
-        { name: "indigo", color: "#6366F1" },
+        { name: "indigo", color: "#000000" },
         { name: "blue", color: "##000000" },
         { name: "purple", color: "#8B5CF6" },
         { name: "teal", color: "#14B8A6" },

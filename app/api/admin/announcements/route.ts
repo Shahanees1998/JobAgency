@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, AuthenticatedRequest } from '@/lib/authMiddleware';
 import { prisma } from '@/lib/prisma';
+import { NotificationService } from '@/lib/notificationService';
 
 export async function GET(request: NextRequest) {
   return withAuth(request, async (authenticatedReq: AuthenticatedRequest) => {
@@ -119,6 +120,21 @@ export async function POST(request: NextRequest) {
         },
       });
 
+      let notificationsSent = false;
+      if (announcement.status === 'PUBLISHED') {
+        try {
+          await NotificationService.sendAnnouncementToAllUsers({
+            announcementId: announcement.id,
+            title: announcement.title,
+            content: announcement.content,
+            type: announcement.type,
+          });
+          notificationsSent = true;
+        } catch (notifErr) {
+          console.error('Error sending announcement notifications:', notifErr);
+        }
+      }
+
       return NextResponse.json({
         data: {
           id: announcement.id,
@@ -131,6 +147,7 @@ export async function POST(request: NextRequest) {
           createdAt: announcement.createdAt.toISOString(),
           updatedAt: announcement.updatedAt.toISOString(),
         },
+        notificationsSent,
       });
     } catch (error) {
       console.error('Error creating announcement:', error);

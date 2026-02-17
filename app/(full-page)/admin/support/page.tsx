@@ -12,6 +12,7 @@ import { InputTextarea } from "primereact/inputtextarea";
 import { Dialog } from "primereact/dialog";
 import { Toast } from "primereact/toast";
 import { useRef } from "react";
+import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/apiClient";
 import { useDebounce } from "@/hooks/useDebounce";
 import TableLoader from "@/components/TableLoader";
@@ -38,6 +39,7 @@ interface SupportRequest {
 }
 
 export default function AdminSupport() {
+  const router = useRouter();
   const [requests, setRequests] = useState<SupportRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -51,6 +53,12 @@ export default function AdminSupport() {
   const [selectedRequest, setSelectedRequest] = useState<SupportRequest | null>(null);
   const [responseText, setResponseText] = useState("");
   const [showResponseModal, setShowResponseModal] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [statusModalRequest, setStatusModalRequest] = useState<SupportRequest | null>(null);
+  const [newStatus, setNewStatus] = useState("");
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [viewRequest, setViewRequest] = useState<SupportRequest | null>(null);
+  const [updating, setUpdating] = useState(false);
   const toast = useRef<Toast>(null);
 
   const debouncedSearch = useDebounce(filters.search, 500);
@@ -91,16 +99,34 @@ export default function AdminSupport() {
     toast.current?.show({ severity, summary, detail, life: 3000 });
   };
 
-  const handleStatusChange = async (requestId: string, newStatus: string) => {
+  const openStatusModal = (request: SupportRequest) => {
+    setStatusModalRequest(request);
+    setNewStatus(request.status);
+    setShowStatusModal(true);
+  };
+
+  const handleStatusChange = async () => {
+    if (!statusModalRequest || !newStatus || newStatus === statusModalRequest.status) {
+      setShowStatusModal(false);
+      return;
+    }
+    setUpdating(true);
     try {
-      // TODO: Implement status change API call
-      setRequests(prev => prev.map(req =>
-        req.id === requestId ? { ...req, status: newStatus } : req
-      ));
+      await apiClient.updateSupportRequest(statusModalRequest.id, { status: newStatus });
       showToast("success", "Success", "Support request status updated");
+      setShowStatusModal(false);
+      setStatusModalRequest(null);
+      loadSupportRequests();
     } catch (error) {
       showToast("error", "Error", "Failed to update support request status");
+    } finally {
+      setUpdating(false);
     }
+  };
+
+  const openViewModal = (request: SupportRequest) => {
+    setViewRequest(request);
+    setShowViewModal(true);
   };
 
   const handleRespond = (request: SupportRequest) => {
@@ -115,18 +141,21 @@ export default function AdminSupport() {
       return;
     }
 
+    setUpdating(true);
     try {
-      // TODO: Implement response submission API call
-      setRequests(prev => prev.map(req =>
-        req.id === selectedRequest.id
-          ? { ...req, adminResponse: responseText, status: "IN_PROGRESS" }
-          : req
-      ));
+      await apiClient.updateSupportRequest(selectedRequest.id, {
+        adminResponse: responseText,
+        status: "IN_PROGRESS",
+      });
       setShowResponseModal(false);
+      setSelectedRequest(null);
       setResponseText("");
       showToast("success", "Success", "Response submitted successfully");
+      loadSupportRequests();
     } catch (error) {
       showToast("error", "Error", "Failed to submit response");
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -184,8 +213,9 @@ export default function AdminSupport() {
           icon="pi pi-cog"
           size="small"
           className="p-button-outlined p-button-sm"
-          onClick={() => {/* TODO: Open status management modal */ }}
+          onClick={() => openStatusModal(rowData)}
           tooltip="Change Status"
+          disabled={updating}
         />
       </div>
     );
@@ -209,13 +239,15 @@ export default function AdminSupport() {
           className="p-button-outlined p-button-sm"
           onClick={() => handleRespond(rowData)}
           tooltip="Respond"
+          disabled={updating}
         />
         <Button
           icon="pi pi-eye"
           size="small"
           className="p-button-outlined p-button-sm"
-          onClick={() => {/* TODO: Open detail modal */ }}
+          onClick={() => openViewModal(rowData)}
           tooltip="View Details"
+          disabled={updating}
         />
       </div>
     );
@@ -374,13 +406,87 @@ export default function AdminSupport() {
             icon="pi pi-times"
             className="p-button-outlined"
             onClick={() => setShowResponseModal(false)}
+            disabled={updating}
           />
           <Button
             label="Submit Response"
             icon="pi pi-send"
             onClick={handleSubmitResponse}
+            loading={updating}
           />
         </div>
+      </Dialog>
+
+      {/* Change Status Dialog */}
+      <Dialog
+        header="Change Status"
+        visible={showStatusModal && !!statusModalRequest}
+        style={{ width: "400px" }}
+        onHide={() => {
+          setShowStatusModal(false);
+          setStatusModalRequest(null);
+        }}
+        footer={
+          <div>
+            <Button label="Cancel" icon="pi pi-times" className="p-button-text" onClick={() => setShowStatusModal(false)} />
+            <Button label="Update Status" icon="pi pi-check" onClick={handleStatusChange} loading={updating} disabled={!newStatus || newStatus === statusModalRequest?.status} />
+          </div>
+        }
+      >
+        {statusModalRequest && (
+          <div>
+            <p className="mb-3"><strong>Request:</strong> {statusModalRequest.subject}</p>
+            <label className="block text-900 font-medium mb-2">New Status</label>
+            <Dropdown
+              value={newStatus}
+              options={statusOptions.filter((o) => o.value !== "")}
+              optionLabel="label"
+              optionValue="value"
+              onChange={(e) => setNewStatus(e.value)}
+              className="w-full"
+            />
+          </div>
+        )}
+      </Dialog>
+
+      {/* View Details Dialog */}
+      <Dialog
+        header="Support Request Details"
+        visible={showViewModal && !!viewRequest}
+        style={{ width: "600px" }}
+        onHide={() => {
+          setShowViewModal(false);
+          setViewRequest(null);
+        }}
+        footer={
+          <div>
+            <Button label="Close" icon="pi pi-times" className="p-button-text" onClick={() => setShowViewModal(false)} />
+            {viewRequest && (
+              <>
+                <Button label="Respond" icon="pi pi-reply" onClick={() => { setShowViewModal(false); handleRespond(viewRequest); setShowResponseModal(true); }} />
+                <Button label="Open Full Page" icon="pi pi-external-link" onClick={() => router.push(`/admin/support/${viewRequest.id}`)} />
+              </>
+            )}
+          </div>
+        }
+      >
+        {viewRequest && (
+          <div className="flex flex-column gap-3">
+            <div><strong>Subject:</strong> {viewRequest.subject}</div>
+            <div><strong>Status:</strong> <Tag value={viewRequest.status} severity={getStatusSeverity(viewRequest.status) as any} /></div>
+            <div><strong>Priority:</strong> <Tag value={viewRequest.priority} severity={getPrioritySeverity(viewRequest.priority) as any} /></div>
+            <div><strong>From:</strong> {viewRequest.user.firstName} {viewRequest.user.lastName} ({viewRequest.user.email})</div>
+            <div><strong>Created:</strong> {formatDate(viewRequest.createdAt)}</div>
+            <div><strong>Message:</strong></div>
+            <div className="p-3 bg-gray-50 border-round">{viewRequest.message}</div>
+            {viewRequest.adminResponse && (
+              <>
+                <div><strong>Admin Response:</strong></div>
+                <div className="p-3 bg-blue-50 border-round">{viewRequest.adminResponse}</div>
+              </>
+            )}
+          </div>
+        )}
       </Dialog>
 
       <Toast ref={toast} />

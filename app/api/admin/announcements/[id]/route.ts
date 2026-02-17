@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { withAdminAuth, AuthenticatedRequest } from '@/lib/authMiddleware';
+import { NotificationService } from '@/lib/notificationService';
 
 export async function PUT(
     request: NextRequest,
@@ -9,24 +10,28 @@ export async function PUT(
     return withAdminAuth(request, async (authenticatedReq: AuthenticatedRequest) => {
         try {
             const body = await request.json();
-            const { title, content, type } = body;
+            const data: Record<string, any> = {};
+            if (body.title !== undefined) data.title = body.title;
+            if (body.content !== undefined) data.content = body.content;
+            if (body.type !== undefined) data.type = body.type;
+            if (body.status !== undefined) data.status = body.status;
 
-            // Validate required fields
-            if (!title || !content || !type) {
+            if (Object.keys(data).length === 0) {
                 return NextResponse.json(
-                    { error: 'Title, content, and type are required' },
+                    { error: 'At least one field (title, content, type, status) is required' },
                     { status: 400 }
                 );
             }
 
+            const previous = await prisma.announcement.findUnique({
+                where: { id: params.id },
+                select: { status: true },
+            });
+
             // Update announcement
             const announcement = await prisma.announcement.update({
                 where: { id: params.id },
-                data: {
-                    title,
-                    content,
-                    type,
-                },
+                data,
                 include: {
                     createdBy: {
                         select: {
@@ -38,6 +43,21 @@ export async function PUT(
                     },
                 },
             });
+
+            const statusChangedToPublished =
+                data.status === 'PUBLISHED' && previous?.status !== 'PUBLISHED';
+            if (statusChangedToPublished) {
+                try {
+                    await NotificationService.sendAnnouncementToAllUsers({
+                        announcementId: announcement.id,
+                        title: announcement.title,
+                        content: announcement.content,
+                        type: announcement.type,
+                    });
+                } catch (notifErr) {
+                    console.error('Error sending announcement notifications:', notifErr);
+                }
+            }
 
             return NextResponse.json({
                 ...announcement,

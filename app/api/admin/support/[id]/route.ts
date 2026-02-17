@@ -44,15 +44,14 @@ export async function PUT(
 ) {
     try {
         const body = await request.json();
-        const { status, priority, adminResponse } = body;
+        const data: Record<string, any> = {};
+        if (body.status !== undefined) data.status = body.status;
+        if (body.priority !== undefined) data.priority = body.priority;
+        if (body.adminResponse !== undefined) data.adminResponse = body.adminResponse;
 
         const supportRequest = await prisma.supportRequest.update({
             where: { id: params.id },
-            data: {
-                status,
-                priority,
-                adminResponse,
-            },
+            data,
             include: {
                 user: {
                     select: {

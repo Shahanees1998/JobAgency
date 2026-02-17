@@ -7,6 +7,7 @@ import { Button } from "primereact/button";
 import { Tag } from "primereact/tag";
 import { Skeleton } from "primereact/skeleton";
 import { Toast } from "primereact/toast";
+import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 import { Dialog } from "primereact/dialog";
 import { InputTextarea } from "primereact/inputtextarea";
 import { Dropdown } from "primereact/dropdown";
@@ -49,6 +50,7 @@ export default function SupportRequestDetailPage() {
         adminResponse: "",
     });
     const [saving, setSaving] = useState(false);
+    const [deleting, setDeleting] = useState(false);
     const toast = useRef<Toast>(null);
 
     const statusOptions = [
@@ -132,21 +134,29 @@ export default function SupportRequestDetailPage() {
         }
     };
 
-    const handleDelete = async () => {
+    const handleDelete = () => {
         if (!request) return;
-        
-        if (confirm(`Are you sure you want to delete this support request?`)) {
-            try {
-                const response = await apiClient.deleteSupportRequest(request.id);
-                if (response.error) {
-                    throw new Error(response.error);
-                }
-                
-                showToast("success", "Success", "Support request deleted successfully");
-                router.push('/admin/support');
-            } catch (error) {
-                showToast("error", "Error", "Failed to delete support request");
-            }
+        confirmDialog({
+            message: "Are you sure you want to delete this support request?",
+            header: "Delete Confirmation",
+            icon: "pi pi-exclamation-triangle",
+            acceptClassName: "p-button-danger",
+            accept: performDelete,
+        });
+    };
+
+    const performDelete = async () => {
+        if (!request) return;
+        setDeleting(true);
+        try {
+            const response = await apiClient.deleteSupportRequest(request.id);
+            if (response.error) throw new Error(response.error);
+            showToast("success", "Success", "Support request deleted successfully");
+            router.push('/admin/support');
+        } catch (error) {
+            showToast("error", "Error", "Failed to delete support request");
+        } finally {
+            setDeleting(false);
         }
     };
 
@@ -248,12 +258,15 @@ export default function SupportRequestDetailPage() {
                                     icon="pi pi-reply"
                                     severity="info"
                                     onClick={openResponseDialog}
+                                    disabled={deleting}
                                 />
                                 <Button
                                     label="Delete"
                                     icon="pi pi-trash"
                                     severity="danger"
                                     onClick={handleDelete}
+                                    loading={deleting}
+                                    disabled={deleting}
                                 />
                                 <Button
                                     label="Back"
@@ -419,6 +432,7 @@ export default function SupportRequestDetailPage() {
             </Dialog>
 
             <Toast ref={toast} />
+            <ConfirmDialog />
         </div>
     );
 } 

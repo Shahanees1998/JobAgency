@@ -31,7 +31,7 @@ export default function TableLoader({ message = "Loading..." }: TableLoaderProps
           width: 60px;
           height: 60px;
           border: 4px solid #e0e0e0;
-          border-top: 4px solid #6366f1;
+          border-top: 4px solid #000000;
           border-radius: 50%;
           animation: tableLoaderSpin 1s linear infinite;
         }
@@ -53,7 +53,7 @@ export default function TableLoader({ message = "Loading..." }: TableLoaderProps
           transform: translate(-50%, -50%);
           width: 12px;
           height: 12px;
-          background-color: #6366f1;
+          background-color: #000000;
           border-radius: 50%;
         }
         .table-loader-text {

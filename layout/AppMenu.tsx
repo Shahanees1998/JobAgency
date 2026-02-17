@@ -101,16 +101,11 @@ const AppMenu = () => {
             ],
         },
         
-        // Support & Escalations
+        // Support
         {
             label: "Support",
             icon: "pi pi-shield",
             items: [
-                {
-                    label: "Escalations",
-                    icon: "pi pi-fw pi-exclamation-triangle",
-                    to: "/admin/escalations",
-                },
                 {
                     label: "Support Tickets",
                     icon: "pi pi-fw pi-question-circle",
