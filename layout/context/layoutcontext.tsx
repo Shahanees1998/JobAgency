@@ -141,11 +141,8 @@ export const LayoutProvider = (props: ChildContainerProps) => {
                         content="https://www.primefaces.org/static/social/apollo-react.png"
                     ></meta>
                     <meta property="og:ttl" content="604800"></meta>
-                    <link
-                        rel="icon"
-                        href={`/favicon.ico`}
-                        type="image/x-icon"
-                    ></link>
+                    <link rel="icon" href="/favicon.ico" sizes="any" />
+                    <link rel="icon" href="/images/logo.png" type="image/png" sizes="32x32" />
                 </Head>
                 {props.children}
             </>

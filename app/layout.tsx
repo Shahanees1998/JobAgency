@@ -11,10 +11,6 @@ import "../styles/theme.css";
 export const metadata = {
     title: "JobPortal Admin - Community Management System",
     description: "Administrative dashboard for JobPortal community management",
-    icons: {
-        icon: "/images/logo.png",
-        apple: "/images/logo.png",
-    },
 };
 
 interface RootLayoutProps {
@@ -26,6 +22,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <html lang="en" suppressHydrationWarning>
             <head>
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
+                <link rel="icon" href="/favicon.ico" sizes="any" />
                 <link rel="icon" href="/images/logo.png" type="image/png" sizes="32x32" />
                 <link rel="apple-touch-icon" href="/images/logo.png" />
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
