@@ -1,6 +1,7 @@
 import { NotificationType } from '@prisma/client';
 import { pusherServer } from './realtime';
 import { prisma } from './prisma';
+import { sendFcmToUser, sendFcmToUsers } from './fcmService';
 
 export interface NotificationData {
   id: string;
@@ -39,7 +40,7 @@ export async function sendUserNotification(data: NotificationData) {
       },
     });
 
-    // Send real-time notification via Pusher
+    // Web: real-time via Pusher
     await pusherServer.trigger(`user-${data.userId}`, 'new-notification', {
       id: notification.id,
       title: data.title,
@@ -50,6 +51,18 @@ export async function sendUserNotification(data: NotificationData) {
       metadata: data.metadata,
       createdAt: notification.createdAt,
     });
+
+    // Mobile: FCM push
+    sendFcmToUser(data.userId, {
+      title: data.title,
+      body: data.message,
+      data: {
+        notificationId: notification.id,
+        type: data.type,
+        ...(data.relatedId && { relatedId: data.relatedId }),
+        ...(data.relatedType && { relatedType: data.relatedType }),
+      },
+    }).catch(() => {});
 
     return notification;
   } catch (error) {
@@ -84,11 +97,11 @@ export async function sendAdminNotification(data: AdminNotificationData) {
       )
     );
 
-    // Send real-time notifications to all admins
+    // Web: Pusher to all admins
     await Promise.all(
-      admins.map(admin =>
-        pusherServer.trigger(`user-${admin.id}`, 'new-notification', {
-          id: notifications.find(n => n.userId === admin.id)?.id,
+      admins.map(adminUser =>
+        pusherServer.trigger(`user-${adminUser.id}`, 'new-notification', {
+          id: notifications.find(n => n.userId === adminUser.id)?.id,
           title: data.title,
           message: data.message,
           type: data.type,
@@ -98,6 +111,20 @@ export async function sendAdminNotification(data: AdminNotificationData) {
           createdAt: new Date(),
         })
       )
+    );
+
+    // Mobile: FCM to all admins
+    await sendFcmToUsers(
+      admins.map(a => a.id),
+      {
+        title: data.title,
+        body: data.message,
+        data: {
+          type: data.type,
+          ...(data.relatedId && { relatedId: data.relatedId }),
+          ...(data.relatedType && { relatedType: data.relatedType }),
+        },
+      }
     );
 
     return notifications;
@@ -136,6 +163,7 @@ export async function sendAnnouncementToAllUsers(data: {
       )
     );
 
+    // Web: Pusher
     await Promise.all(
       users.map((user) =>
         pusherServer.trigger(`user-${user.id}`, 'new-notification', {
@@ -149,6 +177,20 @@ export async function sendAnnouncementToAllUsers(data: {
           createdAt: new Date(),
         })
       )
+    );
+
+    // Mobile: FCM to all users
+    await sendFcmToUsers(
+      users.map((u) => u.id),
+      {
+        title: data.title,
+        body: data.content,
+        data: {
+          type: 'ANNOUNCEMENT',
+          relatedId: data.announcementId,
+          relatedType: 'announcement',
+        },
+      }
     );
 
     return notifications;

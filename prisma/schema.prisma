@@ -48,6 +48,7 @@ model User {
   employer             Employer?    // If user is an employer
   candidate            Candidate?   // If user is a candidate
   adminLogs            AdminLog[]    // Admin actions performed by this user
+  fcmTokens            FcmToken[]    // FCM device tokens for mobile push
   // Job Portal Relations
   employerVerified     Employer[]     @relation("EmployerVerifiedBy")
   employerSuspended    Employer[]     @relation("EmployerSuspendedBy")
@@ -56,6 +57,20 @@ model User {
   messagesSent         Message[]      @relation("MessageSender")
 
   @@map("users")
+}
+
+model FcmToken {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  token     String   // FCM device token
+  platform  String?  // "ios" | "android"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, token])
+  @@map("fcm_tokens")
 }
 
 model AdminEscalation {

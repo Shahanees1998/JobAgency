@@ -229,6 +229,16 @@ class ApiClient {
         return this.put<any>('/users/edit-profile', profileData);
     }
 
+    /** Register FCM device token for push notifications (mobile app) */
+    async registerFcmToken(data: { token: string; platform?: 'ios' | 'android' }) {
+        return this.post<{ success: boolean }>('/users/fcm-token', data);
+    }
+
+    /** Unregister FCM token (e.g. on logout) */
+    async unregisterFcmToken(token: string) {
+        return this.request<{ success: boolean }>('/users/fcm-token', { method: 'DELETE', body: { token } });
+    }
+
 
 
     async uploadProfileImage(formData: FormData): Promise<ApiResponse<any>> {

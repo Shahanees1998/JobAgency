@@ -5,7 +5,7 @@ body {
   padding: 0;
   margin: 0;
   line-height: 1.5;
-  font-family: 'Kanit', sans-serif;
+  // font-family: 'Kanit', sans-serif;
   font-weight: 500;
   font-size: 0.75rem;
   background: #f4f7fa;
@@ -421,6 +421,32 @@ img {
 
 *:focus {
   outline: none;
+}
+
+/* Global button hover effects */
+.p-button:not(:disabled):not(.p-disabled) {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+.p-button:not(:disabled):not(.p-disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+.p-button:not(:disabled):not(.p-disabled):active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+.p-button.p-button-outlined:not(:disabled):not(.p-disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.p-button.p-button-text:not(:disabled):not(.p-disabled):hover {
+  transform: translateY(-1px);
+}
+.p-button.p-button-icon-only:not(:disabled):not(.p-disabled):hover {
+  transform: translateY(-1px) scale(1.05);
+}
+.p-button.p-button-sm:not(:disabled):not(.p-disabled):hover {
+  transform: translateY(-1px);
 }
 
 .p-autocomplete {

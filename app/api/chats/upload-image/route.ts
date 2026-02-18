@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, AuthenticatedRequest } from '@/lib/authMiddleware';
-import { uploadToCloudinary, validateFile } from '@/lib/cloudinary';
+import { fileToDataUrl, validateBase64Image } from '@/lib/imageBase64';
+
+const MAX_IMAGE_BYTES = 2 * 1024 * 1024; // 2MB
 
 /**
  * POST /api/chats/upload-image
- * Upload an image for chat (attachment or camera). Returns URL to use in message content.
+ * Upload an image for chat. Returns base64 data URL to use in message content.
+ * Accepts: multipart/form-data with "image" / "file", or application/json { imageBase64: "data:image/...;base64,..." }.
  */
 export async function POST(request: NextRequest) {
   return withAuth(request, async (authenticatedReq: AuthenticatedRequest) => {
@@ -17,53 +20,44 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const formData = await request.formData();
-      let file = formData.get('image') as File | Blob | null;
-      if (!file) {
-        file = formData.get('file') as File | Blob | null;
-      }
+      let dataUrl: string;
+      const contentType = request.headers.get('content-type') || '';
 
-      if (!file) {
-        return NextResponse.json(
-          { success: false, error: 'Image file is required. Send with field name "image".' },
-          { status: 400 }
-        );
-      }
-
-      let fileToUpload: File;
-      if (file instanceof File) {
-        fileToUpload = file;
-      } else if (file instanceof Blob) {
-        fileToUpload = new File([file], 'chat-image.png', { type: file.type || 'image/png' });
+      if (contentType.includes('application/json')) {
+        const body = await request.json();
+        const imageBase64 = body.imageBase64 ?? body.image ?? body.dataUrl;
+        if (!imageBase64) {
+          return NextResponse.json(
+            { success: false, error: 'imageBase64 is required in JSON body' },
+            { status: 400 }
+          );
+        }
+        const result = validateBase64Image(imageBase64, MAX_IMAGE_BYTES);
+        if (!result.valid) {
+          return NextResponse.json({ success: false, error: result.error }, { status: 400 });
+        }
+        dataUrl = result.dataUrl!;
       } else {
-        return NextResponse.json(
-          { success: false, error: 'Invalid file format' },
-          { status: 400 }
-        );
+        const formData = await request.formData();
+        let file = formData.get('image') as File | Blob | null;
+        if (!file) file = formData.get('file') as File | Blob | null;
+        if (!file) {
+          return NextResponse.json(
+            { success: false, error: 'Image file is required. Send "imageBase64" in JSON or "image"/"file" in FormData.' },
+            { status: 400 }
+          );
+        }
+        const fileObj = file instanceof File ? file : new File([file], 'chat-image.png', { type: file.type || 'image/png' });
+        const result = await fileToDataUrl(fileObj, MAX_IMAGE_BYTES);
+        if (!result.valid) {
+          return NextResponse.json({ success: false, error: result.error }, { status: 400 });
+        }
+        dataUrl = result.dataUrl!;
       }
-
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-      const validation = validateFile(fileToUpload, {
-        allowedTypes,
-        maxSize: 5 * 1024 * 1024, // 5MB
-      });
-
-      if (!validation.isValid) {
-        return NextResponse.json(
-          { success: false, error: validation.error },
-          { status: 400 }
-        );
-      }
-
-      const result = await uploadToCloudinary(fileToUpload, {
-        folder: `jobportal/chat/${userId}`,
-        resource_type: 'image',
-        max_bytes: 5 * 1024 * 1024,
-      });
 
       return NextResponse.json({
         success: true,
-        data: { url: result.secure_url },
+        data: { url: dataUrl },
         message: 'Image uploaded successfully',
       });
     } catch (error) {
