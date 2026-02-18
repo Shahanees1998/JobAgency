@@ -7,6 +7,16 @@ import "../styles/demo/Demos.scss";
 import "../styles/globals.scss";
 import "../styles/layout/layout.scss";
 import "../styles/theme.css";
+
+export const metadata = {
+    title: "JobPortal Admin - Community Management System",
+    description: "Administrative dashboard for JobPortal community management",
+    icons: {
+        icon: "/images/logo.png",
+        apple: "/images/logo.png",
+    },
+};
+
 interface RootLayoutProps {
     children: React.ReactNode;
 }
@@ -15,14 +25,12 @@ export default function RootLayout({ children }: RootLayoutProps) {
     return (
         <html lang="en" suppressHydrationWarning>
             <head>
-                <title>JobPortal Admin - Community Management System</title>
-                <meta name="description" content="Administrative dashboard for JobPortal community management" />
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
+                <link rel="icon" href="/images/logo.png" type="image/png" sizes="32x32" />
+                <link rel="apple-touch-icon" href="/images/logo.png" />
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
                 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700&display=swap" rel="stylesheet" />
-                <link rel="icon" href="/images/logo.png" type="image/png" />
-                <link rel="apple-touch-icon" href="/images/logo.png" />
             </head>
             <body>
                 <ClientProviders>{children}</ClientProviders>

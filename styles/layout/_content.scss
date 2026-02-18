@@ -41,6 +41,19 @@
         padding: 0.65rem 1rem;
     }
 
+    // Dashboard cards: highlight only on hover, no highlight by default
+    .dashboard-stat-card {
+        transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+        border: 1px solid var(--surface-border);
+        box-shadow: none;
+    }
+    .dashboard-stat-card:hover {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.06);
+        transform: translateY(-2px);
+        border-color: #94a3b8;
+        background-color: var(--highlight-bg, #f8fafc);
+    }
+
     // Inputs / dropdowns inside filter panels
     .p-inputtext,
     .p-dropdown,
