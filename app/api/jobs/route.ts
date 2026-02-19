@@ -17,6 +17,10 @@ export async function GET(request: NextRequest) {
       const datePosted = searchParams.get('datePosted'); // all | 24h | 3d | 7d
       const sortBy = searchParams.get('sortBy'); // relevance | date
       const remote = searchParams.get('remote'); // comma-separated: on-site,remote,hybrid
+      const experienceLevel = searchParams.get('experienceLevel'); // all | senior | mid | entry | none
+      const salary = searchParams.get('salary'); // all | 70 | 90 | 110 | 120 | 140 (min thousands)
+      const education = searchParams.get('education'); // all | high_school | bachelor | master | doctoral
+      const employerId = searchParams.get('employerId'); // filter by employer (company profile)
       const page = parseInt(searchParams.get('page') || '1');
       const limit = parseInt(searchParams.get('limit') || '20');
 
@@ -28,6 +32,10 @@ export async function GET(request: NextRequest) {
           isSuspended: false,
         },
       };
+
+      if (employerId) {
+        where.employerId = employerId;
+      }
 
       if (search) {
         where.OR = [
@@ -84,6 +92,58 @@ export async function GET(request: NextRequest) {
           if (ors.length) {
             where.AND = [...(where.AND ?? []), { OR: ors }];
           }
+        }
+      }
+
+      // Experience level filter (Job has no field; filter by requirements/description keywords)
+      if (experienceLevel && experienceLevel !== 'all') {
+        const keywords: Record<string, string[]> = {
+          senior: ['senior', 'sr.', 'lead', 'principal', 'staff'],
+          mid: ['mid-level', 'mid level', 'middle', 'intermediate'],
+          entry: ['entry', 'junior', 'jr.', 'graduate', '0-1', '0-2 years'],
+          none: ['no experience', 'no exp', 'no experience required', 'any experience'],
+        };
+        const terms = keywords[experienceLevel];
+        if (terms?.length) {
+          const orConditions = terms.flatMap((term) => [
+            { requirements: { contains: term, mode: 'insensitive' as const } },
+            { description: { contains: term, mode: 'insensitive' as const } },
+          ]);
+          where.AND = [...(where.AND ?? []), { OR: orConditions }];
+        }
+      }
+
+      // Salary filter (salaryRange is string e.g. "$70k - $90k"; filter by min threshold)
+      if (salary && salary !== 'all') {
+        const minK = parseInt(salary, 10);
+        if (!isNaN(minK)) {
+          // Match salaryRange containing at least this number (e.g. 70 for $70k+)
+          const patterns = [`${minK}k`, `${minK},000`, `${minK}000`, `$${minK}`];
+          where.AND = [
+            ...(where.AND ?? []),
+            {
+              OR: patterns.map((p) => ({ salaryRange: { contains: p, mode: 'insensitive' as const } })),
+            },
+          ];
+        }
+      }
+
+      // Education filter (Job has no field; filter by requirements)
+      if (education && education !== 'all') {
+        const keywords: Record<string, string[]> = {
+          high_school: ['high school', 'high school degree', 'hs diploma', 'ged'],
+          bachelor: ["bachelor", "bachelor's", "bs ", "b.s.", "ba ", "b.a.", "undergraduate", "4-year"],
+          master: ["master", "master's", "ms ", "m.s.", "ma ", "m.a.", "mba", "graduate degree"],
+          doctoral: ['doctoral', 'phd', 'ph.d', 'doctorate'],
+        };
+        const terms = keywords[education];
+        if (terms?.length) {
+          where.AND = [
+            ...(where.AND ?? []),
+            {
+              OR: terms.map((term) => ({ requirements: { contains: term, mode: 'insensitive' as const } })),
+            },
+          ];
         }
       }
 

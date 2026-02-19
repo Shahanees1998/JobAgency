@@ -1,14 +1,41 @@
 /* icons.css removed: it references missing ../public/feather fonts and is unused */
 
-html,
+/* Kanit applied via font-kanit.css (loads last) and next/font on html */
 body {
   padding: 0;
   margin: 0;
   line-height: 1.5;
-  // font-family: 'Kanit', sans-serif;
-  font-weight: 500;
+  font-weight: var(--font-weight-body, 300); /* Kanit Light - description/default */
   font-size: 0.75rem;
   background: #f4f7fa;
+}
+
+/* Kanit weights: headings = Medium (500), subheadings = Regular (400) */
+h1, h2, h3, h4, h5, h6,
+.text-2xl, .text-3xl,
+[class*="font-bold"],
+[class*="font-semibold"] {
+  font-weight: 500 !important; /* Kanit Medium - headings */
+}
+
+label,
+.font-medium,
+.font-regular,
+.subheading,
+.text-xl:not(h1):not(h2):not(h3) {
+  font-weight: 400 !important; /* Kanit Regular */
+}
+
+/* Kanit Light for description/body text - use this class when needed */
+.kanit-light,
+.description {
+  font-weight: 300 !important;
+}
+.kanit-regular {
+  font-weight: 400 !important;
+}
+.kanit-medium {
+  font-weight: 500 !important;
 }
 
 a {

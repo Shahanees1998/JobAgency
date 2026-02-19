@@ -74,6 +74,14 @@ export async function GET(request: NextRequest) {
         prisma.application.count({ where }),
       ]);
 
+      console.log('[GET /api/candidates/applications]', {
+        candidateId: candidate.id,
+        page,
+        limit,
+        total,
+        returned: applications.length,
+      });
+
       const transformedApplications = applications.map(app => ({
         id: app.id,
         status: app.status,

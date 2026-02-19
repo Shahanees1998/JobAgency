@@ -59,11 +59,31 @@ export async function GET(
         },
       });
 
+      // For authenticated candidates, include whether they have already applied
+      let hasApplied = false;
+      const authUser = authenticatedReq.user;
+      if (authUser?.userId && authUser?.role === 'CANDIDATE') {
+        const candidate = await prisma.candidate.findUnique({
+          where: { userId: authUser.userId },
+          select: { id: true },
+        });
+        if (candidate) {
+          const application = await prisma.application.findUnique({
+            where: {
+              jobId_candidateId: { jobId: id, candidateId: candidate.id },
+            },
+            select: { id: true },
+          });
+          hasApplied = !!application;
+        }
+      }
+
       return NextResponse.json({
         success: true,
         data: {
           id: job.id,
           title: job.title,
+          hasApplied,
           description: job.description,
           requirements: job.requirements,
           responsibilities: job.responsibilities,
@@ -82,9 +102,11 @@ export async function GET(
             companyName: job.employer.companyName,
             companyDescription: job.employer.companyDescription,
             companyLogo: job.employer.companyLogo,
+            companyBanner: job.employer.companyBanner,
             companyWebsite: job.employer.companyWebsite,
             industry: job.employer.industry,
             companySize: job.employer.companySize,
+            address: job.employer.address,
             city: job.employer.city,
             country: job.employer.country,
           },

@@ -1,0 +1,16 @@
+/**
+ * Kanit font override - must win over PrimeReact/theme device fonts.
+ * Load this last so it overrides everything.
+ * Kanit is loaded via next/font (layout) and/or Google Fonts link (fallback).
+ */
+
+/* 1. Set html to Kanit - no system font fallback before Kanit */
+html {
+  font-family: var(--font-kanit, 'Kanit'), sans-serif !important;
+}
+
+/* 2. Body and all descendants inherit from html - no device font */
+body,
+body *:not(.pi):not([class*="pi "]):not(.p-icon) {
+  font-family: inherit !important;
+}

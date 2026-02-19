@@ -9,7 +9,10 @@
   --text-color-secondary:#64748b;
   --primary-color:#111827;
   --primary-color-text:#ffffff;
-  --font-family:'Kanit', sans-serif;
+  --font-family: var(--font-kanit, 'Kanit'), sans-serif;
+  --font-weight-heading: 500;   /* Kanit Medium */
+  --font-weight-subheading: 400; /* Kanit Regular */
+  --font-weight-body: 300;    /* Kanit Light */
   --surface-0: #ffffff;
   --surface-50: #FAFAFA;
   --surface-100: #F5F5F5;
