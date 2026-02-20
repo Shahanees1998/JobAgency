@@ -231,19 +231,19 @@ const LoginContent = () => {
             <Toast ref={toast} />
             <AuthSplitLayout>
                 <div className="auth-form-content">
-                    <div className="flex justify-content-end align-items-center gap-2 mb-3">
+                    <div className="flex justify-content-end align-items-center gap-1 mb-3">
                         <button
                             type="button"
-                            className={`p-button p-button-text p-button-rounded text-white ${locale === 'en' ? 'font-semibold opacity-100' : 'opacity-70'}`}
+                            className={`bg-transparent border-none cursor-pointer text-white p-0 text-sm ${locale === 'en' ? 'font-semibold opacity-100' : 'opacity-70 hover:opacity-90'}`}
                             onClick={() => setLocale('en')}
                             aria-label="English"
                         >
                             EN
                         </button>
-                        <span className="text-white-alpha-70">|</span>
+                        <span className="text-white opacity-70">|</span>
                         <button
                             type="button"
-                            className={`p-button p-button-text p-button-rounded text-white ${locale === 'es' ? 'font-semibold opacity-100' : 'opacity-70'}`}
+                            className={`bg-transparent border-none cursor-pointer text-white p-0 text-sm ${locale === 'es' ? 'font-semibold opacity-100' : 'opacity-70 hover:opacity-90'}`}
                             onClick={() => setLocale('es')}
                             aria-label="Español"
                         >
