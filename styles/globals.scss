@@ -1,21 +1,23 @@
 /* icons.css removed: it references missing ../public/feather fonts and is unused */
 
-/* Kanit applied via font-kanit.css (loads last) and next/font on html */
+/* Poppins applied via font-poppins.css and next/font on html */
 body {
   padding: 0;
   margin: 0;
   line-height: 1.5;
-  font-weight: var(--font-weight-body, 300); /* Kanit Light - description/default */
+  font-weight: var(--font-weight-body, 400);
   font-size: 0.75rem;
   background: #f4f7fa;
 }
 
-/* Kanit weights: headings = Medium (500), subheadings = Regular (400) */
+/* Poppins: headings = 600, subheadings = 500, body = 400 */
 h1, h2, h3, h4, h5, h6,
 .text-2xl, .text-3xl,
-[class*="font-bold"],
+[class*="font-bold"] {
+  font-weight: 700 !important;
+}
 [class*="font-semibold"] {
-  font-weight: 500 !important; /* Kanit Medium - headings */
+  font-weight: 600 !important;
 }
 
 label,
@@ -23,19 +25,26 @@ label,
 .font-regular,
 .subheading,
 .text-xl:not(h1):not(h2):not(h3) {
-  font-weight: 400 !important; /* Kanit Regular */
+  font-weight: 500 !important;
 }
 
-/* Kanit Light for description/body text - use this class when needed */
-.kanit-light,
 .description {
-  font-weight: 300 !important;
-}
-.kanit-regular {
   font-weight: 400 !important;
 }
-.kanit-medium {
+.poppins-light {
+  font-weight: 300 !important;
+}
+.poppins-regular {
+  font-weight: 400 !important;
+}
+.poppins-medium {
   font-weight: 500 !important;
+}
+.poppins-semibold {
+  font-weight: 600 !important;
+}
+.poppins-bold {
+  font-weight: 700 !important;
 }
 
 a {

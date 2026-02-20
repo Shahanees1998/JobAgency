@@ -1,0 +1,13 @@
+/**
+ * Poppins font - applied everywhere in admin panel.
+ * Loaded via next/font (layout) and/or Google Fonts link (fallback).
+ */
+
+html {
+  font-family: var(--font-poppins, 'Poppins'), sans-serif !important;
+}
+
+body,
+body *:not(.pi):not([class*="pi "]):not(.p-icon) {
+  font-family: inherit !important;
+}
