@@ -9,6 +9,7 @@ import { Skeleton } from "primereact/skeleton";
 import { Toast } from "primereact/toast";
 import { apiClient } from "@/lib/apiClient";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/context/LanguageContext";
 
 // Add custom styles (same as job detail page)
 const styles = `
@@ -206,6 +207,7 @@ export default function AdminApplicationDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [application, setApplication] = useState<Application | null>(null);
   const [loading, setLoading] = useState(true);
   const toast = useRef<Toast>(null);
@@ -230,11 +232,11 @@ export default function AdminApplicationDetailPage() {
       if (applicationData) {
         setApplication(applicationData);
       } else {
-        showToast("error", "Error", "Application not found");
+        showToast("error", t("common.error"), t("applications.notFound"));
       }
     } catch (error) {
       console.error("Error loading application:", error);
-      showToast("error", "Error", "Failed to load application details");
+      showToast("error", t("common.error"), t("applications.failedToLoadDetails"));
     } finally {
       setLoading(false);
     }
@@ -319,10 +321,10 @@ export default function AdminApplicationDetailPage() {
                     <i className="pi pi-exclamation-triangle text-4xl"></i>
                   </div>
                 </div>
-                <h2 className="text-3xl font-bold text-900 mb-3">Application Not Found</h2>
-                <p className="text-xl text-600 mb-5">The requested application could not be found.</p>
+                <h2 className="text-3xl font-bold text-900 mb-3">{t("applications.notFound")}</h2>
+                <p className="text-xl text-600 mb-5">{t("applications.notFoundDescription")}</p>
                 <Button
-                  label="Back to Applications"
+                  label={t("applications.backToApplications")}
                   icon="pi pi-arrow-left"
                   onClick={() => router.push("/admin/applications")}
                   className="action-button"
@@ -367,7 +369,7 @@ export default function AdminApplicationDetailPage() {
               </div>
               <div className="flex gap-2 flex-wrap">
                 <Button
-                  label="Back"
+                  label={t("common.back")}
                   icon="pi pi-arrow-left"
                   outlined
                   onClick={() => router.push("/admin/applications")}
@@ -380,7 +382,7 @@ export default function AdminApplicationDetailPage() {
             {/* Status Badge */}
             <div className="flex flex-wrap align-items-center gap-3 mt-4">
               <div className="flex align-items-center gap-2">
-                <span className="font-bold text-white">Status:</span>
+                <span className="font-bold text-white">{t("applications.statusLabel")}</span>
                 <Tag 
                   value={formatStatus(application.status)} 
                   severity={getApplicationStatusSeverity(application.status)} 
@@ -388,7 +390,7 @@ export default function AdminApplicationDetailPage() {
                 />
               </div>
               {application.interviewScheduled && (
-                <Tag value="Interview Scheduled" severity="success" style={{ fontSize: '0.9rem', padding: '0.5rem 1rem' }} />
+                <Tag value={t("applications.interviewScheduled")} severity="success" style={{ fontSize: '0.9rem', padding: '0.5rem 1rem' }} />
               )}
             </div>
           </div>
@@ -403,19 +405,19 @@ export default function AdminApplicationDetailPage() {
                       <div className="icon-wrapper blue">
                         <i className="pi pi-calendar text-xl"></i>
                       </div>
-                      <h3 className="text-xl font-bold m-0">Application Details</h3>
+                      <h3 className="text-xl font-bold m-0">{t("applications.applicationDetails")}</h3>
                     </div>
                     <div className="flex flex-column gap-3">
                       <div>
                         <label className="font-bold text-600 block mb-2">
-                          <i className="pi pi-clock mr-2"></i>Applied At
+                          <i className="pi pi-clock mr-2"></i>{t("applications.appliedAtLabel")}
                         </label>
                         <div className="text-lg font-semibold text-900">{formatDate(application.appliedAt)}</div>
                       </div>
                       {application.reviewedAt && (
                         <div>
                           <label className="font-bold text-600 block mb-2">
-                            <i className="pi pi-check-circle mr-2"></i>Reviewed At
+                            <i className="pi pi-check-circle mr-2"></i>{t("applications.reviewedAt")}
                           </label>
                           <div className="text-lg font-semibold text-900">{formatDate(application.reviewedAt)}</div>
                         </div>
@@ -423,7 +425,7 @@ export default function AdminApplicationDetailPage() {
                       {application.interviewDate && (
                         <div>
                           <label className="font-bold text-600 block mb-2">
-                            <i className="pi pi-calendar-plus mr-2"></i>Interview Date
+                            <i className="pi pi-calendar-plus mr-2"></i>{t("applications.interviewDate")}
                           </label>
                           <div className="text-lg font-semibold text-900">{formatDate(application.interviewDate)}</div>
                         </div>
@@ -431,7 +433,7 @@ export default function AdminApplicationDetailPage() {
                       {application.interviewLocation && (
                         <div>
                           <label className="font-bold text-600 block mb-2">
-                            <i className="pi pi-map-marker mr-2"></i>Interview Location
+                            <i className="pi pi-map-marker mr-2"></i>{t("applications.interviewLocation")}
                           </label>
                           <div className="text-lg font-semibold text-900">{application.interviewLocation}</div>
                         </div>
@@ -445,12 +447,12 @@ export default function AdminApplicationDetailPage() {
                       <div className="icon-wrapper green">
                         <i className="pi pi-info-circle text-xl"></i>
                       </div>
-                      <h3 className="text-xl font-bold m-0">Status Information</h3>
+                      <h3 className="text-xl font-bold m-0">{t("applications.statusInformation")}</h3>
                     </div>
                     <div className="flex flex-column gap-3">
                       <div>
                         <label className="font-bold text-600 block mb-2">
-                          <i className="pi pi-tag mr-2"></i>Current Status
+                          <i className="pi pi-tag mr-2"></i>{t("applications.currentStatus")}
                         </label>
                         <Tag 
                           value={formatStatus(application.status)} 
@@ -461,15 +463,15 @@ export default function AdminApplicationDetailPage() {
                       {application.interviewScheduled && (
                         <div>
                           <label className="font-bold text-600 block mb-2">
-                            <i className="pi pi-check-circle mr-2"></i>Interview Status
+                            <i className="pi pi-check-circle mr-2"></i>{t("applications.interviewStatus")}
                           </label>
-                          <Tag value="Scheduled" severity="success" style={{ fontSize: '1rem', padding: '0.75rem 1.25rem' }} />
+                          <Tag value={t("applications.scheduled")} severity="success" style={{ fontSize: '1rem', padding: '0.75rem 1.25rem' }} />
                         </div>
                       )}
                       {application.rejectionReason && (
                         <div>
                           <label className="font-bold text-600 block mb-2">
-                            <i className="pi pi-times-circle mr-2"></i>Rejection Reason
+                            <i className="pi pi-times-circle mr-2"></i>{t("applications.rejectionReason")}
                           </label>
                           <div className="text-lg text-900 p-2 bg-red-50 border-round">{application.rejectionReason}</div>
                         </div>
@@ -486,7 +488,7 @@ export default function AdminApplicationDetailPage() {
                     <div className="icon-wrapper purple">
                       <i className="pi pi-file-edit text-xl"></i>
                     </div>
-                    <h3 className="text-xl font-bold m-0">Cover Letter</h3>
+                    <h3 className="text-xl font-bold m-0">{t("applications.coverLetter")}</h3>
                   </div>
                   <div className="content-section">
                     <div className="whitespace-pre-wrap text-900 line-height-3">{application.coverLetter}</div>
@@ -501,7 +503,7 @@ export default function AdminApplicationDetailPage() {
                     <div className="icon-wrapper orange">
                       <i className="pi pi-comment text-xl"></i>
                     </div>
-                    <h3 className="text-xl font-bold m-0">Interview Notes</h3>
+                    <h3 className="text-xl font-bold m-0">{t("applications.interviewNotes")}</h3>
                   </div>
                   <div className="content-section" style={{ background: '#fef3c7', borderColor: '#fbbf24' }}>
                     <div className="whitespace-pre-wrap text-900 line-height-3">{application.interviewNotes}</div>
@@ -515,13 +517,13 @@ export default function AdminApplicationDetailPage() {
                   <div className="icon-wrapper blue">
                     <i className="pi pi-briefcase text-xl"></i>
                   </div>
-                  <h3 className="text-xl font-bold m-0">Job Information</h3>
+                  <h3 className="text-xl font-bold m-0">{t("applications.jobInformation")}</h3>
                 </div>
                 <div className="grid">
                   <div className="col-12 md:col-6">
                     <div className="p-3 bg-white border-round" style={{ borderLeft: '4px solid ##000000' }}>
                       <label className="font-bold text-600 block mb-2">
-                        <i className="pi pi-briefcase mr-2 text-blue-500"></i>Job Title
+                        <i className="pi pi-briefcase mr-2 text-blue-500"></i>{t("applications.jobTitle")}
                       </label>
                       <div className="text-lg font-semibold text-900">{application.job.title}</div>
                     </div>
@@ -529,7 +531,7 @@ export default function AdminApplicationDetailPage() {
                   <div className="col-12 md:col-6">
                     <div className="p-3 bg-white border-round" style={{ borderLeft: '4px solid #10b981' }}>
                       <label className="font-bold text-600 block mb-2">
-                        <i className="pi pi-building mr-2 text-green-500"></i>Company
+                        <i className="pi pi-building mr-2 text-green-500"></i>{t("applications.company")}
                       </label>
                       <div className="text-lg font-semibold text-900">{application.job.employer.companyName}</div>
                     </div>
@@ -537,7 +539,7 @@ export default function AdminApplicationDetailPage() {
                 </div>
                 <div className="mt-3">
                   <Button
-                    label="View Job Details"
+                    label={t("applications.viewJobDetails")}
                     icon="pi pi-external-link"
                     onClick={() => router.push(`/admin/jobs/${application.jobId}`)}
                     className="action-button"
@@ -553,13 +555,13 @@ export default function AdminApplicationDetailPage() {
                   <div className="icon-wrapper" style={{ background: '#000000', color: 'white' }}>
                     <i className="pi pi-user text-xl"></i>
                   </div>
-                  <h3 className="text-xl font-bold m-0">Candidate Information</h3>
+                  <h3 className="text-xl font-bold m-0">{t("applications.candidateInformation")}</h3>
                 </div>
                 <div className="grid">
                   <div className="col-12 md:col-6">
                     <div className="p-3 bg-white border-round" style={{ borderLeft: '4px solid #ec4899' }}>
                       <label className="font-bold text-600 block mb-2">
-                        <i className="pi pi-user mr-2 text-pink-500"></i>Name
+                        <i className="pi pi-user mr-2 text-pink-500"></i>{t("common.name")}
                       </label>
                       <div className="text-lg font-semibold text-900">
                         {application.candidate.user.firstName} {application.candidate.user.lastName}
@@ -569,7 +571,7 @@ export default function AdminApplicationDetailPage() {
                   <div className="col-12 md:col-6">
                     <div className="p-3 bg-white border-round" style={{ borderLeft: '4px solid #06b6d4' }}>
                       <label className="font-bold text-600 block mb-2">
-                        <i className="pi pi-envelope mr-2 text-cyan-500"></i>Email
+                        <i className="pi pi-envelope mr-2 text-cyan-500"></i>{t("common.email")}
                       </label>
                       <div className="text-lg font-semibold text-900">
                         <a href={`mailto:${application.candidate.user.email}`} className="text-primary no-underline">
@@ -582,7 +584,7 @@ export default function AdminApplicationDetailPage() {
                     <div className="col-12 md:col-6">
                       <div className="p-3 bg-white border-round" style={{ borderLeft: '4px solid ##000000' }}>
                         <label className="font-bold text-600 block mb-2">
-                          <i className="pi pi-phone mr-2 text-blue-500"></i>Phone
+                          <i className="pi pi-phone mr-2 text-blue-500"></i>{t("candidates.phone")}
                         </label>
                         <div className="text-lg font-semibold text-900">
                           <a href={`tel:${application.candidate.user.phone}`} className="text-primary no-underline">
@@ -595,7 +597,7 @@ export default function AdminApplicationDetailPage() {
                 </div>
                 <div className="mt-3">
                   <Button
-                    label="View Candidate Profile"
+                    label={t("applications.viewCandidateProfile")}
                     icon="pi pi-external-link"
                     onClick={() => router.push(`/admin/candidates/${application.candidateId}`)}
                     className="action-button"
@@ -612,7 +614,7 @@ export default function AdminApplicationDetailPage() {
                     <div className="icon-wrapper purple">
                       <i className="pi pi-comments text-xl"></i>
                     </div>
-                    <h3 className="text-xl font-bold m-0">Recent Messages ({application.chat.messages.length})</h3>
+                    <h3 className="text-xl font-bold m-0">{t("applications.recentMessagesCount").replace("{n}", String(application.chat.messages.length))}</h3>
                   </div>
                   <div className="flex flex-column gap-2">
                     {application.chat.messages.slice(0, 3).map((message) => (
@@ -633,7 +635,7 @@ export default function AdminApplicationDetailPage() {
                   </div>
                   <div className="mt-3">
                     <Button
-                      label="View Full Chat"
+                      label={t("applications.viewFullChat")}
                       icon="pi pi-comments"
                       onClick={() => router.push(`/admin/chats?applicationId=${application.id}`)}
                       className="action-button"
@@ -647,7 +649,7 @@ export default function AdminApplicationDetailPage() {
               {/* Actions */}
               <div className="flex gap-3 flex-wrap">
                 <Button
-                  label="View Job"
+                  label={t("applications.viewJob")}
                   icon="pi pi-briefcase"
                   onClick={() => router.push(`/admin/jobs/${application.jobId}`)}
                   className="action-button"
@@ -659,7 +661,7 @@ export default function AdminApplicationDetailPage() {
                   }}
                 />
                 <Button
-                  label="View Candidate"
+                  label={t("applications.viewCandidate")}
                   icon="pi pi-user"
                   onClick={() => router.push(`/admin/candidates/${application.candidateId}`)}
                   className="action-button"
@@ -672,7 +674,7 @@ export default function AdminApplicationDetailPage() {
                 />
                 {application.interviewScheduled && (
                   <Button
-                    label="View Chat"
+                    label={t("applications.viewChat")}
                     icon="pi pi-comments"
                     onClick={() => router.push(`/admin/chats?applicationId=${application.id}`)}
                     className="action-button"

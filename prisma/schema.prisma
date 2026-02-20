@@ -298,6 +298,7 @@ model Candidate {
   applications        Application[]
   chatParticipants    ChatParticipant[]
   companyReviews      CompanyReview[]
+  savedJobs           SavedJob[]
 
   @@map("candidates")
 }
@@ -347,9 +348,23 @@ model Job {
   // Relations
   employer            Employer      @relation(fields: [employerId], references: [id], onDelete: Cascade)
   applications        Application[]
+  savedByCandidates  SavedJob[]
   moderatedBy         User?         @relation("JobModeratedBy", fields: [moderatedById], references: [id])
 
   @@map("jobs")
+}
+
+model SavedJob {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  candidateId String   @db.ObjectId
+  jobId       String   @db.ObjectId
+  createdAt   DateTime @default(now())
+
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  job         Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([candidateId, jobId])
+  @@map("saved_jobs")
 }
 
 model Application {

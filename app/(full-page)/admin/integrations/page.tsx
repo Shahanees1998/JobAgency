@@ -11,6 +11,7 @@ import { Toast } from "primereact/toast";
 import { useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { apiClient } from "@/lib/apiClient";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface Integration {
   id: string;
@@ -26,6 +27,7 @@ interface Integration {
 
 export default function AdminIntegrations() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [integrations, setIntegrations] = useState<Integration[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
@@ -93,7 +95,7 @@ export default function AdminIntegrations() {
       }, {} as Record<string, any>));
     } catch (error) {
       console.error("Error loading integrations:", error);
-      showToast("error", "Error", "Failed to load integrations");
+      showToast("error", t("common.error"), t("integrations.failedToLoad"));
     } finally {
       setLoading(false);
     }
@@ -118,9 +120,9 @@ export default function AdminIntegrations() {
           : integration
       ));
       
-      showToast("success", "Success", `Integration ${enabled ? "enabled" : "disabled"} successfully`);
+      showToast("success", t("common.success"), enabled ? t("integrations.enabledSuccess") : t("integrations.disabledSuccess"));
     } catch (error) {
-      showToast("error", "Error", `Failed to ${enabled ? "enable" : "disable"} integration`);
+      showToast("error", t("common.error"), enabled ? t("integrations.failedToEnable") : t("integrations.failedToDisable"));
     } finally {
       setSaving(null);
     }
@@ -161,9 +163,9 @@ export default function AdminIntegrations() {
       ));
       
       setEditingIntegration(null);
-      showToast("success", "Success", "Integration configuration saved");
+      showToast("success", t("common.success"), t("integrations.configSaved"));
     } catch (error) {
-      showToast("error", "Error", "Failed to save integration configuration");
+      showToast("error", t("common.error"), t("integrations.failedToSaveConfig"));
     } finally {
       setSaving(null);
     }
@@ -211,7 +213,7 @@ export default function AdminIntegrations() {
           {integration.id === "stripe" && (
             <>
               <div className="col-12 md:col-6">
-                <label className="block text-900 font-medium mb-2">Stripe Public Key</label>
+                <label className="block text-900 font-medium mb-2">{t("integrations.stripePublicKey")}</label>
                 <InputText
                   value={config.publicKey || ""}
                   onChange={(e) => handleConfigChange(integration.id, "publicKey", e.target.value)}
@@ -220,7 +222,7 @@ export default function AdminIntegrations() {
                 />
               </div>
               <div className="col-12 md:col-6">
-                <label className="block text-900 font-medium mb-2">Stripe Secret Key</label>
+                <label className="block text-900 font-medium mb-2">{t("integrations.stripeSecretKey")}</label>
                 <Password
                   value={config.secretKey || ""}
                   onChange={(e) => handleConfigChange(integration.id, "secretKey", e.target.value)}
@@ -250,7 +252,7 @@ export default function AdminIntegrations() {
           {integration.id === "pusher" && (
             <>
               <div className="col-12 md:col-4">
-                <label className="block text-900 font-medium mb-2">App ID</label>
+                <label className="block text-900 font-medium mb-2">{t("integrations.appId")}</label>
                 <InputText
                   value={config.appId || ""}
                   onChange={(e) => handleConfigChange(integration.id, "appId", e.target.value)}
@@ -259,7 +261,7 @@ export default function AdminIntegrations() {
                 />
               </div>
               <div className="col-12 md:col-4">
-                <label className="block text-900 font-medium mb-2">Key</label>
+                <label className="block text-900 font-medium mb-2">{t("integrations.key")}</label>
                 <InputText
                   value={config.key || ""}
                   onChange={(e) => handleConfigChange(integration.id, "key", e.target.value)}
@@ -268,7 +270,7 @@ export default function AdminIntegrations() {
                 />
               </div>
               <div className="col-12 md:col-4">
-                <label className="block text-900 font-medium mb-2">Secret</label>
+                <label className="block text-900 font-medium mb-2">{t("integrations.secret")}</label>
                 <Password
                   value={config.secret || ""}
                   onChange={(e) => handleConfigChange(integration.id, "secret", e.target.value)}
@@ -283,13 +285,13 @@ export default function AdminIntegrations() {
           
           <div className="col-12 flex justify-content-end gap-2 mt-3">
             <Button
-              label="Cancel"
+              label={t("common.cancel")}
               icon="pi pi-times"
               className="p-button-outlined"
               onClick={() => setEditingIntegration(null)}
             />
             <Button
-              label="Save Configuration"
+              label={t("integrations.saveConfiguration")}
               icon="pi pi-check"
               onClick={() => handleSaveIntegration(integration.id)}
               loading={saving === integration.id}
@@ -306,12 +308,12 @@ export default function AdminIntegrations() {
       <div className="col-12">
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center gap-3 mb-4">
           <div>
-            <h1 className="text-3xl font-bold m-0">System Integrations</h1>
-            <p className="text-600 mt-2 mb-0">Manage third-party integrations and API configurations.</p>
+            <h1 className="text-3xl font-bold m-0">{t("integrations.title")}</h1>
+            <p className="text-600 mt-2 mb-0">{t("integrations.subtitle")}</p>
           </div>
           <div className="flex gap-2">
             <Button
-              label="Refresh"
+              label={t("common.refresh")}
               icon="pi pi-refresh"
               onClick={loadIntegrations}
               loading={loading}
@@ -327,7 +329,7 @@ export default function AdminIntegrations() {
           <div className="flex align-items-center justify-content-center" style={{ height: '200px' }}>
             <div className="text-center">
               <i className="pi pi-spinner pi-spin text-2xl mb-2"></i>
-              <p>Loading integrations...</p>
+              <p>{t("integrations.loading")}</p>
             </div>
           </div>
         ) : (
@@ -346,10 +348,10 @@ export default function AdminIntegrations() {
                     <p className="text-600 mb-3">{integration.description}</p>
                     <div className="flex align-items-center gap-4 text-sm text-500">
                       {integration.lastSync && (
-                        <span>Last sync: {formatDate(integration.lastSync)}</span>
+                        <span>{t("integrations.lastSync")}: {formatDate(integration.lastSync)}</span>
                       )}
                       {integration.apiKey && (
-                        <span>API Key: {integration.apiKey}</span>
+                        <span>{t("integrations.apiKey")}: {integration.apiKey}</span>
                       )}
                     </div>
                   </div>
@@ -357,13 +359,13 @@ export default function AdminIntegrations() {
                     <ToggleButton
                       checked={integration.isEnabled}
                       onChange={(e) => handleToggleIntegration(integration.id, e.value)}
-                      onLabel="Enabled"
-                      offLabel="Disabled"
+                      onLabel={t("integrations.enabled")}
+                      offLabel={t("integrations.disabled")}
                       onIcon="pi pi-check"
                       offIcon="pi pi-times"
                     />
                     <Button
-                      label="Configure"
+                      label={t("integrations.configure")}
                       icon="pi pi-cog"
                       className="p-button-outlined"
                       onClick={() => handleEditIntegration(integration.id)}

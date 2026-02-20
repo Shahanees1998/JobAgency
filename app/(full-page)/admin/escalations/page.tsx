@@ -15,6 +15,7 @@ import { InputTextarea } from "primereact/inputtextarea";
 import { Dialog } from "primereact/dialog";
 import { useDebounce } from "@/hooks/useDebounce";
 import TableLoader from "@/components/TableLoader";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface Escalation {
   id: string;
@@ -33,6 +34,7 @@ interface Escalation {
 }
 
 export default function AdminEscalations() {
+  const { t } = useLanguage();
   const [escalations, setEscalations] = useState<Escalation[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -74,7 +76,7 @@ export default function AdminEscalations() {
       setTotalRecords((response as any)?.data?.pagination?.total ?? 0);
     } catch (error) {
       console.error("Error loading escalations:", error);
-      showToast("error", "Error", "Failed to load escalations");
+      showToast("error", t("common.error"), t("escalations.failedToLoad"));
       setEscalations([]);
       setTotalRecords(0);
     } finally {
@@ -98,9 +100,9 @@ export default function AdminEscalations() {
             }
           : esc
       ));
-      showToast("success", "Success", "Escalation status updated");
+      showToast("success", t("common.success"), t("escalations.statusUpdated"));
     } catch (error) {
-      showToast("error", "Error", "Failed to update escalation status");
+      showToast("error", t("common.error"), t("escalations.failedToUpdateStatus"));
     }
   };
 
@@ -112,7 +114,7 @@ export default function AdminEscalations() {
 
   const handleSubmitResponse = async () => {
     if (!selectedEscalation || !responseText.trim()) {
-      showToast("warn", "Warning", "Please enter a response");
+      showToast("warn", t("common.warning"), t("escalations.enterResponse"));
       return;
     }
 
@@ -125,9 +127,9 @@ export default function AdminEscalations() {
       ));
       setShowResponseModal(false);
       setResponseText("");
-      showToast("success", "Success", "Response submitted successfully");
+      showToast("success", t("common.success"), t("escalations.responseSubmitted"));
     } catch (error) {
-      showToast("error", "Error", "Failed to submit response");
+      showToast("error", t("common.error"), t("escalations.failedToSubmitResponse"));
     }
   };
 
@@ -207,7 +209,7 @@ export default function AdminEscalations() {
           size="small"
           className="p-button-outlined p-button-sm"
           onClick={() => {/* TODO: Open status management modal */}}
-          tooltip="Change Status"
+          tooltip={t("escalations.changeStatus")}
         />
       </div>
     );
@@ -230,33 +232,33 @@ export default function AdminEscalations() {
           size="small"
           className="p-button-outlined p-button-sm"
           onClick={() => handleRespond(rowData)}
-          tooltip="Respond"
+          tooltip={t("escalations.respond")}
         />
         <Button
           icon="pi pi-eye"
           size="small"
           className="p-button-outlined p-button-sm"
           onClick={() => {/* TODO: Open detail modal */}}
-          tooltip="View Details"
+          tooltip={t("escalations.viewDetails")}
         />
       </div>
     );
   };
 
   const statusOptions = [
-    { label: "All Statuses", value: "" },
-    { label: "Open", value: "OPEN" },
-    { label: "In Progress", value: "IN_PROGRESS" },
-    { label: "Resolved", value: "RESOLVED" },
-    { label: "Closed", value: "CLOSED" },
+    { label: t("escalations.allStatuses"), value: "" },
+    { label: t("escalations.open"), value: "OPEN" },
+    { label: t("escalations.inProgress"), value: "IN_PROGRESS" },
+    { label: t("escalations.resolved"), value: "RESOLVED" },
+    { label: t("escalations.closed"), value: "CLOSED" },
   ];
 
   const priorityOptions = [
-    { label: "All Priorities", value: "" },
-    { label: "Low", value: "LOW" },
-    { label: "Medium", value: "MEDIUM" },
-    { label: "High", value: "HIGH" },
-    { label: "Urgent", value: "URGENT" },
+    { label: t("escalations.allPriorities"), value: "" },
+    { label: t("escalations.low"), value: "LOW" },
+    { label: t("escalations.medium"), value: "MEDIUM" },
+    { label: t("escalations.high"), value: "HIGH" },
+    { label: t("escalations.urgent"), value: "URGENT" },
   ];
 
   return (
@@ -265,12 +267,12 @@ export default function AdminEscalations() {
       <div className="col-12">
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center gap-3 mb-4">
           <div>
-            <h1 className="text-3xl font-bold m-0">Escalations</h1>
-            <p className="text-600 mt-2 mb-0">Manage escalated issues and requests from hotels.</p>
+            <h1 className="text-3xl font-bold m-0">{t("escalations.title")}</h1>
+            <p className="text-600 mt-2 mb-0">{t("escalations.subtitle")}</p>
           </div>
           <div className="flex gap-2">
             <Button
-              label="Refresh"
+              label={t("common.refresh")}
               icon="pi pi-refresh"
               onClick={loadEscalations}
               loading={loading}
@@ -282,38 +284,38 @@ export default function AdminEscalations() {
 
       {/* Filters */}
       <div className="col-12">
-        <Card title="Filters" className="mb-4">
+        <Card title={t("escalations.filters")} className="mb-4">
           <div className="grid">
             <div className="col-12 md:col-4">
-              <label className="block text-900 font-medium mb-2">Search</label>
+              <label className="block text-900 font-medium mb-2">{t("common.search")}</label>
               <InputText
                 value={filters.search}
                 onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                placeholder="Search by subject, user, or hotel..."
+                placeholder={t("escalations.searchPlaceholder")}
                 className="w-full"
               />
             </div>
             <div className="col-12 md:col-4">
-              <label className="block text-900 font-medium mb-2">Status</label>
+              <label className="block text-900 font-medium mb-2">{t("common.status")}</label>
               <Dropdown
                 value={filters.status}
                 options={statusOptions}
                 optionLabel="label"
                 optionValue="value"
                 onChange={(e) => setFilters(prev => ({ ...prev, status: e.value ?? "" }))}
-                placeholder="All Statuses"
+                placeholder={t("escalations.allStatuses")}
                 className="w-full"
               />
             </div>
             <div className="col-12 md:col-4">
-              <label className="block text-900 font-medium mb-2">Priority</label>
+              <label className="block text-900 font-medium mb-2">{t("escalations.priority")}</label>
               <Dropdown
                 value={filters.priority}
                 options={priorityOptions}
                 optionLabel="label"
                 optionValue="value"
                 onChange={(e) => setFilters(prev => ({ ...prev, priority: e.value ?? "" }))}
-                placeholder="All Priorities"
+                placeholder={t("escalations.allPriorities")}
                 className="w-full"
               />
             </div>
@@ -325,12 +327,12 @@ export default function AdminEscalations() {
       <div className="col-12">
         <Card>
           {loading ? (
-            <TableLoader message="Loading escalations..." />
+            <TableLoader message={t("escalations.loading")} />
           ) : escalations.length === 0 ? (
             <div className="text-center py-6">
               <i className="pi pi-exclamation-triangle text-4xl text-400 mb-3"></i>
-              <h3 className="text-900 mb-2">No Escalations Found</h3>
-              <p className="text-600 mb-4">No escalations have been submitted yet or match your filters.</p>
+              <h3 className="text-900 mb-2">{t("escalations.noEscalations")}</h3>
+              <p className="text-600 mb-4">{t("escalations.noEscalationsDesc")}</p>
             </div>
           ) : (
             <DataTable 
@@ -346,20 +348,20 @@ export default function AdminEscalations() {
                 setCurrentPage((e.page ?? 0) + 1);
                 setRowsPerPage(e.rows ?? 10);
               }}
-              emptyMessage="No escalations found"
+              emptyMessage={t("escalations.emptyMessage")}
             >
-              <Column field="hotel" header="Hotel" body={hotelBodyTemplate} sortable />
-              <Column field="user" header="User" body={userBodyTemplate} />
-              <Column field="subject" header="Subject" body={subjectBodyTemplate} sortable />
-              <Column field="priority" header="Priority" body={priorityBodyTemplate} sortable />
-              <Column field="status" header="Status" body={statusBodyTemplate} sortable />
+              <Column field="hotel" header={t("escalations.hotel")} body={hotelBodyTemplate} sortable />
+              <Column field="user" header={t("escalations.user")} body={userBodyTemplate} />
+              <Column field="subject" header={t("escalations.subject")} body={subjectBodyTemplate} sortable />
+              <Column field="priority" header={t("escalations.priority")} body={priorityBodyTemplate} sortable />
+              <Column field="status" header={t("common.status")} body={statusBodyTemplate} sortable />
               <Column 
                 field="createdAt" 
-                header="Created" 
+                header={t("escalations.created")} 
                 body={(rowData) => formatDate(rowData.createdAt)}
                 sortable 
               />
-              <Column header="Actions" body={actionsBodyTemplate} />
+              <Column header={t("common.actions")} body={actionsBodyTemplate} />
             </DataTable>
           )}
         </Card>
@@ -367,7 +369,7 @@ export default function AdminEscalations() {
 
       {/* Response Dialog */}
       <Dialog
-        header={`Respond to: ${selectedEscalation?.subject || 'Escalation'}`}
+        header={`${t("escalations.respondTo")}: ${selectedEscalation?.subject || t("escalations.title")}`}
         visible={showResponseModal && !!selectedEscalation}
         style={{ width: '50vw' }}
         onHide={() => setShowResponseModal(false)}
@@ -376,30 +378,30 @@ export default function AdminEscalations() {
         blockScroll
       >
         <div className="mb-4">
-          <label className="block text-900 font-medium mb-2">Original Message</label>
+          <label className="block text-900 font-medium mb-2">{t("escalations.originalMessage")}</label>
           <div className="p-3 border-1 surface-border border-round bg-gray-50">
             {selectedEscalation?.message}
           </div>
         </div>
         <div className="mb-4">
-          <label className="block text-900 font-medium mb-2">Your Response</label>
+          <label className="block text-900 font-medium mb-2">{t("escalations.yourResponse")}</label>
           <InputTextarea
             value={responseText}
             onChange={(e) => setResponseText(e.target.value)}
             rows={6}
             className="w-full"
-            placeholder="Enter your response..."
+            placeholder={t("escalations.responsePlaceholder")}
           />
         </div>
         <div className="flex justify-content-end gap-2">
           <Button
-            label="Cancel"
+            label={t("common.cancel")}
             icon="pi pi-times"
             className="p-button-outlined"
             onClick={() => setShowResponseModal(false)}
           />
           <Button
-            label="Submit Response"
+            label={t("escalations.submitResponse")}
             icon="pi pi-send"
             onClick={handleSubmitResponse}
           />

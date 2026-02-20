@@ -15,6 +15,7 @@ import { apiClient } from "@/lib/apiClient";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDebounce } from "@/hooks/useDebounce";
 import TableLoader from "@/components/TableLoader";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface Chat {
   id: string;
@@ -64,6 +65,7 @@ export default function AdminChats() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [chats, setChats] = useState<Chat[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -117,7 +119,7 @@ export default function AdminChats() {
       }
     } catch (error) {
       console.error("Error loading chats:", error);
-      showToast("error", "Error", "Failed to load chats");
+      showToast("error", t("common.error"), t("chats.failedToLoadHistory"));
       setChats([]);
       setTotalRecords(0);
     } finally {
@@ -136,7 +138,7 @@ export default function AdminChats() {
       }
     } catch (error) {
       console.error("Error loading chat history:", error);
-      showToast("error", "Error", "Failed to load chat history");
+      showToast("error", t("common.error"), t("chats.failedToLoadHistory"));
     } finally {
       setLoadingMessages(false);
     }
@@ -172,13 +174,13 @@ export default function AdminChats() {
           icon="pi pi-eye"
           className="p-button-info p-button-sm"
           onClick={() => loadChatHistory(rowData.id)}
-          tooltip="View Chat History"
+          tooltip={t("chats.viewChatHistory")}
         />
         <Button
           icon="pi pi-file"
           className="p-button-secondary p-button-sm"
           onClick={() => router.push(`/admin/applications/${rowData.applicationId}`)}
-          tooltip="View Application"
+          tooltip={t("chats.viewApplication")}
         />
       </div>
     );
@@ -187,10 +189,9 @@ export default function AdminChats() {
   return (
     <div className="grid">
       <div className="col-12">
-        <Card title="Chat Moderation">
+        <Card title={t("chats.title")}>
           <p className="text-gray-600 mb-4">
-            Monitor and review chat conversations between employers and candidates.
-            Chats are only unlocked after employer approves a candidate's application.
+            {t("chats.subtitle")}
           </p>
 
           {/* Filters - server-side */}
@@ -199,7 +200,7 @@ export default function AdminChats() {
               <span className="p-input-icon-left w-full">
                 <i className="pi pi-search" />
                 <InputText
-                  placeholder="Search chats by job title, candidate name, or company..."
+                  placeholder={t("chats.searchPlaceholder")}
                   value={filters.search}
                   onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                   className="w-full"
@@ -208,9 +209,9 @@ export default function AdminChats() {
             </div>
             {filters.applicationId && (
               <div className="col-12 md:col-6 flex align-items-center gap-2">
-                <span className="text-sm text-600">Filtered by application</span>
+                <span className="text-sm text-600">{t("chats.filteredByApplication")}</span>
                 <Button
-                  label="Clear"
+                  label={t("chats.clear")}
                   icon="pi pi-times"
                   className="p-button-text p-button-sm"
                   onClick={() => {
@@ -224,7 +225,7 @@ export default function AdminChats() {
 
           {/* Data Table */}
           {loading ? (
-            <TableLoader message="Loading chats..." />
+            <TableLoader message={t("common.loading")} />
           ) : (
             <DataTable
               value={chats}
@@ -238,27 +239,27 @@ export default function AdminChats() {
                 setCurrentPage((e.page || 0) + 1);
                 setRowsPerPage(e.rows || 10);
               }}
-              emptyMessage="No chats found"
+              emptyMessage={t("chats.noChats")}
             >
             <Column
               field="application.job.title"
-              header="Job Title"
+              header={t("chats.jobTitle")}
               sortable
             />
             <Column
               field="application.job.employer.companyName"
-              header="Company"
+              header={t("chats.company")}
               sortable
             />
             <Column
               field="application.candidate.user.firstName"
-              header="Candidate"
+              header={t("chats.candidate")}
               body={(rowData) => `${rowData.application.candidate.user.firstName} ${rowData.application.candidate.user.lastName}`}
               sortable
             />
             <Column
               field="application.status"
-              header="Application Status"
+              header={t("chats.applicationStatus")}
               body={(rowData) => (
                 <Tag
                   value={rowData.application.status.replace("_", " ")}
@@ -268,27 +269,27 @@ export default function AdminChats() {
             />
             <Column
               field="totalMessages"
-              header="Messages"
+              header={t("chats.messages")}
               sortable
             />
             <Column
               field="lastMessageAt"
-              header="Last Message"
-              body={(rowData) => rowData.lastMessageAt ? formatDate(rowData.lastMessageAt) : "No messages"}
+              header={t("chats.lastMessage")}
+              body={(rowData) => rowData.lastMessageAt ? formatDate(rowData.lastMessageAt) : t("chats.noMessages")}
               sortable
             />
             <Column
               field="isActive"
-              header="Status"
+              header={t("chats.status")}
               body={(rowData) => (
                 <Tag
-                  value={rowData.isActive ? "Active" : "Inactive"}
+                  value={rowData.isActive ? t("chats.active") : t("chats.inactive")}
                   severity={rowData.isActive ? "success" : "secondary"}
                 />
               )}
             />
             <Column
-              header="Actions"
+              header={t("common.actions")}
               body={actionBodyTemplate}
               style={{ width: "200px" }}
             />
@@ -299,7 +300,7 @@ export default function AdminChats() {
 
       {/* Chat History Dialog */}
       <Dialog
-        header="Chat History"
+        header={t("chats.chatHistory")}
         visible={viewDialogVisible}
         style={{ width: "80vw", height: "80vh" }}
         onHide={() => {
@@ -310,7 +311,7 @@ export default function AdminChats() {
         footer={
           <div>
             <Button
-              label="Close"
+              label={t("common.close")}
               icon="pi pi-times"
               onClick={() => {
                 setViewDialogVisible(false);
@@ -321,7 +322,7 @@ export default function AdminChats() {
             />
             {selectedChat && (
               <Button
-                label="View Application"
+                label={t("chats.viewApplication")}
                 icon="pi pi-file"
                 onClick={() => {
                   setViewDialogVisible(false);
@@ -340,15 +341,15 @@ export default function AdminChats() {
           <div className="flex flex-column" style={{ height: "70vh" }}>
             {/* Chat Header */}
             <div className="p-3 border-bottom mb-3">
-              <h3 className="mt-0 mb-2">Job: {selectedChat.application.job.title}</h3>
+              <h3 className="mt-0 mb-2">{t("chats.job")}: {selectedChat.application.job.title}</h3>
               <div className="grid">
                 <div className="col-12 md:col-6">
-                  <p className="m-0"><strong>Company:</strong> {selectedChat.application.job.employer.companyName}</p>
-                  <p className="m-0"><strong>Candidate:</strong> {selectedChat.application.candidate.user.firstName} {selectedChat.application.candidate.user.lastName}</p>
+                  <p className="m-0"><strong>{t("chats.companyLabel")}:</strong> {selectedChat.application.job.employer.companyName}</p>
+                  <p className="m-0"><strong>{t("chats.candidateLabel")}:</strong> {selectedChat.application.candidate.user.firstName} {selectedChat.application.candidate.user.lastName}</p>
                 </div>
                 <div className="col-12 md:col-6">
-                  <p className="m-0"><strong>Total Messages:</strong> {messages.length}</p>
-                  <p className="m-0"><strong>Last Message:</strong> {selectedChat.lastMessageAt ? formatDate(selectedChat.lastMessageAt) : "N/A"}</p>
+                  <p className="m-0"><strong>{t("chats.totalMessages")}:</strong> {messages.length}</p>
+                  <p className="m-0"><strong>{t("chats.lastMessageLabel")}:</strong> {selectedChat.lastMessageAt ? formatDate(selectedChat.lastMessageAt) : "N/A"}</p>
                 </div>
               </div>
             </div>
@@ -358,7 +359,7 @@ export default function AdminChats() {
               {messages.length === 0 ? (
                 <div className="text-center text-gray-500 py-5">
                   <i className="pi pi-comments text-4xl mb-3"></i>
-                  <p>No messages in this chat yet.</p>
+                  <p>{t("chats.noMessagesInChat")}</p>
                 </div>
               ) : (
                 <div className="flex flex-column gap-3">
@@ -383,12 +384,12 @@ export default function AdminChats() {
                         </div>
                       </div>
                       {message.isDeleted ? (
-                        <p className="m-0">This message was deleted</p>
+                        <p className="m-0">{t("chats.messageDeleted")}</p>
                       ) : (
                         <p className="m-0 whitespace-pre-wrap">{message.content}</p>
                       )}
                       {message.isEdited && (
-                        <span className="text-xs text-gray-500">(edited)</span>
+                        <span className="text-xs text-gray-500">{t("chats.edited")}</span>
                       )}
                     </div>
                   ))}

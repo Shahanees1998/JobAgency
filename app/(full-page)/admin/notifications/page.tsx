@@ -14,6 +14,7 @@ import { useRef } from "react";
 import { apiClient } from "@/lib/apiClient";
 import { useDebounce } from "@/hooks/useDebounce";
 import TableLoader from "@/components/TableLoader";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface Notification {
   id: string;
@@ -28,6 +29,7 @@ interface Notification {
 }
 
 export default function AdminNotifications() {
+  const { t } = useLanguage();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -69,7 +71,7 @@ export default function AdminNotifications() {
       setTotalRecords((response.data as any)?.pagination?.total ?? 0);
     } catch (error) {
       console.error("Error loading notifications:", error);
-      showToast("error", "Error", "Failed to load notifications");
+      showToast("error", t("common.error"), t("notifications.failedToLoad"));
       setNotifications([]);
       setTotalRecords(0);
     } finally {
@@ -88,9 +90,9 @@ export default function AdminNotifications() {
       setNotifications(prev => prev.map(notif => 
         notif.id === notificationId ? { ...notif, isRead: true } : notif
       ));
-      showToast("success", "Success", "Notification marked as read");
+      showToast("success", t("common.success"), t("notifications.markedAsRead"));
     } catch (error) {
-      showToast("error", "Error", "Failed to mark notification as read");
+      showToast("error", t("common.error"), t("notifications.failedToMarkAsRead"));
     } finally {
       setMarkingReadId(null);
     }
@@ -98,8 +100,8 @@ export default function AdminNotifications() {
 
   const confirmDelete = (notification: Notification) => {
     confirmDialog({
-      message: `Are you sure you want to delete "${notification.title}"?`,
-      header: "Delete Confirmation",
+      message: t("notifications.deleteConfirmMessage").replace("{title}", notification.title),
+      header: t("notifications.deleteConfirmHeader"),
       icon: "pi pi-exclamation-triangle",
       acceptClassName: "p-button-danger",
       accept: () => handleDelete(notification.id),
@@ -113,9 +115,9 @@ export default function AdminNotifications() {
       if ((response as any).error) throw new Error((response as any).error);
       setNotifications(prev => prev.filter(notif => notif.id !== notificationId));
       setTotalRecords(prev => Math.max(0, prev - 1));
-      showToast("success", "Success", "Notification deleted");
+      showToast("success", t("common.success"), t("notifications.deleted"));
     } catch (error) {
-      showToast("error", "Error", "Failed to delete notification");
+      showToast("error", t("common.error"), t("notifications.failedToDelete"));
     } finally {
       setDeletingId(null);
     }
@@ -127,9 +129,9 @@ export default function AdminNotifications() {
       const response = await apiClient.markAllNotificationsAsRead();
       if ((response as any).error) throw new Error((response as any).error);
       setNotifications(prev => prev.map(notif => ({ ...notif, isRead: true })));
-      showToast("success", "Success", "All notifications marked as read");
+      showToast("success", t("common.success"), t("notifications.markAllAsReadSuccess"));
     } catch (error) {
-      showToast("error", "Error", "Failed to mark all notifications as read");
+      showToast("error", t("common.error"), t("notifications.failedToMarkAllAsRead"));
     } finally {
       setMarkAllReadLoading(false);
     }
@@ -207,7 +209,7 @@ export default function AdminNotifications() {
     return (
       <div className="flex align-items-center gap-2">
         <Tag 
-          value={rowData.isRead ? "Read" : "Unread"} 
+          value={rowData.isRead ? t("notifications.read") : t("notifications.unread")} 
           severity={rowData.isRead ? "info" : "warning"} 
         />
       </div>
@@ -223,7 +225,7 @@ export default function AdminNotifications() {
             size="small"
             className="p-button-outlined p-button-sm p-button-success"
             onClick={() => handleMarkAsRead(rowData.id)}
-            tooltip="Mark as Read"
+            tooltip={t("notifications.markAsRead")}
             loading={markingReadId === rowData.id}
             disabled={markingReadId === rowData.id || deletingId === rowData.id}
           />
@@ -233,7 +235,7 @@ export default function AdminNotifications() {
           size="small"
           className="p-button-outlined p-button-sm p-button-danger"
           onClick={() => confirmDelete(rowData)}
-          tooltip="Delete"
+          tooltip={t("common.delete")}
           loading={deletingId === rowData.id}
           disabled={deletingId === rowData.id || markingReadId === rowData.id}
         />
@@ -266,12 +268,12 @@ export default function AdminNotifications() {
       <div className="col-12">
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center gap-3 mb-4">
           <div>
-            <h1 className="text-3xl font-bold m-0">System Notifications</h1>
-            <p className="text-600 mt-2 mb-0">Manage all system notifications and alerts.</p>
+            <h1 className="text-3xl font-bold m-0">{t("notifications.systemNotifications")}</h1>
+            <p className="text-600 mt-2 mb-0">{t("notifications.subtitle")}</p>
           </div>
           <div className="flex gap-2">
             <Button
-              label="Mark All as Read"
+              label={t("notifications.markAllAsRead")}
               icon="pi pi-check"
               onClick={handleMarkAllAsRead}
               className="p-button-success"
@@ -279,7 +281,7 @@ export default function AdminNotifications() {
               disabled={markAllReadLoading}
             />
             <Button
-              label="Refresh"
+              label={t("common.refresh")}
               icon="pi pi-refresh"
               onClick={loadNotifications}
               loading={loading}
@@ -291,38 +293,38 @@ export default function AdminNotifications() {
 
       {/* Filters */}
       <div className="col-12">
-        <Card title="Filters" className="mb-4">
+        <Card title={t("common.filter")} className="mb-4">
           <div className="grid">
             <div className="col-12 md:col-4">
-              <label className="block text-900 font-medium mb-2">Search Notifications</label>
+              <label className="block text-900 font-medium mb-2">{t("notifications.searchNotifications")}</label>
               <InputText
                 value={filters.search}
                 onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                placeholder="Search by title, message, or user..."
+                placeholder={t("notifications.searchPlaceholder")}
                 className="w-full"
               />
             </div>
             <div className="col-12 md:col-4">
-              <label className="block text-900 font-medium mb-2">Type</label>
+              <label className="block text-900 font-medium mb-2">{t("common.type")}</label>
               <Dropdown
                 value={filters.type}
                 options={typeOptions}
                 optionLabel="label"
                 optionValue="value"
                 onChange={(e) => setFilters(prev => ({ ...prev, type: e.value ?? "" }))}
-                placeholder="All Types"
+                placeholder={t("notifications.allTypes")}
                 className="w-full"
               />
             </div>
             <div className="col-12 md:col-4">
-              <label className="block text-900 font-medium mb-2">Status</label>
+              <label className="block text-900 font-medium mb-2">{t("common.status")}</label>
               <Dropdown
                 value={filters.status}
                 options={statusOptions}
                 optionLabel="label"
                 optionValue="value"
                 onChange={(e) => setFilters(prev => ({ ...prev, status: e.value ?? "" }))}
-                placeholder="All Statuses"
+                placeholder={t("notifications.allStatuses")}
                 className="w-full"
               />
             </div>
@@ -334,12 +336,12 @@ export default function AdminNotifications() {
       <div className="col-12">
         <Card>
           {loading ? (
-            <TableLoader message="Loading notifications..." />
+            <TableLoader message={t("common.loading")} />
           ) : notifications.length === 0 ? (
             <div className="text-center py-6">
               <i className="pi pi-bell text-4xl text-400 mb-3"></i>
-              <h3 className="text-900 mb-2">No Notifications Found</h3>
-              <p className="text-600 mb-4">No notifications have been generated yet or match your filters.</p>
+              <h3 className="text-900 mb-2">{t("notifications.noNotificationsFound")}</h3>
+              <p className="text-600 mb-4">{t("notifications.noNotificationsDesc")}</p>
             </div>
           ) : (
             <DataTable 
@@ -355,20 +357,20 @@ export default function AdminNotifications() {
                 setCurrentPage((e.page ?? 0) + 1);
                 setRowsPerPage(e.rows ?? 10);
               }}
-              emptyMessage="No notifications found"
+              emptyMessage={t("notifications.noNotifications")}
             >
-              <Column field="title" header="Title" sortable />
-              <Column field="message" header="Message" style={{ maxWidth: '300px' }} />
-              <Column field="user" header="User" body={userBodyTemplate} />
-              <Column field="type" header="Type" body={typeBodyTemplate} sortable />
-              <Column field="status" header="Status" body={statusBodyTemplate} sortable />
+              <Column field="title" header={t("notifications.titleColumn")} sortable />
+              <Column field="message" header={t("notifications.message")} style={{ maxWidth: '300px' }} />
+              <Column field="user" header={t("notifications.user")} body={userBodyTemplate} />
+              <Column field="type" header={t("common.type")} body={typeBodyTemplate} sortable />
+              <Column field="status" header={t("common.status")} body={statusBodyTemplate} sortable />
               <Column 
                 field="createdAt" 
-                header="Created" 
+                header={t("notifications.created")} 
                 body={(rowData) => formatDate(rowData.createdAt)}
                 sortable 
               />
-              <Column header="Actions" body={actionsBodyTemplate} />
+              <Column header={t("common.actions")} body={actionsBodyTemplate} />
             </DataTable>
           )}
         </Card>

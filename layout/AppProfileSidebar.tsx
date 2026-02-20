@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { Avatar } from "primereact/avatar";
 import { Skeleton } from "primereact/skeleton";
 import { apiClient } from "@/lib/apiClient";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface Notification {
     id: string;
@@ -33,6 +34,7 @@ const AppProfileSidebar = () => {
     const { layoutState, setLayoutState } = useContext(LayoutContext);
     const { user, logout } = useAuth();
     const router = useRouter();
+    const { t } = useLanguage();
     
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [messages, setMessages] = useState<Message[]>([]);
@@ -106,10 +108,10 @@ const AppProfileSidebar = () => {
         const now = new Date();
         const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
         
-        if (diffInMinutes < 1) return 'Just now';
-        if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-        if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
-        return `${Math.floor(diffInMinutes / 1440)}d ago`;
+        if (diffInMinutes < 1) return t("profileSidebar.justNow");
+        if (diffInMinutes < 60) return t("profileSidebar.minutesAgo").replace("{n}", String(diffInMinutes));
+        if (diffInMinutes < 1440) return t("profileSidebar.hoursAgo").replace("{n}", String(Math.floor(diffInMinutes / 60)));
+        return t("profileSidebar.daysAgo").replace("{n}", String(Math.floor(diffInMinutes / 1440)));
     };
 
     const getNotificationIcon = (type: string) => {
@@ -131,9 +133,9 @@ const AppProfileSidebar = () => {
             className="layout-profile-sidebar w-full sm:w-25rem"
         >
             <div className="flex flex-column mx-auto md:mx-0">
-                <span className="mb-2 font-semibold">Welcome</span>
+                <span className="mb-2 font-semibold">{t("profileSidebar.welcome")}</span>
                 <span className="text-color-secondary font-medium mb-5">
-                    {user ? `${user.firstName} ${user.lastName}` : 'Admin User'}
+                    {user ? `${user.firstName} ${user.lastName}` : t("profileSidebar.adminUser")}
                 </span>
 
                 <ul className="list-none m-0 p-0">
@@ -147,10 +149,10 @@ const AppProfileSidebar = () => {
                             </span>
                             <div className="ml-3">
                                 <span className="mb-2 font-semibold">
-                                    Profile
+                                    {t("profileSidebar.profile")}
                                 </span>
                                 <p className="text-color-secondary m-0">
-                                    Manage your account settings
+                                    {t("profileSidebar.manageAccountSettings")}
                                 </p>
                             </div>
                         </button>
@@ -165,10 +167,10 @@ const AppProfileSidebar = () => {
                             </span>
                             <div className="ml-3">
                                 <span className="mb-2 font-semibold">
-                                    Settings
+                                    {t("profileSidebar.settings")}
                                 </span>
                                 <p className="text-color-secondary m-0">
-                                    Configure system preferences
+                                    {t("profileSidebar.configurePreferences")}
                                 </p>
                             </div>
                         </button>
@@ -183,10 +185,10 @@ const AppProfileSidebar = () => {
                             </span>
                             <div className="ml-3">
                                 <span className="mb-2 font-semibold">
-                                    Sign Out
+                                    {t("profileSidebar.signOut")}
                                 </span>
                                 <p className="text-color-secondary m-0">
-                                    Logout from your account
+                                    {t("profileSidebar.logoutFromAccount")}
                                 </p>
                             </div>
                         </button>
@@ -195,12 +197,12 @@ const AppProfileSidebar = () => {
             </div>
 
             <div className="flex flex-column mt-5 mx-auto md:mx-0">
-                <span className="mb-2 font-semibold">Recent Notifications</span>
+                <span className="mb-2 font-semibold">{t("profileSidebar.recentNotifications")}</span>
                 <span className="text-color-secondary font-medium mb-5">
                     {loading ? (
                         <Skeleton width="60%" height="1rem" />
                     ) : (
-                        `You have ${notifications.length} unread notifications`
+                        t("profileSidebar.unreadCount").replace("{count}", String(notifications.length))
                     )}
                 </span>
 
@@ -242,18 +244,18 @@ const AppProfileSidebar = () => {
                 ) : (
                     <div className="text-center p-3 text-color-secondary">
                         <i className="pi pi-bell text-2xl mb-2"></i>
-                        <p className="m-0">No new notifications</p>
+                        <p className="m-0">{t("profileSidebar.noNewNotifications")}</p>
                     </div>
                 )}
             </div>
 
             <div className="flex flex-column mt-5 mx-auto md:mx-0">
-                <span className="mb-2 font-semibold">Recent Messages</span>
+                <span className="mb-2 font-semibold">{t("profileSidebar.recentMessages")}</span>
                 <span className="text-color-secondary font-medium mb-5">
                     {loading ? (
                         <Skeleton width="50%" height="1rem" />
                     ) : (
-                        "Latest chat activity"
+                        t("profileSidebar.latestChatActivity")
                     )}
                 </span>
 
@@ -307,7 +309,7 @@ const AppProfileSidebar = () => {
                 ) : (
                     <div className="text-center p-3 text-color-secondary">
                         <i className="pi pi-comments text-2xl mb-2"></i>
-                        <p className="m-0">No recent messages</p>
+                        <p className="m-0">{t("profileSidebar.noRecentMessages")}</p>
                     </div>
                 )}
             </div>

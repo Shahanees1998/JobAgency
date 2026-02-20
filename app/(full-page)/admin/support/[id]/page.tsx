@@ -12,6 +12,7 @@ import { Dialog } from "primereact/dialog";
 import { InputTextarea } from "primereact/inputtextarea";
 import { Dropdown } from "primereact/dropdown";
 import { apiClient } from "@/lib/apiClient";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface SupportRequest {
     id: string;
@@ -41,6 +42,7 @@ interface ResponseFormData {
 export default function SupportRequestDetailPage() {
     const params = useParams();
     const router = useRouter();
+    const { t } = useLanguage();
     const [request, setRequest] = useState<SupportRequest | null>(null);
     const [loading, setLoading] = useState(true);
     const [showResponseDialog, setShowResponseDialog] = useState(false);
@@ -54,17 +56,17 @@ export default function SupportRequestDetailPage() {
     const toast = useRef<Toast>(null);
 
     const statusOptions = [
-        { label: "Open", value: "OPEN" },
-        { label: "In Progress", value: "IN_PROGRESS" },
-        { label: "Resolved", value: "RESOLVED" },
-        { label: "Closed", value: "CLOSED" },
+        { label: t("escalations.open"), value: "OPEN" },
+        { label: t("escalations.inProgress"), value: "IN_PROGRESS" },
+        { label: t("escalations.resolved"), value: "RESOLVED" },
+        { label: t("escalations.closed"), value: "CLOSED" },
     ];
 
     const priorityOptions = [
-        { label: "Low", value: "LOW" },
-        { label: "Medium", value: "MEDIUM" },
-        { label: "High", value: "HIGH" },
-        { label: "Urgent", value: "URGENT" },
+        { label: t("escalations.low"), value: "LOW" },
+        { label: t("escalations.medium"), value: "MEDIUM" },
+        { label: t("escalations.high"), value: "HIGH" },
+        { label: t("escalations.urgent"), value: "URGENT" },
     ];
 
     useEffect(() => {
@@ -82,7 +84,7 @@ export default function SupportRequestDetailPage() {
             }
             setRequest(response.data);
         } catch (error) {
-            showToast("error", "Error", "Failed to load support request");
+            showToast("error", t("common.error"), t("support.failedToLoadRequest"));
         } finally {
             setLoading(false);
         }
@@ -125,10 +127,10 @@ export default function SupportRequestDetailPage() {
                 updatedAt: new Date().toISOString()
             } : null);
 
-            showToast("success", "Success", "Response saved successfully");
+            showToast("success", t("common.success"), t("support.responseSaved"));
             setShowResponseDialog(false);
         } catch (error) {
-            showToast("error", "Error", "Failed to save response");
+            showToast("error", t("common.error"), t("support.failedToSaveResponse"));
         } finally {
             setSaving(false);
         }
@@ -137,8 +139,8 @@ export default function SupportRequestDetailPage() {
     const handleDelete = () => {
         if (!request) return;
         confirmDialog({
-            message: "Are you sure you want to delete this support request?",
-            header: "Delete Confirmation",
+            message: t("support.deleteConfirmMessage"),
+            header: t("support.deleteConfirmHeader"),
             icon: "pi pi-exclamation-triangle",
             acceptClassName: "p-button-danger",
             accept: performDelete,
@@ -151,10 +153,10 @@ export default function SupportRequestDetailPage() {
         try {
             const response = await apiClient.deleteSupportRequest(request.id);
             if (response.error) throw new Error(response.error);
-            showToast("success", "Success", "Support request deleted successfully");
+            showToast("success", t("common.success"), t("support.deletedSuccess"));
             router.push('/admin/support');
         } catch (error) {
-            showToast("error", "Error", "Failed to delete support request");
+            showToast("error", t("common.error"), t("support.failedToDelete"));
         } finally {
             setDeleting(false);
         }
@@ -182,20 +184,20 @@ export default function SupportRequestDetailPage() {
 
     const getStatusLabel = (status: string) => {
         switch (status) {
-            case 'OPEN': return 'Open';
-            case 'IN_PROGRESS': return 'In Progress';
-            case 'RESOLVED': return 'Resolved';
-            case 'CLOSED': return 'Closed';
+            case 'OPEN': return t("escalations.open");
+            case 'IN_PROGRESS': return t("escalations.inProgress");
+            case 'RESOLVED': return t("escalations.resolved");
+            case 'CLOSED': return t("escalations.closed");
             default: return status;
         }
     };
 
     const getPriorityLabel = (priority: string) => {
         switch (priority) {
-            case 'LOW': return 'Low';
-            case 'MEDIUM': return 'Medium';
-            case 'HIGH': return 'High';
-            case 'URGENT': return 'Urgent';
+            case 'LOW': return t("escalations.low");
+            case 'MEDIUM': return t("escalations.medium");
+            case 'HIGH': return t("escalations.high");
+            case 'URGENT': return t("escalations.urgent");
             default: return priority;
         }
     };
@@ -225,10 +227,10 @@ export default function SupportRequestDetailPage() {
                 <div className="col-12">
                     <Card>
                         <div className="text-center">
-                            <h2>Support Request Not Found</h2>
-                            <p>The requested support request could not be found.</p>
+                            <h2>{t("support.notFound")}</h2>
+                            <p>{t("support.notFoundDescription")}</p>
                             <Button 
-                                label="Back to Support Requests" 
+                                label={t("support.backToSupport")} 
                                 icon="pi pi-arrow-left" 
                                 onClick={() => router.push('/admin/support')}
                             />
@@ -248,20 +250,20 @@ export default function SupportRequestDetailPage() {
                         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center gap-3">
                             <div className="flex flex-column">
                                 <h2 className="text-2xl font-bold m-0">
-                                    Support Request #{request.id.slice(-8)}
+                                    {t("support.requestNumber")} #{request.id.slice(-8)}
                                 </h2>
                                 <span className="text-600">{request.subject}</span>
                             </div>
                             <div className="flex gap-2">
                                 <Button
-                                    label="Respond"
+                                    label={t("support.respond")}
                                     icon="pi pi-reply"
                                     severity="info"
                                     onClick={openResponseDialog}
                                     disabled={deleting}
                                 />
                                 <Button
-                                    label="Delete"
+                                    label={t("common.delete")}
                                     icon="pi pi-trash"
                                     severity="danger"
                                     onClick={handleDelete}
@@ -269,7 +271,7 @@ export default function SupportRequestDetailPage() {
                                     disabled={deleting}
                                 />
                                 <Button
-                                    label="Back"
+                                    label={t("common.back")}
                                     icon="pi pi-arrow-left"
                                     text
                                     onClick={() => router.push('/admin/support')}
@@ -280,14 +282,14 @@ export default function SupportRequestDetailPage() {
                         {/* Status and Priority */}
                         <div className="flex flex-column md:flex-row gap-3">
                             <div className="flex align-items-center gap-2">
-                                <span className="font-bold">Status:</span>
+                                <span className="font-bold">{t("common.status")}:</span>
                                 <Tag 
                                     value={getStatusLabel(request.status)} 
                                     severity={getStatusSeverity(request.status)} 
                                 />
                             </div>
                             <div className="flex align-items-center gap-2">
-                                <span className="font-bold">Priority:</span>
+                                <span className="font-bold">{t("escalations.priority")}:</span>
                                 <Tag 
                                     value={getPriorityLabel(request.priority)} 
                                     severity={getPrioritySeverity(request.priority)} 
@@ -300,20 +302,20 @@ export default function SupportRequestDetailPage() {
                             <div className="col-12 md:col-6">
                                 <div className="flex flex-column gap-3">
                                     <div>
-                                        <label className="font-bold text-600">Submitted By</label>
+                                        <label className="font-bold text-600">{t("support.submittedBy")}</label>
                                         <div className="text-lg">
                                             {request.user?.firstName} {request.user?.lastName}
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="font-bold text-600">Email</label>
+                                        <label className="font-bold text-600">{t("common.email")}</label>
                                         <div className="text-lg">{request.user?.email}</div>
                                     </div>
                                     <div>
-                                        <label className="font-bold text-600">User Role</label>
+                                        <label className="font-bold text-600">{t("support.userRole")}</label>
                                         <div>
                                             <Tag 
-                                                value={request.user?.role || 'Unknown'} 
+                                                value={request.user?.role || t("profile.unknown")} 
                                                 severity={request.user?.role === 'ADMIN' ? "danger" : "info"} 
                                             />
                                         </div>
@@ -323,10 +325,10 @@ export default function SupportRequestDetailPage() {
                             <div className="col-12 md:col-6">
                                 <div className="flex flex-column gap-3">
                                     <div>
-                                        <label className="font-bold text-600">User Status</label>
+                                        <label className="font-bold text-600">{t("support.userStatus")}</label>
                                         <div>
                                             <Tag 
-                                                value={request.user?.status || 'Unknown'} 
+                                                value={request.user?.status || t("profile.unknown")} 
                                                 severity={
                                                     request.user?.status === 'ACTIVE' ? "success" : 
                                                     request.user?.status === 'PENDING' ? "warning" : 
@@ -336,13 +338,13 @@ export default function SupportRequestDetailPage() {
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="font-bold text-600">Submitted</label>
+                                        <label className="font-bold text-600">{t("support.submitted")}</label>
                                         <div className="text-lg">
                                             {new Date(request.createdAt).toLocaleDateString()} at {new Date(request.createdAt).toLocaleTimeString()}
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="font-bold text-600">Last Updated</label>
+                                        <label className="font-bold text-600">{t("support.lastUpdated")}</label>
                                         <div className="text-lg">
                                             {new Date(request.updatedAt).toLocaleDateString()} at {new Date(request.updatedAt).toLocaleTimeString()}
                                         </div>
@@ -353,7 +355,7 @@ export default function SupportRequestDetailPage() {
 
                         {/* Request Message */}
                         <div>
-                            <label className="font-bold text-600">Request Message</label>
+                            <label className="font-bold text-600">{t("support.requestMessage")}</label>
                             <div className="p-3 surface-100 border-round mt-2">
                                 <div className="whitespace-pre-wrap">{request.message}</div>
                             </div>
@@ -362,7 +364,7 @@ export default function SupportRequestDetailPage() {
                         {/* Admin Response */}
                         {request.adminResponse && (
                             <div>
-                                <label className="font-bold text-600">Admin Response</label>
+                                <label className="font-bold text-600">{t("support.adminResponse")}</label>
                                 <div className="p-3 surface-50 border-round mt-2">
                                     <div className="whitespace-pre-wrap">{request.adminResponse}</div>
                                 </div>
@@ -376,20 +378,20 @@ export default function SupportRequestDetailPage() {
             <Dialog
                 visible={showResponseDialog}
                 style={{ width: "600px" }}
-                header="Respond to Support Request"
+                header={t("support.respondToRequest")}
                 modal
                 className="p-fluid"
                 onHide={() => setShowResponseDialog(false)}
                 footer={
                     <div className="flex gap-2 justify-content-end">
                         <Button 
-                            label="Cancel" 
+                            label={t("common.cancel")} 
                             icon="pi pi-times" 
                             text 
                             onClick={() => setShowResponseDialog(false)} 
                         />
                         <Button 
-                            label="Save Response" 
+                            label={t("support.saveResponse")} 
                             icon="pi pi-check" 
                             onClick={saveResponse}
                             loading={saving}
@@ -399,33 +401,33 @@ export default function SupportRequestDetailPage() {
             >
                 <div className="grid">
                     <div className="col-12 md:col-6">
-                        <label htmlFor="status" className="font-bold">Status</label>
+                        <label htmlFor="status" className="font-bold">{t("common.status")}</label>
                         <Dropdown
                             id="status"
                             value={responseForm.status}
                             options={statusOptions}
                             onChange={(e) => setResponseForm({ ...responseForm, status: e.value })}
-                            placeholder="Select Status"
+                            placeholder={t("support.selectStatus")}
                         />
                     </div>
                     <div className="col-12 md:col-6">
-                        <label htmlFor="priority" className="font-bold">Priority</label>
+                        <label htmlFor="priority" className="font-bold">{t("escalations.priority")}</label>
                         <Dropdown
                             id="priority"
                             value={responseForm.priority}
                             options={priorityOptions}
                             onChange={(e) => setResponseForm({ ...responseForm, priority: e.value })}
-                            placeholder="Select Priority"
+                            placeholder={t("support.selectPriority")}
                         />
                     </div>
                     <div className="col-12">
-                        <label htmlFor="adminResponse" className="font-bold">Admin Response</label>
+                        <label htmlFor="adminResponse" className="font-bold">{t("support.adminResponse")}</label>
                         <InputTextarea
                             id="adminResponse"
                             value={responseForm.adminResponse}
                             onChange={(e) => setResponseForm({ ...responseForm, adminResponse: e.target.value })}
                             rows={6}
-                            placeholder="Enter your response to the user..."
+                            placeholder={t("support.responsePlaceholder")}
                         />
                     </div>
                 </div>

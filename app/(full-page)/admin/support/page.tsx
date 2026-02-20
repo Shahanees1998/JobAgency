@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/apiClient";
 import { useDebounce } from "@/hooks/useDebounce";
 import TableLoader from "@/components/TableLoader";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface SupportRequest {
   id: string;
@@ -40,6 +41,7 @@ interface SupportRequest {
 
 export default function AdminSupport() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [requests, setRequests] = useState<SupportRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -87,7 +89,7 @@ export default function AdminSupport() {
       setTotalRecords(response.data?.pagination?.total ?? 0);
     } catch (error) {
       console.error("Error loading support requests:", error);
-      showToast("error", "Error", "Failed to load support requests");
+      showToast("error", t("common.error"), t("support.failedToLoad"));
       setRequests([]);
       setTotalRecords(0);
     } finally {
@@ -113,12 +115,12 @@ export default function AdminSupport() {
     setUpdating(true);
     try {
       await apiClient.updateSupportRequest(statusModalRequest.id, { status: newStatus });
-      showToast("success", "Success", "Support request status updated");
+      showToast("success", t("common.success"), t("support.statusUpdated"));
       setShowStatusModal(false);
       setStatusModalRequest(null);
       loadSupportRequests();
     } catch (error) {
-      showToast("error", "Error", "Failed to update support request status");
+      showToast("error", t("common.error"), t("support.failedToUpdateStatus"));
     } finally {
       setUpdating(false);
     }
@@ -137,7 +139,7 @@ export default function AdminSupport() {
 
   const handleSubmitResponse = async () => {
     if (!selectedRequest || !responseText.trim()) {
-      showToast("warn", "Warning", "Please enter a response");
+      showToast("warn", t("common.warning"), t("support.enterResponse"));
       return;
     }
 
@@ -150,10 +152,10 @@ export default function AdminSupport() {
       setShowResponseModal(false);
       setSelectedRequest(null);
       setResponseText("");
-      showToast("success", "Success", "Response submitted successfully");
+      showToast("success", t("common.success"), t("support.responseSubmitted"));
       loadSupportRequests();
     } catch (error) {
-      showToast("error", "Error", "Failed to submit response");
+      showToast("error", t("common.error"), t("support.failedToSubmitResponse"));
     } finally {
       setUpdating(false);
     }
@@ -214,7 +216,7 @@ export default function AdminSupport() {
           size="small"
           className="p-button-outlined p-button-sm"
           onClick={() => openStatusModal(rowData)}
-          tooltip="Change Status"
+          tooltip={t("support.changeStatus")}
           disabled={updating}
         />
       </div>
@@ -238,7 +240,7 @@ export default function AdminSupport() {
           size="small"
           className="p-button-outlined p-button-sm"
           onClick={() => handleRespond(rowData)}
-          tooltip="Respond"
+          tooltip={t("support.respond")}
           disabled={updating}
         />
         <Button
@@ -246,7 +248,7 @@ export default function AdminSupport() {
           size="small"
           className="p-button-outlined p-button-sm"
           onClick={() => openViewModal(rowData)}
-          tooltip="View Details"
+          tooltip={t("escalations.viewDetails")}
           disabled={updating}
         />
       </div>
@@ -254,19 +256,19 @@ export default function AdminSupport() {
   };
 
   const statusOptions = [
-    { label: "All Statuses", value: "" },
-    { label: "Open", value: "OPEN" },
-    { label: "In Progress", value: "IN_PROGRESS" },
-    { label: "Resolved", value: "RESOLVED" },
-    { label: "Closed", value: "CLOSED" },
+    { label: t("escalations.allStatuses"), value: "" },
+    { label: t("escalations.open"), value: "OPEN" },
+    { label: t("escalations.inProgress"), value: "IN_PROGRESS" },
+    { label: t("escalations.resolved"), value: "RESOLVED" },
+    { label: t("escalations.closed"), value: "CLOSED" },
   ];
 
   const priorityOptions = [
-    { label: "All Priorities", value: "" },
-    { label: "Low", value: "LOW" },
-    { label: "Medium", value: "MEDIUM" },
-    { label: "High", value: "HIGH" },
-    { label: "Urgent", value: "URGENT" },
+    { label: t("escalations.allPriorities"), value: "" },
+    { label: t("escalations.low"), value: "LOW" },
+    { label: t("escalations.medium"), value: "MEDIUM" },
+    { label: t("escalations.high"), value: "HIGH" },
+    { label: t("escalations.urgent"), value: "URGENT" },
   ];
 
   return (
@@ -275,12 +277,12 @@ export default function AdminSupport() {
       <div className="col-12">
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center gap-3 mb-4">
           <div>
-            <h1 className="text-3xl font-bold m-0">Support Requests</h1>
-            <p className="text-600 mt-2 mb-0">Manage all support requests from hotels.</p>
+            <h1 className="text-3xl font-bold m-0">{t("support.supportRequests")}</h1>
+            <p className="text-600 mt-2 mb-0">{t("support.subtitle")}</p>
           </div>
           <div className="flex gap-2">
             <Button
-              label="Refresh"
+              label={t("common.refresh")}
               icon="pi pi-refresh"
               onClick={loadSupportRequests}
               loading={loading}
@@ -292,38 +294,38 @@ export default function AdminSupport() {
 
       {/* Filters */}
       <div className="col-12">
-        <Card title="Filters" className="mb-4">
+        <Card title={t("common.filter")} className="mb-4">
           <div className="grid">
             <div className="col-12 md:col-4">
-              <label className="block text-900 font-medium mb-2">Search</label>
+              <label className="block text-900 font-medium mb-2">{t("common.search")}</label>
               <InputText
                 value={filters.search}
                 onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                placeholder="Search by subject or user..."
+                placeholder={t("escalations.searchPlaceholder")}
                 className="w-full"
               />
             </div>
             <div className="col-12 md:col-4">
-              <label className="block text-900 font-medium mb-2">Status</label>
+              <label className="block text-900 font-medium mb-2">{t("common.status")}</label>
               <Dropdown
                 value={filters.status}
                 options={statusOptions}
                 optionLabel="label"
                 optionValue="value"
                 onChange={(e) => setFilters(prev => ({ ...prev, status: e.value ?? "" }))}
-                placeholder="All Statuses"
+                placeholder={t("escalations.allStatuses")}
                 className="w-full"
               />
             </div>
             <div className="col-12 md:col-4">
-              <label className="block text-900 font-medium mb-2">Priority</label>
+              <label className="block text-900 font-medium mb-2">{t("escalations.priority")}</label>
               <Dropdown
                 value={filters.priority}
                 options={priorityOptions}
                 optionLabel="label"
                 optionValue="value"
                 onChange={(e) => setFilters(prev => ({ ...prev, priority: e.value ?? "" }))}
-                placeholder="All Priorities"
+                placeholder={t("escalations.allPriorities")}
                 className="w-full"
               />
             </div>
@@ -335,12 +337,12 @@ export default function AdminSupport() {
       <div className="col-12">
         <Card>
           {loading ? (
-            <TableLoader message="Loading support requests..." />
+            <TableLoader message={t("common.loading")} />
           ) : requests.length === 0 ? (
             <div className="text-center py-6">
               <i className="pi pi-question-circle text-4xl text-400 mb-3"></i>
-              <h3 className="text-900 mb-2">No Support Requests Found</h3>
-              <p className="text-600 mb-4">No support requests have been submitted yet or match your filters.</p>
+              <h3 className="text-900 mb-2">{t("support.noSupportRequestsFound")}</h3>
+              <p className="text-600 mb-4">{t("support.noSupportRequestsDesc")}</p>
             </div>
           ) : (
             <DataTable
@@ -356,19 +358,19 @@ export default function AdminSupport() {
                 setCurrentPage((e.page ?? 0) + 1);
                 setRowsPerPage(e.rows ?? 10);
               }}
-              emptyMessage="No support requests found"
+              emptyMessage={t("support.noTickets")}
             >
-              <Column field="subject" header="Subject" sortable />
-              <Column field="user" header="User" body={userBodyTemplate} />
-              <Column field="priority" header="Priority" body={priorityBodyTemplate} sortable />
-              <Column field="status" header="Status" body={statusBodyTemplate} sortable />
+              <Column field="subject" header={t("support.subject")} sortable />
+              <Column field="user" header={t("notifications.user")} body={userBodyTemplate} />
+              <Column field="priority" header={t("escalations.priority")} body={priorityBodyTemplate} sortable />
+              <Column field="status" header={t("common.status")} body={statusBodyTemplate} sortable />
               <Column
                 field="createdAt"
-                header="Created"
+                header={t("support.created")}
                 body={(rowData) => formatDate(rowData.createdAt)}
                 sortable
               />
-              <Column header="Actions" body={actionsBodyTemplate} />
+              <Column header={t("common.actions")} body={actionsBodyTemplate} />
             </DataTable>
           )}
         </Card>
@@ -376,7 +378,7 @@ export default function AdminSupport() {
 
       {/* Response Dialog */}
       <Dialog
-        header={`Respond to: ${selectedRequest?.subject || 'Support Request'}`}
+        header={`${t("support.respondTo")}: ${selectedRequest?.subject || t("support.requestNumber")}`}
         visible={showResponseModal && !!selectedRequest}
         style={{ width: '50vw' }}
         onHide={() => setShowResponseModal(false)}
@@ -385,31 +387,31 @@ export default function AdminSupport() {
         blockScroll
       >
         <div className="mb-4">
-          <label className="block text-900 font-medium mb-2">Original Message</label>
+          <label className="block text-900 font-medium mb-2">{t("support.originalMessage")}</label>
           <div className="p-3 border-1 surface-border border-round bg-gray-50">
             {selectedRequest?.message}
           </div>
         </div>
         <div className="mb-4">
-          <label className="block text-900 font-medium mb-2">Your Response</label>
+          <label className="block text-900 font-medium mb-2">{t("support.yourResponse")}</label>
           <InputTextarea
             value={responseText}
             onChange={(e) => setResponseText(e.target.value)}
             rows={6}
             className="w-full"
-            placeholder="Enter your response..."
+            placeholder={t("escalations.responsePlaceholder")}
           />
         </div>
         <div className="flex justify-content-end gap-2">
           <Button
-            label="Cancel"
+            label={t("common.cancel")}
             icon="pi pi-times"
             className="p-button-outlined"
             onClick={() => setShowResponseModal(false)}
             disabled={updating}
           />
           <Button
-            label="Submit Response"
+            label={t("support.submitResponse")}
             icon="pi pi-send"
             onClick={handleSubmitResponse}
             loading={updating}
@@ -419,7 +421,7 @@ export default function AdminSupport() {
 
       {/* Change Status Dialog */}
       <Dialog
-        header="Change Status"
+        header={t("support.changeStatus")}
         visible={showStatusModal && !!statusModalRequest}
         style={{ width: "400px" }}
         onHide={() => {
@@ -428,15 +430,15 @@ export default function AdminSupport() {
         }}
         footer={
           <div>
-            <Button label="Cancel" icon="pi pi-times" className="p-button-text" onClick={() => setShowStatusModal(false)} />
-            <Button label="Update Status" icon="pi pi-check" onClick={handleStatusChange} loading={updating} disabled={!newStatus || newStatus === statusModalRequest?.status} />
+            <Button label={t("common.cancel")} icon="pi pi-times" className="p-button-text" onClick={() => setShowStatusModal(false)} />
+            <Button label={t("support.updateStatus")} icon="pi pi-check" onClick={handleStatusChange} loading={updating} disabled={!newStatus || newStatus === statusModalRequest?.status} />
           </div>
         }
       >
         {statusModalRequest && (
           <div>
-            <p className="mb-3"><strong>Request:</strong> {statusModalRequest.subject}</p>
-            <label className="block text-900 font-medium mb-2">New Status</label>
+            <p className="mb-3"><strong>{t("support.requestLabel")}:</strong> {statusModalRequest.subject}</p>
+            <label className="block text-900 font-medium mb-2">{t("announcements.newStatus")}</label>
             <Dropdown
               value={newStatus}
               options={statusOptions.filter((o) => o.value !== "")}
@@ -451,7 +453,7 @@ export default function AdminSupport() {
 
       {/* View Details Dialog */}
       <Dialog
-        header="Support Request Details"
+        header={t("support.supportRequestDetails")}
         visible={showViewModal && !!viewRequest}
         style={{ width: "600px" }}
         onHide={() => {
@@ -460,11 +462,11 @@ export default function AdminSupport() {
         }}
         footer={
           <div>
-            <Button label="Close" icon="pi pi-times" className="p-button-text" onClick={() => setShowViewModal(false)} />
+            <Button label={t("common.close")} icon="pi pi-times" className="p-button-text" onClick={() => setShowViewModal(false)} />
             {viewRequest && (
               <>
-                <Button label="Respond" icon="pi pi-reply" onClick={() => { setShowViewModal(false); handleRespond(viewRequest); setShowResponseModal(true); }} />
-                <Button label="Open Full Page" icon="pi pi-external-link" onClick={() => router.push(`/admin/support/${viewRequest.id}`)} />
+                <Button label={t("support.respond")} icon="pi pi-reply" onClick={() => { setShowViewModal(false); handleRespond(viewRequest); setShowResponseModal(true); }} />
+                <Button label={t("support.openFullPage")} icon="pi pi-external-link" onClick={() => router.push(`/admin/support/${viewRequest.id}`)} />
               </>
             )}
           </div>
@@ -472,16 +474,16 @@ export default function AdminSupport() {
       >
         {viewRequest && (
           <div className="flex flex-column gap-3">
-            <div><strong>Subject:</strong> {viewRequest.subject}</div>
-            <div><strong>Status:</strong> <Tag value={viewRequest.status} severity={getStatusSeverity(viewRequest.status) as any} /></div>
-            <div><strong>Priority:</strong> <Tag value={viewRequest.priority} severity={getPrioritySeverity(viewRequest.priority) as any} /></div>
-            <div><strong>From:</strong> {viewRequest.user.firstName} {viewRequest.user.lastName} ({viewRequest.user.email})</div>
-            <div><strong>Created:</strong> {formatDate(viewRequest.createdAt)}</div>
-            <div><strong>Message:</strong></div>
+            <div><strong>{t("support.subject")}:</strong> {viewRequest.subject}</div>
+            <div><strong>{t("common.status")}:</strong> <Tag value={viewRequest.status} severity={getStatusSeverity(viewRequest.status) as any} /></div>
+            <div><strong>{t("escalations.priority")}:</strong> <Tag value={viewRequest.priority} severity={getPrioritySeverity(viewRequest.priority) as any} /></div>
+            <div><strong>{t("support.from")}:</strong> {viewRequest.user.firstName} {viewRequest.user.lastName} ({viewRequest.user.email})</div>
+            <div><strong>{t("support.created")}:</strong> {formatDate(viewRequest.createdAt)}</div>
+            <div><strong>{t("support.messageLabel")}:</strong></div>
             <div className="p-3 bg-gray-50 border-round">{viewRequest.message}</div>
             {viewRequest.adminResponse && (
               <>
-                <div><strong>Admin Response:</strong></div>
+                <div><strong>{t("support.adminResponseLabel")}:</strong></div>
                 <div className="p-3 bg-blue-50 border-round">{viewRequest.adminResponse}</div>
               </>
             )}

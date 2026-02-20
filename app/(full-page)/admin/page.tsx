@@ -12,6 +12,7 @@ import { Toast } from "primereact/toast";
 import { apiClient } from "@/lib/apiClient";
 import { useAuth } from "@/hooks/useAuth";
 import { canAccessSection, getDefaultRedirectPath } from "@/lib/rolePermissions";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface DashboardStats {
   totalEmployers: number;
@@ -45,6 +46,7 @@ export default function AdminDashboard() {
     const router = useRouter();
     const toast = useRef<Toast>(null);
     const { user, loading: authLoading, refreshUser } = useAuth();
+    const { t } = useLanguage();
     const [stats, setStats] = useState<DashboardStats>({
         totalEmployers: 0,
         totalCandidates: 0,
@@ -114,7 +116,7 @@ export default function AdminDashboard() {
             }
         } catch (error) {
             console.error("Error loading dashboard data:", error);
-            showToast("error", "Error", "Failed to load dashboard data");
+            showToast("error", t("common.error"), t("dashboard.failedToLoadDashboard"));
             // Set fallback data structure
             setStats({
                 totalEmployers: 0,
@@ -166,28 +168,28 @@ export default function AdminDashboard() {
         labels: growthData.labels,
         datasets: [
             {
-                label: 'New Employers',
+                label: t('dashboard.newEmployers'),
                 data: growthData.newEmployers,
                 borderColor: '#4CAF50',
                 backgroundColor: 'rgba(76, 175, 80, 0.1)',
                 tension: 0.4,
             },
             {
-                label: 'New Candidates',
+                label: t('dashboard.newCandidates'),
                 data: growthData.newCandidates,
                 borderColor: '#2196F3',
                 backgroundColor: 'rgba(33, 150, 243, 0.1)',
                 tension: 0.4,
             },
             {
-                label: 'New Jobs',
+                label: t('dashboard.newJobs'),
                 data: growthData.newJobs,
                 borderColor: '#FF9800',
                 backgroundColor: 'rgba(255, 152, 0, 0.1)',
                 tension: 0.4,
             },
             {
-                label: 'New Applications',
+                label: t('dashboard.newApplications'),
                 data: growthData.newApplications,
                 borderColor: '#9C27B0',
                 backgroundColor: 'rgba(156, 39, 176, 0.1)',
@@ -235,11 +237,11 @@ export default function AdminDashboard() {
 
     const getActivityTypeLabel = (type: string) => {
         switch (type) {
-            case "EMPLOYER_REGISTRATION": return "Employer";
-            case "CANDIDATE_REGISTRATION": return "Candidate";
-            case "JOB_POSTED": return "Job Posted";
-            case "APPLICATION_SUBMITTED": return "Application";
-            case "SUPPORT_REQUEST": return "Support";
+            case "EMPLOYER_REGISTRATION": return t("dashboard.activityEmployer");
+            case "CANDIDATE_REGISTRATION": return t("dashboard.activityCandidate");
+            case "JOB_POSTED": return t("dashboard.activityJobPosted");
+            case "APPLICATION_SUBMITTED": return t("dashboard.activityApplication");
+            case "SUPPORT_REQUEST": return t("dashboard.activitySupport");
             default: return type;
         }
     };
@@ -250,7 +252,7 @@ export default function AdminDashboard() {
             <div className="flex align-items-center justify-content-center min-h-screen">
                 <div className="text-center">
                     <i className="pi pi-spinner pi-spin text-4xl mb-3"></i>
-                    <p>Loading...</p>
+                    <p>{t("common.loading")}</p>
                 </div>
             </div>
         );
@@ -262,7 +264,7 @@ export default function AdminDashboard() {
             <div className="flex align-items-center justify-content-center min-h-screen">
                 <div className="text-center">
                     <i className="pi pi-spinner pi-spin text-4xl mb-3"></i>
-                    <p>Redirecting...</p>
+                    <p>{t("auth.redirecting")}</p>
                 </div>
             </div>
         );
@@ -271,32 +273,32 @@ export default function AdminDashboard() {
     const quickActionColors: Record<string, string> = { blue: "#2196F3", green: "#4CAF50", orange: "#FF9800", purple: "#9C27B0" };
     const quickActions = [
         {
-            title: "Manage Employers",
-            description: "View and manage all employer accounts",
+            title: t("dashboard.manageEmployers"),
+            description: t("dashboard.manageEmployersDesc"),
             icon: "pi pi-briefcase",
             route: "/admin/employers",
             color: "blue",
             canAccess: true,
         },
         {
-            title: "Manage Candidates",
-            description: "View and monitor candidate profiles",
+            title: t("dashboard.manageCandidates"),
+            description: t("dashboard.manageCandidatesDesc"),
             icon: "pi pi-users",
             route: "/admin/candidates",
             color: "green",
             canAccess: true,
         },
         {
-            title: "Job Listings",
-            description: "Moderate and manage job postings",
+            title: t("dashboard.jobListingsTitle"),
+            description: t("dashboard.jobListingsDesc"),
             icon: "pi pi-list",
             route: "/admin/jobs",
             color: "orange",
             canAccess: true,
         },
         {
-            title: "Applications",
-            description: "Monitor job applications and activity",
+            title: t("dashboard.applicationsTitle"),
+            description: t("dashboard.applicationsDesc"),
             icon: "pi pi-file",
             route: "/admin/applications",
             color: "purple",
@@ -326,7 +328,7 @@ export default function AdminDashboard() {
     const cardData = [
         {
             value: stats.totalEmployers,
-            label: "Total Employers",
+            label: t("dashboard.totalEmployers"),
             color: "blue",
             icon: "pi pi-building",
             route: "/admin/employers",
@@ -335,7 +337,7 @@ export default function AdminDashboard() {
         },
         {
             value: stats.totalCandidates,
-            label: "Total Candidates",
+            label: t("dashboard.totalCandidates"),
             color: "orange",
             icon: "pi pi-star",
             route: "/admin/candidates",
@@ -344,7 +346,7 @@ export default function AdminDashboard() {
         },
         {
             value: stats.totalJobs,
-            label: "Total Jobs",
+            label: t("dashboard.totalJobs"),
             color: "yellow",
             icon: "pi pi-clock",
             route: "/admin/jobs",
@@ -353,7 +355,7 @@ export default function AdminDashboard() {
         },
         {
             value: stats.totalApplications,
-            label: "Total Applications",
+            label: t("dashboard.totalApplications"),
             color: "red",
             icon: "pi pi-question-circle",
             route: "/admin/applications",
@@ -362,7 +364,7 @@ export default function AdminDashboard() {
         },
         {
             value: stats.pendingEmployerApprovals,
-            label: "Pending Employer Approvals",
+            label: t("dashboard.pendingEmployerApprovals"),
             color: "gray",
             icon: "pi pi-clock",
             route: "/admin/employers/pending",
@@ -371,7 +373,7 @@ export default function AdminDashboard() {
         },
         {
             value: stats.pendingJobModerations,
-            label: "Pending Job Moderation",
+            label: t("dashboard.pendingJobModeration"),
             color: "blue",
             icon: "pi pi-star",
             route: "/admin/jobs/pending",
@@ -380,7 +382,7 @@ export default function AdminDashboard() {
         },
         {
             value: stats.supportRequests,
-            label: "Support Requests",
+            label: t("dashboard.supportRequests"),
             color: "purple",
             icon: "pi pi-question-circle",
             route: "/admin/support",
@@ -395,8 +397,8 @@ export default function AdminDashboard() {
             <div className="col-12">
                 <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center gap-3 mb-4">
                     <div>
-                        <h1 className="text-3xl font-bold m-0">Admin Dashboard</h1>
-                        <p className="text-600 mt-2 mb-0">Welcome back! Here's what's happening with your organization.</p>
+                        <h1 className="text-3xl font-bold m-0">{t("dashboard.title")}</h1>
+                        <p className="text-600 mt-2 mb-0">{t("dashboard.welcomeBack")}</p>
                         <p className="text-sm text-gray-500 mt-1 mb-0">
                             {new Date().toLocaleDateString('en-US', { 
                                 weekday: 'long', 
@@ -409,7 +411,7 @@ export default function AdminDashboard() {
                             })}
                             {lastUpdated && (
                                 <span className="ml-3">
-                                    • Last updated: {lastUpdated.toLocaleTimeString('en-US', { 
+                                    • {t("dashboard.lastUpdated")}: {lastUpdated.toLocaleTimeString('en-US', { 
                                         hour: '2-digit', 
                                         minute: '2-digit' 
                                     })}
@@ -419,7 +421,7 @@ export default function AdminDashboard() {
                     </div>
                     <div className="flex gap-2">
                         <Button
-                            label="Refresh"
+                            label={t("common.refresh")}
                             icon="pi pi-refresh"
                             onClick={loadDashboardData}
                             loading={loading}
@@ -439,7 +441,7 @@ export default function AdminDashboard() {
                                     <div className="flex-shrink-0 border-round bg-gray-200 animate-pulse" style={{ width: "40px", height: "40px" }} />
                                     <div className="flex-1">
                                         <div className="text-xl font-bold text-gray-300 animate-pulse">--</div>
-                                        <div className="text-600 animate-pulse text-sm">Loading...</div>
+                                        <div className="text-600 animate-pulse text-sm">{t("common.loading")}</div>
                                     </div>
                                 </div>
                             </Card>
@@ -494,7 +496,7 @@ export default function AdminDashboard() {
 
             {/* Quick Actions - single row */}
             <div className="col-12">
-                <Card title="Quick Actions" className="mt-3">
+                <Card title={t("dashboard.quickActions")} className="mt-3">
                     <div className="flex flex-wrap md:flex-nowrap gap-2 overflow-x-auto">
                         {quickActions.map((action, index) => (
                             <div
@@ -518,16 +520,16 @@ export default function AdminDashboard() {
 
             {/* Chart - full width */}
             <div className="col-12">
-                <Card title="Platform Growth & Activity" className="mt-4">
+                <Card title={t("dashboard.platformGrowth")} className="mt-4">
                     {loading ? (
                         <div className="flex align-items-center justify-content-center" style={{ minHeight: '350px' }}>
-                            <div className="text-600">Loading chart data...</div>
+                            <div className="text-600">{t("dashboard.loadingChart")}</div>
                         </div>
                     ) : growthData.newEmployers.every(val => val === 0) && growthData.newCandidates.every(val => val === 0) ? (
                         <div className="flex align-items-center justify-content-center flex-column" style={{ minHeight: '350px' }}>
                             <i className="pi pi-chart-line text-4xl text-gray-400 mb-3"></i>
-                            <div className="text-600 text-center">No growth data available</div>
-                            <div className="text-sm text-gray-500 text-center">Growth data will appear here as employers, candidates, and jobs are added</div>
+                            <div className="text-600 text-center">{t("dashboard.noGrowthData")}</div>
+                            <div className="text-sm text-gray-500 text-center">{t("dashboard.growthDataHint")}</div>
                         </div>
                     ) : (
                         <div style={{ minHeight: '350px' }}>
@@ -539,23 +541,23 @@ export default function AdminDashboard() {
 
             {/* Recent Activity - full width below chart */}
             <div className="col-12">
-                <Card title="Recent Activity" className="mt-4">
+                <Card title={t("dashboard.recentActivity")} className="mt-4">
                     {loading ? (
                         <div className="flex align-items-center justify-content-center" style={{ minHeight: '200px' }}>
-                            <div className="text-600">Loading activity...</div>
+                            <div className="text-600">{t("dashboard.loadingActivity")}</div>
                         </div>
                     ) : recentActivity.length === 0 ? (
                         <div className="flex align-items-center justify-content-center flex-column" style={{ minHeight: '200px' }}>
                             <i className="pi pi-info-circle text-4xl text-gray-400 mb-3"></i>
-                            <div className="text-600 text-center">No recent activity</div>
-                            <div className="text-sm text-gray-500 text-center">Activities will appear here as they occur</div>
+                            <div className="text-600 text-center">{t("dashboard.noRecentActivity")}</div>
+                            <div className="text-sm text-gray-500 text-center">{t("dashboard.activityHint")}</div>
                         </div>
                     ) : (
                         <div className="overflow-auto">
                         <DataTable value={recentActivity} showGridlines>
                             <Column 
                                 field="type" 
-                                header="Type" 
+                                header={t("common.type")} 
                                 body={(rowData) => (
                                     <Tag 
                                         value={getActivityTypeLabel(rowData.type)} 
@@ -565,7 +567,7 @@ export default function AdminDashboard() {
                             />
                             <Column 
                                 field="description" 
-                                header="Description" 
+                                header={t("common.description")} 
                                 body={(rowData) => (
                                     <div className="text-sm">
                                         <div className="font-semibold">{rowData.description}</div>
@@ -575,7 +577,7 @@ export default function AdminDashboard() {
                             />
                             <Column 
                                 field="timestamp" 
-                                header="Time" 
+                                header={t("common.time")} 
                                 body={(rowData) => (
                                     <div className="text-xs text-600">
                                         {formatRelativeTime(rowData.timestamp)}

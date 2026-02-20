@@ -192,6 +192,26 @@ export async function GET(request: NextRequest) {
         });
       }
 
+      // For authenticated candidates, get saved job IDs for this page
+      let savedJobIds = new Set<string>();
+      const authUser = authenticatedReq.user;
+      if (authUser?.userId && authUser?.role === 'CANDIDATE' && jobs.length > 0) {
+        const candidate = await prisma.candidate.findUnique({
+          where: { userId: authUser.userId },
+          select: { id: true },
+        });
+        if (candidate) {
+          const saved = await prisma.savedJob.findMany({
+            where: {
+              candidateId: candidate.id,
+              jobId: { in: jobs.map((j) => j.id) },
+            },
+            select: { jobId: true },
+          });
+          savedJobIds = new Set(saved.map((s) => s.jobId));
+        }
+      }
+
       const transformedJobs = jobs.map(job => ({
         id: job.id,
         title: job.title,
@@ -210,6 +230,7 @@ export async function GET(request: NextRequest) {
         applicationCount: job._count.applications,
         expiresAt: job.expiresAt?.toISOString(),
         createdAt: job.createdAt.toISOString(),
+        saved: savedJobIds.has(job.id),
         employer: {
           id: job.employer.id,
           companyName: job.employer.companyName,

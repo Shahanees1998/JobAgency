@@ -10,6 +10,7 @@ import { Toast } from "primereact/toast";
 import { useRequireAdmin } from "@/hooks/useAuth";
 import { Skeleton } from "primereact/skeleton";
 import { canAccessSection } from "@/lib/rolePermissions";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface SettingsForm {
     siteName: string;
@@ -108,6 +109,7 @@ const SettingsSkeleton = () => (
 
 export default function SettingsPage() {
     const { user, loading: authLoading } = useRequireAdmin();
+    const { t } = useLanguage();
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
     const [settings, setSettings] = useState<SettingsForm>(defaultSettings);
@@ -115,10 +117,10 @@ export default function SettingsPage() {
     const toast = useRef<Toast>(null);
 
     const roleOptions = [
-        { label: "Member", value: "MEMBER" },
-        { label: "Admin", value: "ADMIN" },
-        { label: "Admin Level Two", value: "ADMINLEVELTWO" },
-        { label: "Admin Level Three", value: "ADMINLEVELTHREE" },
+        { label: t("settings.member"), value: "MEMBER" },
+        { label: t("settings.admin"), value: "ADMIN" },
+        { label: t("settings.adminLevelTwo"), value: "ADMINLEVELTWO" },
+        { label: t("settings.adminLevelThree"), value: "ADMINLEVELTHREE" },
     ];
 
     useEffect(() => {
@@ -137,7 +139,7 @@ export default function SettingsPage() {
                 });
             } catch (err: any) {
                 setError(err.message || "Failed to fetch settings");
-                showToast("error", "Error", err.message || "Failed to fetch settings");
+                showToast("error", t("common.error"), err.message || t("profile.failedToLoadSettings"));
             } finally {
                 setFetching(false);
             }
@@ -158,10 +160,10 @@ export default function SettingsPage() {
             if (!res.ok) {
                 throw new Error(data.error || "Failed to save settings");
             }
-            showToast("success", "Success", "Settings saved successfully");
+            showToast("success", t("common.success"), t("profile.settingsUpdated"));
         } catch (err: any) {
-            setError(err.message || "Failed to save settings");
-            showToast("error", "Error", err.message || "Failed to save settings");
+            setError(err.message || t("profile.failedToSaveSettings"));
+            showToast("error", t("common.error"), err.message || t("profile.failedToSaveSettings"));
         } finally {
             setLoading(false);
         }
@@ -175,7 +177,7 @@ export default function SettingsPage() {
         return <SettingsSkeleton />;
     }
     if (!user || !canAccessSection(user.role, 'canAccessSettings')) {
-        return <div className="flex justify-content-center align-items-center min-h-screen text-red-600">Access denied. Admins only.</div>;
+        return <div className="flex justify-content-center align-items-center min-h-screen text-red-600">{t("access.message")}</div>;
     }
 
     return (
@@ -183,14 +185,14 @@ export default function SettingsPage() {
             <div className="col-12">
                 <div className="card">
                     <Toast ref={toast} />
-                    <h5 className="mb-4">System Settings</h5>
+                    <h5 className="mb-4">{t("settings.systemSettings")}</h5>
                     {error && <div className="p-error mb-3">{error}</div>}
                     <div className="grid">
                         <div className="col-12 lg:col-6">
-                            <Card title="General Settings" className="mb-4">
+                            <Card title={t("settings.generalSettings")} className="mb-4">
                                 <div className="field mb-4">
                                     <label htmlFor="siteName" className="block text-900 font-medium mb-2">
-                                        Site Name
+                                        {t("settings.siteName")}
                                     </label>
                                     <InputText
                                         id="siteName"
@@ -202,7 +204,7 @@ export default function SettingsPage() {
 
                                 <div className="field mb-4">
                                     <label htmlFor="siteDescription" className="block text-900 font-medium mb-2">
-                                        Site Description
+                                        {t("settings.siteDescription")}
                                     </label>
                                     <InputTextarea
                                         id="siteDescription"
@@ -215,7 +217,7 @@ export default function SettingsPage() {
 
                                 <div className="field mb-4">
                                     <label htmlFor="contactEmail" className="block text-900 font-medium mb-2">
-                                        Contact Email
+                                        {t("settings.contactEmail")}
                                     </label>
                                     <InputText
                                         id="contactEmail"
@@ -228,14 +230,14 @@ export default function SettingsPage() {
 
                                 <div className="field mb-4">
                                     <label htmlFor="defaultRole" className="block text-900 font-medium mb-2">
-                                        Default User Role
+                                        {t("settings.defaultUserRole")}
                                     </label>
                                     <Dropdown
                                         id="defaultRole"
                                         value={settings.defaultUserRole}
                                         options={roleOptions}
                                         onChange={(e) => setSettings({ ...settings, defaultUserRole: e.value })}
-                                        placeholder="Select Role"
+                                        placeholder={t("settings.selectRole")}
                                         className="w-full"
                                     />
                                 </div>
@@ -243,10 +245,10 @@ export default function SettingsPage() {
                         </div>
 
                         <div className="col-12 lg:col-6">
-                            <Card title="File Upload Settings" className="mb-4">
+                            <Card title={t("settings.fileUploadSettings")} className="mb-4">
                                 <div className="field mb-4">
                                     <label htmlFor="maxFileSize" className="block text-900 font-medium mb-2">
-                                        Maximum File Size (MB)
+                                        {t("settings.maxFileSizeMb")}
                                     </label>
                                     <InputText
                                         id="maxFileSize"
@@ -272,7 +274,7 @@ export default function SettingsPage() {
                                 </div> */}
                             </Card>
 
-                            <Card title="Feature Toggles" className="mb-4">
+                            <Card title={t("settings.featureToggles")} className="mb-4">
                                 <div className="field-checkbox mb-3">
                                     <input
                                         type="checkbox"
@@ -282,7 +284,7 @@ export default function SettingsPage() {
                                         className="mr-2"
                                     />
                                     <label htmlFor="enableNotifications" className="text-900">
-                                        Enable Notifications
+                                        {t("settings.enableNotifications")}
                                     </label>
                                 </div>
 
@@ -295,7 +297,7 @@ export default function SettingsPage() {
                                         className="mr-2"
                                     />
                                     <label htmlFor="enableChat" className="text-900">
-                                        Enable Chat System
+                                        {t("settings.enableChat")}
                                     </label>
                                 </div>
 
@@ -308,7 +310,7 @@ export default function SettingsPage() {
                                         className="mr-2"
                                     />
                                     <label htmlFor="enableEvents" className="text-900">
-                                        Enable Events Management
+                                        {t("settings.enableEvents")}
                                     </label>
                                 </div>
 
@@ -321,7 +323,7 @@ export default function SettingsPage() {
                                         className="mr-2"
                                     />
                                     <label htmlFor="enableDocuments" className="text-900">
-                                        Enable Document Management
+                                        {t("settings.enableDocuments")}
                                     </label>
                                 </div>
                             </Card>
@@ -330,7 +332,7 @@ export default function SettingsPage() {
 
                     <div className="flex justify-content-end">
                         <Button
-                            label={loading ? "Saving..." : "Save Settings"}
+                            label={loading ? t("settings.saving") : t("settings.save")}
                             icon="pi pi-check"
                             onClick={handleSave}
                             loading={loading}

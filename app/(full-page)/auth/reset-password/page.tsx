@@ -6,8 +6,10 @@ import { InputText } from "primereact/inputtext";
 import { useState, useRef, useEffect, Suspense } from "react";
 import { Toast } from "primereact/toast";
 import { AuthSplitLayout } from "@/components/auth/AuthSplitLayout";
+import { useLanguage } from "@/context/LanguageContext";
 
 const ResetPasswordContent = () => {
+    const { t } = useLanguage();
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [loading, setLoading] = useState(false);
@@ -30,8 +32,8 @@ const ResetPasswordContent = () => {
         } else {
             toast.current?.show({
                 severity: 'error',
-                summary: 'Error',
-                detail: 'Invalid reset link',
+                summary: t('common.error'),
+                detail: t('auth.invalidResetLink'),
                 life: 3000
             });
             router.push('/auth/login');
@@ -54,8 +56,8 @@ const ResetPasswordContent = () => {
                 const data = await response.json();
                 toast.current?.show({
                     severity: 'error',
-                    summary: 'Error',
-                    detail: data.error || 'Invalid or expired reset link',
+                    summary: t('common.error'),
+                    detail: data.error || t('auth.invalidOrExpiredResetLink'),
                     life: 4000
                 });
                 router.push('/auth/login');
@@ -64,20 +66,20 @@ const ResetPasswordContent = () => {
             console.error('Token validation error:', error);
             toast.current?.show({
                 severity: 'error',
-                summary: 'Error',
-                detail: 'Failed to validate reset link',
+                summary: t('common.error'),
+                detail: t('auth.failedToValidateResetLink'),
                 life: 4000
             });
             router.push('/auth/login');
         }
     };
 
-    const validatePassword = (password: string) => {
-        if (password.length < 6) {
-            return "Password must be at least 6 characters long";
+    const validatePassword = (pwd: string) => {
+        if (pwd.length < 6) {
+            return t("auth.passwordMinLength");
         }
-        if (password.length > 128) {
-            return "Password must be less than 128 characters";
+        if (pwd.length > 128) {
+            return t("auth.passwordMaxLength");
         }
         return "";
     };
@@ -119,22 +121,22 @@ const ResetPasswordContent = () => {
 
         // Validate confirm password
         if (!confirmPassword) {
-            setConfirmPasswordError("Please confirm your password");
+            setConfirmPasswordError(t("auth.pleaseConfirmPassword"));
             toast.current?.show({
                 severity: 'error',
-                summary: 'Error',
-                detail: 'Please confirm your password',
+                summary: t('common.error'),
+                detail: t('auth.pleaseConfirmPassword'),
                 life: 4000
             });
             return;
         }
 
         if (password !== confirmPassword) {
-            setConfirmPasswordError("Passwords do not match");
+            setConfirmPasswordError(t("auth.passwordsDoNotMatch"));
             toast.current?.show({
                 severity: 'error',
-                summary: 'Error',
-                detail: 'Passwords do not match',
+                summary: t('common.error'),
+                detail: t('auth.passwordsDoNotMatch'),
                 life: 4000
             });
             return;
@@ -158,8 +160,8 @@ const ResetPasswordContent = () => {
             if (response.ok) {
                 toast.current?.show({
                     severity: 'success',
-                    summary: 'Success',
-                    detail: 'Password reset successfully. You can now log in with your new password.',
+                    summary: t('common.success'),
+                    detail: t('auth.passwordResetSuccess'),
                     life: 5000
                 });
                 setTimeout(() => {
@@ -168,8 +170,8 @@ const ResetPasswordContent = () => {
             } else {
                 toast.current?.show({
                     severity: 'error',
-                    summary: 'Error',
-                    detail: data.error || 'Failed to reset password',
+                    summary: t('common.error'),
+                    detail: data.error || t('auth.failedToResetPassword'),
                     life: 4000
                 });
             }
@@ -177,8 +179,8 @@ const ResetPasswordContent = () => {
             console.error('Reset password error:', error);
             toast.current?.show({
                 severity: 'error',
-                summary: 'Error',
-                detail: 'An unexpected error occurred',
+                summary: t('common.error'),
+                detail: t('auth.unexpectedError'),
                 life: 4000
             });
         } finally {
@@ -198,7 +200,7 @@ const ResetPasswordContent = () => {
                 <div className="flex justify-content-center align-items-center py-8">
                     <div className="text-center">
                         <i className="pi pi-spinner pi-spin text-4xl mb-3"></i>
-                        <p>Validating reset link...</p>
+                        <p>{t("auth.validatingResetLink")}</p>
                     </div>
                 </div>
             </AuthSplitLayout>
@@ -212,10 +214,10 @@ const ResetPasswordContent = () => {
                 <div className="border-1 surface-border surface-card border-round py-7 px-4 md:px-7 shadow-2">
                     <div className="mb-4">
                         <div className="text-900 text-xl font-bold mb-2">
-                            Reset Password
+                            {t("auth.resetPasswordTitle")}
                         </div>
                         <span className="text-600 font-medium">
-                            Enter your new password
+                            {t("auth.enterNewPassword")}
                         </span>
                     </div>
                     <div className="flex flex-column">
@@ -224,7 +226,7 @@ const ResetPasswordContent = () => {
                                 id="password"
                                 type={showPassword ? "text" : "password"}
                                 className={`w-full auth-password-input ${passwordError ? 'p-invalid' : ''}`}
-                                placeholder="New Password"
+                                placeholder={t("auth.newPasswordPlaceholder")}
                                 value={password}
                                 onChange={handlePasswordChange}
                                 onKeyPress={handleKeyPress}
@@ -235,7 +237,7 @@ const ResetPasswordContent = () => {
                                 tabIndex={-1}
                                 className="auth-password-toggle"
                                 onClick={() => setShowPassword((v) => !v)}
-                                aria-label={showPassword ? "Hide password" : "Show password"}
+                                aria-label={showPassword ? t("common.hidePassword") : t("common.showPassword")}
                             >
                                 <i className={`pi ${showPassword ? "pi-eye-slash" : "pi-eye"}`}></i>
                             </button>
@@ -248,7 +250,7 @@ const ResetPasswordContent = () => {
                                 id="confirmPassword"
                                 type={showConfirmPassword ? "text" : "password"}
                                 className={`w-full auth-password-input ${confirmPasswordError ? 'p-invalid' : ''}`}
-                                placeholder="Confirm New Password"
+                                placeholder={t("auth.confirmNewPasswordPlaceholder")}
                                 value={confirmPassword}
                                 onChange={handleConfirmPasswordChange}
                                 onKeyPress={handleKeyPress}
@@ -259,7 +261,7 @@ const ResetPasswordContent = () => {
                                 tabIndex={-1}
                                 className="auth-password-toggle"
                                 onClick={() => setShowConfirmPassword((v) => !v)}
-                                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                                aria-label={showConfirmPassword ? t("common.hidePassword") : t("common.showPassword")}
                             >
                                 <i className={`pi ${showConfirmPassword ? "pi-eye-slash" : "pi-eye"}`}></i>
                             </button>
@@ -269,14 +271,14 @@ const ResetPasswordContent = () => {
                         )}
                         <div className="flex flex-wrap gap-2 justify-content-between">
                             <Button
-                                label="Cancel"
+                                label={t("common.cancel")}
                                 outlined
                                 className="flex-auto"
                                 onClick={() => router.push("/auth/login")}
                                 disabled={loading}
                             ></Button>
                             <Button
-                                label={loading ? "Resetting..." : "Reset Password"}
+                                label={loading ? t("auth.resetting") : t("auth.resetPasswordTitle")}
                                 className="flex-auto"
                                 onClick={handleSubmit}
                                 loading={loading}
@@ -291,12 +293,13 @@ const ResetPasswordContent = () => {
 };
 
 const ResetPassword: Page = () => {
+    const { t } = useLanguage();
     return (
         <Suspense fallback={
             <div className="min-h-screen flex justify-content-center align-items-center">
                 <div className="text-center">
                     <i className="pi pi-spinner pi-spin text-4xl mb-3"></i>
-                    <p>Loading...</p>
+                    <p>{t("common.loading")}</p>
                 </div>
             </div>
         }>

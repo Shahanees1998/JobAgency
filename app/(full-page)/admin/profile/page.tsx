@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Tag } from "primereact/tag";
 import ProfileImageUpload from "@/components/ProfileImageUpload";
 import { getProfileImageUrl } from "@/lib/cloudinary-client";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface UserProfile {
     id: string;
@@ -33,6 +34,7 @@ interface UserProfile {
 
 export default function ProfilePage() {
     const { user, refreshUser } = useAuth();
+    const { t } = useLanguage();
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -88,7 +90,7 @@ export default function ProfilePage() {
                 });
             }
         } catch (error) {
-            showToast("error", "Error", "Failed to load profile");
+            showToast("error", t("common.error"), t("profile.unableToLoadProfile"));
         } finally {
             setLoading(false);
         }
@@ -121,9 +123,9 @@ export default function ProfilePage() {
             // Refresh user data
             await refreshUser();
 
-            showToast("success", "Success", "Profile updated successfully");
+            showToast("success", t("common.success"), t("profile.profileUpdated"));
         } catch (error) {
-            showToast("error", "Error", "Failed to update profile");
+            showToast("error", t("common.error"), t("profile.failedToUpdateProfile"));
         } finally {
             setSaving(false);
         }
@@ -131,12 +133,12 @@ export default function ProfilePage() {
 
     const changePassword = async () => {
         if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-            showToast("error", "Error", "New passwords do not match");
+            showToast("error", t("common.error"), t("profile.passwordsDoNotMatch"));
             return;
         }
 
         if (passwordForm.newPassword.length < 6) {
-            showToast("error", "Error", "Password must be at least 6 characters long");
+            showToast("error", t("common.error"), "Password must be at least 6 characters long");
             return;
         }
 
@@ -154,7 +156,7 @@ export default function ProfilePage() {
                 throw new Error(response.error);
             }
 
-            showToast("success", "Success", "Password changed successfully");
+            showToast("success", t("common.success"), t("profile.passwordUpdated"));
             setShowPasswordDialog(false);
             setPasswordForm({
                 currentPassword: "",
@@ -162,7 +164,7 @@ export default function ProfilePage() {
                 confirmPassword: "",
             });
         } catch (error) {
-            showToast("error", "Error", "Failed to change password. Please check your current password.");
+            showToast("error", t("common.error"), t("profile.failedToChangePassword"));
         } finally {
             setChangingPassword(false);
         }
@@ -278,10 +280,10 @@ export default function ProfilePage() {
                     <Card>
                         <div className="text-center p-4">
                             <i className="pi pi-user text-4xl text-400 mb-3"></i>
-                            <h3 className="text-xl font-semibold mb-2">Profile Not Found</h3>
-                            <p className="text-600">Unable to load your profile information.</p>
+                            <h3 className="text-xl font-semibold mb-2">{t("profile.profileNotFound")}</h3>
+                            <p className="text-600">{t("profile.unableToLoadProfile")}</p>
                             <Button
-                                label="Retry"
+                                label={t("profile.retry")}
                                 icon="pi pi-refresh"
                                 onClick={loadProfile}
                                 className="mt-3"
@@ -323,8 +325,8 @@ export default function ProfilePage() {
                                 />
                             </div>
                             <div>
-                                <h2 className="text-2xl font-bold m-0">Profile Settings</h2>
-                                <p className="text-600 m-0">Manage your account information and preferences</p>
+                                <h2 className="text-2xl font-bold m-0">{t("profile.profileSettings")}</h2>
+                                <p className="text-600 m-0">{t("profile.manageAccount")}</p>
                             </div>
                         </div>
 
@@ -333,52 +335,52 @@ export default function ProfilePage() {
                         {/* Profile Information */}
                         <div className="grid">
                             <div className="col-12 lg:col-8">
-                                <h3 className="text-xl font-semibold mb-3">Personal Information</h3>
+                                <h3 className="text-xl font-semibold mb-3">{t("menu.personalInfo")}</h3>
 
                                 <div className="grid">
                                     <div className="col-12 md:col-6">
-                                        <label className="block text-sm font-medium mb-2">First Name *</label>
+                                        <label className="block text-sm font-medium mb-2">{t("profile.firstName")} *</label>
                                         <InputText
                                             value={profileForm.firstName}
                                             onChange={(e) => setProfileForm(prev => ({ ...prev, firstName: e.target.value }))}
-                                            placeholder="Enter first name"
+                                            placeholder={t("profile.enterFirstName")}
                                             className="w-full"
                                         />
                                     </div>
                                     <div className="col-12 md:col-6">
-                                        <label className="block text-sm font-medium mb-2">Last Name *</label>
+                                        <label className="block text-sm font-medium mb-2">{t("profile.lastName")} *</label>
                                         <InputText
                                             value={profileForm.lastName}
                                             onChange={(e) => setProfileForm(prev => ({ ...prev, lastName: e.target.value }))}
-                                            placeholder="Enter last name"
+                                            placeholder={t("profile.enterLastName")}
                                             className="w-full"
                                         />
                                     </div>
                                     <div className="col-12 md:col-6">
-                                        <label className="block text-sm font-medium mb-2">Email *</label>
+                                        <label className="block text-sm font-medium mb-2">{t("common.email")} *</label>
                                         <InputText
                                             value={profileForm.email}
                                             onChange={(e) => setProfileForm(prev => ({ ...prev, email: e.target.value }))}
-                                            placeholder="Enter email"
+                                            placeholder={t("profile.enterEmail")}
                                             className="w-full"
                                             type="email"
                                         />
                                     </div>
                                     <div className="col-12 md:col-6">
-                                        <label className="block text-sm font-medium mb-2">Phone</label>
+                                        <label className="block text-sm font-medium mb-2">{t("profile.phone")}</label>
                                         <InputText
                                             value={profileForm.phone}
                                             onChange={(e) => setProfileForm(prev => ({ ...prev, phone: e.target.value }))}
-                                            placeholder="Enter phone number"
+                                            placeholder={t("profile.enterPhone")}
                                             className="w-full"
                                         />
                                     </div>
                                     <div className="col-12 md:col-6">
-                                        <label className="block text-sm font-medium mb-2">Membership Number</label>
+                                        <label className="block text-sm font-medium mb-2">{t("profile.membershipNumber")}</label>
                                         <InputText
                                             value={profileForm.membershipNumber}
                                             onChange={(e) => setProfileForm(prev => ({ ...prev, membershipNumber: e.target.value }))}
-                                            placeholder="Enter membership number"
+                                            placeholder={t("profile.enterMembershipNumber")}
                                             className="w-full"
                                         />
                                     </div>
@@ -386,7 +388,7 @@ export default function ProfilePage() {
 
                                 <div className="flex gap-2 mt-4">
                                     <Button
-                                        label="Save Changes"
+                                        label={t("profile.saveChanges")}
                                         icon="pi pi-check"
                                         onClick={saveProfile}
                                         loading={saving}
@@ -394,7 +396,7 @@ export default function ProfilePage() {
                                         disabled={!profileForm.firstName || !profileForm.lastName || !profileForm.email}
                                     />
                                     <Button
-                                        label="Change Password"
+                                        label={t("menu.changePassword")}
                                         icon="pi pi-key"
                                         onClick={() => setShowPasswordDialog(true)}
                                         severity="secondary"
@@ -403,7 +405,7 @@ export default function ProfilePage() {
                             </div>
 
                             <div className="col-12 lg:col-4">
-                                <h3 className="text-xl font-semibold mb-3">Account Information</h3>
+                                <h3 className="text-xl font-semibold mb-3">{t("profile.accountInformation")}</h3>
 
                                 <div className="flex flex-column gap-3">
                                     <div className="p-3 surface-100 border-round">
@@ -429,27 +431,27 @@ export default function ProfilePage() {
                                         </div>
                                     </div>
                                     <div className="p-3 surface-100 border-round">
-                                        <div className="text-sm text-600">Member Since</div>
+                                        <div className="text-sm text-600">{t("profile.memberSince")}</div>
                                         <div className="font-semibold">
-                                            {profile?.joinDate ? formatDate(profile.joinDate) : 'Not set'}
+                                            {profile?.joinDate ? formatDate(profile.joinDate) : t("profile.notSet")}
                                         </div>
                                     </div>
                                     <div className="p-3 surface-100 border-round">
-                                        <div className="text-sm text-600">Last Login</div>
+                                        <div className="text-sm text-600">{t("profile.lastLogin")}</div>
                                         <div className="font-semibold">
-                                            {profile?.lastLogin ? formatRelativeTime(profile.lastLogin) : 'Never'}
+                                            {profile?.lastLogin ? formatRelativeTime(profile.lastLogin) : t("common.never")}
                                         </div>
                                     </div>
                                     <div className="p-3 surface-100 border-round">
-                                        <div className="text-sm text-600">Account Created</div>
+                                        <div className="text-sm text-600">{t("profile.accountCreated")}</div>
                                         <div className="font-semibold">
-                                            {profile?.createdAt ? formatDate(profile.createdAt) : 'Unknown'}
+                                            {profile?.createdAt ? formatDate(profile.createdAt) : t("profile.unknown")}
                                         </div>
                                     </div>
                                     <div className="p-3 surface-100 border-round">
-                                        <div className="text-sm text-600">Last Updated</div>
+                                        <div className="text-sm text-600">{t("profile.lastUpdated")}</div>
                                         <div className="font-semibold">
-                                            {profile?.updatedAt ? formatRelativeTime(profile.updatedAt) : 'Unknown'}
+                                            {profile?.updatedAt ? formatRelativeTime(profile.updatedAt) : t("profile.unknown")}
                                         </div>
                                     </div>
                                 </div>
@@ -464,19 +466,19 @@ export default function ProfilePage() {
                 <Dialog
                     visible={showPasswordDialog}
                     style={{ width: "500px" }}
-                    header="Change Password"
+                    header={t("menu.changePassword")}
                     modal
                     onHide={() => setShowPasswordDialog(false)}
                     footer={
                         <div className="flex gap-2 justify-content-end">
                             <Button
-                                label="Cancel"
+                                label={t("common.cancel")}
                                 icon="pi pi-times"
                                 onClick={() => setShowPasswordDialog(false)}
                                 text
                             />
                             <Button
-                                label="Change Password"
+                                label={t("menu.changePassword")}
                                 icon="pi pi-check"
                                 onClick={changePassword}
                                 loading={changingPassword}
@@ -487,12 +489,12 @@ export default function ProfilePage() {
                 >
                     <div className="flex flex-column gap-3">
                         <div>
-                            <label className="block text-sm font-medium mb-2">Current Password *</label>
+                            <label className="block text-sm font-medium mb-2">{t("profile.currentPassword")} *</label>
                             <div style={{ position: "relative" }} className="w-full">
                                 <InputText
                                     value={passwordForm.currentPassword}
                                     onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
-                                    placeholder="Enter current password"
+                                    placeholder={t("profile.currentPassword")}
                                     className="w-full"
                                     type={showCurrent ? "text" : "password"}
                                     style={{ paddingRight: "2.5rem" }}
@@ -512,19 +514,19 @@ export default function ProfilePage() {
                                         padding: 0,
                                         zIndex: 2,
                                     }}
-                                    aria-label={showCurrent ? "Hide password" : "Show password"}
+                                    aria-label={showCurrent ? t("common.hidePassword") : t("common.showPassword")}
                                 >
                                     <i className={`pi ${showCurrent ? "pi-eye-slash" : "pi-eye"}`}></i>
                                 </button>
                             </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-2">New Password *</label>
+                            <label className="block text-sm font-medium mb-2">{t("profile.newPasswordLabel")} *</label>
                             <div style={{ position: "relative" }} className="w-full">
                                 <InputText
                                     value={passwordForm.newPassword}
                                     onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
-                                    placeholder="Enter new password"
+                                    placeholder={t("profile.newPasswordLabel")}
                                     className="w-full"
                                     type={showNew ? "text" : "password"}
                                     style={{ paddingRight: "2.5rem" }}
@@ -544,7 +546,7 @@ export default function ProfilePage() {
                                         padding: 0,
                                         zIndex: 2,
                                     }}
-                                    aria-label={showNew ? "Hide password" : "Show password"}
+                                    aria-label={showNew ? t("common.hidePassword") : t("common.showPassword")}
                                 >
                                     <i className={`pi ${showNew ? "pi-eye-slash" : "pi-eye"}`}></i>
                                 </button>
@@ -552,12 +554,12 @@ export default function ProfilePage() {
                             <small className="text-600">Password must be at least 6 characters long</small>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-2">Confirm New Password *</label>
+                            <label className="block text-sm font-medium mb-2">{t("profile.confirmPassword")} *</label>
                             <div style={{ position: "relative" }} className="w-full">
                                 <InputText
                                     value={passwordForm.confirmPassword}
                                     onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                                    placeholder="Confirm new password"
+                                    placeholder={t("profile.confirmPassword")}
                                     className="w-full"
                                     type={showConfirm ? "text" : "password"}
                                     style={{ paddingRight: "2.5rem" }}
@@ -577,7 +579,7 @@ export default function ProfilePage() {
                                         padding: 0,
                                         zIndex: 2,
                                     }}
-                                    aria-label={showConfirm ? "Hide password" : "Show password"}
+                                    aria-label={showConfirm ? t("common.hidePassword") : t("common.showPassword")}
                                 >
                                     <i className={`pi ${showConfirm ? "pi-eye-slash" : "pi-eye"}`}></i>
                                 </button>

@@ -14,6 +14,7 @@ import { FilterMatchMode } from "primereact/api";
 import { useRouter } from "next/navigation";
 import { Skeleton } from "primereact/skeleton";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface User {
     id: string;
@@ -32,6 +33,7 @@ interface User {
 
 export default function PendingUsersPage() {
     const router = useRouter();
+    const { t } = useLanguage();
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [totalRecords, setTotalRecords] = useState(0);
@@ -76,7 +78,7 @@ export default function PendingUsersPage() {
             setUsers(data.users);
             setTotalRecords(data.pagination.total);
         } catch (error) {
-            showToast("error", "Error", "Failed to load pending users");
+            showToast("error", t("common.error"), t("users.failedToLoadPending"));
         } finally {
             setLoading(false);
         }
@@ -112,10 +114,10 @@ export default function PendingUsersPage() {
             );
             setUsers(updatedUsers);
             setTotalRecords(prev => prev - 1);
-            showToast("success", "Success", "User approved successfully");
+            showToast("success", t("common.success"), t("users.userApproved"));
             loadPendingUsers();
         } catch (error) {
-            showToast("error", "Error", "Failed to approve user");
+            showToast("error", t("common.error"), t("users.failedToApprove"));
         }
     };
 
@@ -137,17 +139,17 @@ export default function PendingUsersPage() {
             );
             setUsers(updatedUsers);
             setTotalRecords(prev => prev - 1);
-            showToast("success", "Success", "User rejected successfully");
+            showToast("success", t("common.success"), t("users.userRejected"));
             loadPendingUsers();
         } catch (error) {
-            showToast("error", "Error", "Failed to reject user");
+            showToast("error", t("common.error"), t("users.failedToReject"));
         }
     };
 
     const confirmApproveUser = (user: User) => {
         confirmDialog({
-            message: `Are you sure you want to approve ${user.firstName} ${user.lastName}?`,
-            header: "Approve User",
+            message: t("users.confirmApproveMessage").replace("{name}", `${user.firstName} ${user.lastName}`),
+            header: t("users.approveUser"),
             icon: "pi pi-check-circle",
             acceptClassName: "p-button-success",
             accept: () => approveUser(user.id),
@@ -156,8 +158,8 @@ export default function PendingUsersPage() {
 
     const confirmRejectUser = (user: User) => {
         confirmDialog({
-            message: `Are you sure you want to reject ${user.firstName} ${user.lastName}?`,
-            header: "Reject User",
+            message: t("users.confirmRejectMessage").replace("{name}", `${user.firstName} ${user.lastName}`),
+            header: t("users.rejectUser"),
             icon: "pi pi-times-circle",
             acceptClassName: "p-button-danger",
             accept: () => rejectUser(user.id),
@@ -188,14 +190,14 @@ export default function PendingUsersPage() {
                     icon="pi pi-check"
                     size="small"
                     severity="success"
-                    tooltip="Approve User"
+                    tooltip={t("users.approveUser")}
                     onClick={() => confirmApproveUser(rowData)}
                 />
                 <Button
                     icon="pi pi-times"
                     size="small"
                     severity="danger"
-                    tooltip="Reject User"
+                    tooltip={t("users.rejectUser")}
                     onClick={() => confirmRejectUser(rowData)}
                 />
                 {/* <Button
@@ -212,8 +214,8 @@ export default function PendingUsersPage() {
     const header = (
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center gap-3">
             <div className="flex flex-column">
-                <h2 className="text-2xl font-bold m-0">Pending Approvals</h2>
-                <span className="text-600">Review and approve new member registrations</span>
+                <h2 className="text-2xl font-bold m-0">{t("users.pendingTitle")}</h2>
+                <span className="text-600">{t("users.pendingDescription")}</span>
             </div>
             <div className="flex gap-2">
                 <span className="p-input-icon-left">
@@ -221,12 +223,12 @@ export default function PendingUsersPage() {
                     <InputText
                         value={globalFilterValue}
                         onChange={onGlobalFilterChange}
-                        placeholder="Search pending users..."
+                        placeholder={t("users.searchPendingPlaceholder")}
                         className="w-full"
                     />
                 </span>
                 <Button
-                    label="All Users"
+                    label={t("users.allUsers")}
                     icon="pi pi-users"
                     onClick={() => router.push('/admin/users')}
                     severity="secondary"
@@ -273,7 +275,7 @@ export default function PendingUsersPage() {
                             filterDisplay="menu"
                             globalFilterFields={["firstName", "lastName", "email", "membershipNumber"]}
                             header={header}
-                            emptyMessage="No pending users found."
+                            emptyMessage={t("users.noPendingUsers")}
                             responsiveLayout="scroll"
                             onSort={(e) => {
                                 setSortField(e.sortField);
@@ -282,13 +284,13 @@ export default function PendingUsersPage() {
                             sortField={sortField}
                             sortOrder={sortOrder as 1 | 0 | -1 | undefined}
                         >
-                            <Column field="firstName" header="Name" body={nameBodyTemplate} style={{ minWidth: "200px" }} />
-                            <Column field="email" header="Email" style={{ minWidth: "200px" }} />
-                            <Column field="phone" header="Phone" style={{ minWidth: "150px" }} />
-                            <Column field="role" header="Role" body={(rowData) => (
+                            <Column field="firstName" header={t("users.name")} body={nameBodyTemplate} style={{ minWidth: "200px" }} />
+                            <Column field="email" header={t("users.email")} style={{ minWidth: "200px" }} />
+                            <Column field="phone" header={t("users.phone")} style={{ minWidth: "150px" }} />
+                            <Column field="role" header={t("users.role")} body={(rowData) => (
                                 <Tag value={rowData.role} severity="info" />
                             )} style={{ minWidth: "120px" }} />
-                            <Column field="createdAt" header="Registration Date" body={(rowData) => (
+                            <Column field="createdAt" header={t("users.registrationDate")} body={(rowData) => (
                                 new Date(rowData.createdAt).toLocaleDateString()
                             )} style={{ minWidth: "150px" }} />
                             <Column body={actionBodyTemplate} style={{ width: "150px" }} />

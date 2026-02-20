@@ -8,6 +8,7 @@ import { Password } from "primereact/password";
 import { Toast } from "primereact/toast";
 import { useState, useRef } from "react";
 import { AuthSplitLayout } from "@/components/auth/AuthSplitLayout";
+import { useLanguage } from "@/context/LanguageContext";
 
 const Register: Page = () => {
     const [confirmed, setConfirmed] = useState(false);
@@ -21,6 +22,7 @@ const Register: Page = () => {
     });
     const router = useRouter();
     const toast = useRef<Toast>(null);
+    const { t } = useLanguage();
 
     const handleInputChange = (field: string, value: string) => {
         setFormData(prev => ({
@@ -35,12 +37,12 @@ const Register: Page = () => {
 
     const handleRegister = async () => {
         if (!confirmed) {
-            showToast("warn", "Warning", "Please accept the terms and conditions");
+            showToast("warn", t("common.warning"), t("auth.acceptTerms"));
             return;
         }
 
         if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
-            showToast("error", "Error", "Please fill in all required fields");
+            showToast("error", t("common.error"), t("profile.fillAllFields"));
             return;
         }
 
@@ -65,7 +67,7 @@ const Register: Page = () => {
                 showToast("error", "Error", data.error);
             }
         } catch (error) {
-            showToast("error", "Error", "Registration failed. Please try again.");
+            showToast("error", t("common.error"), t("auth.unexpectedError"));
         } finally {
             setLoading(false);
         }
@@ -77,10 +79,10 @@ const Register: Page = () => {
                 <div className="border-1 surface-border surface-card border-round py-7 px-4 md:px-7 shadow-2">
                     <div className="mb-4">
                         <div className="text-900 text-xl font-bold mb-2">
-                            Register
+                            {t("auth.registerTitle")}
                         </div>
                         <span className="text-600 font-medium">
-                            Let&lsquo;s get started
+                            {t("auth.letsGetStarted")}
                         </span>
                     </div>
                     <div className="flex flex-column">
@@ -90,7 +92,7 @@ const Register: Page = () => {
                                 id="firstName"
                                 type="text"
                                 className="w-full"
-                                placeholder="First Name"
+                                placeholder={t("auth.firstName")}
                                 value={formData.firstName}
                                 onChange={(e) => handleInputChange('firstName', e.target.value)}
                             />
@@ -101,7 +103,7 @@ const Register: Page = () => {
                                 id="lastName"
                                 type="text"
                                 className="w-full"
-                                placeholder="Last Name"
+                                placeholder={t("auth.lastName")}
                                 value={formData.lastName}
                                 onChange={(e) => handleInputChange('lastName', e.target.value)}
                             />
@@ -112,7 +114,7 @@ const Register: Page = () => {
                                 id="email"
                                 type="email"
                                 className="w-full"
-                                placeholder="Email"
+                                placeholder={t("auth.emailPlaceholder")}
                                 value={formData.email}
                                 onChange={(e) => handleInputChange('email', e.target.value)}
                             />
@@ -123,7 +125,7 @@ const Register: Page = () => {
                                 id="phone"
                                 type="tel"
                                 className="w-full"
-                                placeholder="Phone (Optional)"
+                                placeholder={t("auth.phoneOptional")}
                                 value={formData.phone}
                                 onChange={(e) => handleInputChange('phone', e.target.value)}
                             />
@@ -135,7 +137,7 @@ const Register: Page = () => {
                                 type="password"
                                 className="w-full"
                                 inputClassName="w-full"
-                                placeholder="Password"
+                                placeholder={t("auth.passwordPlaceholder")}
                                 toggleMask
                                 inputStyle={{ paddingLeft: "2.5rem" }}
                                 value={formData.password}
@@ -155,26 +157,26 @@ const Register: Page = () => {
                                 htmlFor="checkbox"
                                 className="text-900 font-medium mr-2"
                             >
-                                I have read the
+                                {t("auth.readTerms")}
                             </label>
                             <a className="text-600 cursor-pointer hover:text-primary cursor-pointer">
-                                Terms and Conditions
+                                {t("auth.termsAndConditions")}
                             </a>
                         </div>
                         <Button
-                            label="Sign Up"
+                            label={t("auth.signUp")}
                             className="w-full mb-4"
                             onClick={handleRegister}
                             loading={loading}
                             disabled={loading}
                         ></Button>
                         <span className="font-medium text-600">
-                            Already have an account?{" "}
+                            {t("auth.alreadyHaveAccount")}{" "}
                             <a 
                                 className="font-semibold cursor-pointer text-900 hover:text-primary transition-colors transition-duration-300"
                                 onClick={() => router.push('/auth/login')}
                             >
-                                Login
+                                {t("auth.signIn")}
                             </a>
                         </span>
                     </div>

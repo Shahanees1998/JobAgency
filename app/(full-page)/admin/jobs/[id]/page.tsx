@@ -11,6 +11,7 @@ import { Dialog } from "primereact/dialog";
 import { InputTextarea } from "primereact/inputtextarea";
 import { apiClient } from "@/lib/apiClient";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/context/LanguageContext";
 
 // Add custom styles
 const styles = `
@@ -240,6 +241,7 @@ export default function AdminJobDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
   const [approveDialogVisible, setApproveDialogVisible] = useState(false);
@@ -270,11 +272,11 @@ export default function AdminJobDetailPage() {
       if (jobData) {
         setJob(jobData);
       } else {
-        showToast("error", "Error", "Job not found");
+        showToast("error", t("common.error"), t("jobs.notFound"));
       }
     } catch (error) {
       console.error("Error loading job:", error);
-      showToast("error", "Error", "Failed to load job details");
+      showToast("error", t("common.error"), t("jobs.failedToLoadDetails"));
     } finally {
       setLoading(false);
     }
@@ -293,12 +295,12 @@ export default function AdminJobDetailPage() {
       if (response.error) {
         throw new Error(response.error);
       }
-      showToast("success", "Success", "Job approved successfully");
+      showToast("success", t("common.success"), t("jobs.approveSuccess"));
       setApproveDialogVisible(false);
       setActionNotes("");
       await loadJob(job.id);
     } catch (error) {
-      showToast("error", "Error", "Failed to approve job");
+      showToast("error", t("common.error"), t("jobs.failedToApprove"));
     } finally {
       setProcessing(false);
     }
@@ -306,7 +308,7 @@ export default function AdminJobDetailPage() {
 
   const handleReject = async () => {
     if (!job || !actionReason.trim()) {
-      showToast("warn", "Warning", "Please provide a rejection reason");
+      showToast("warn", t("common.warning"), t("jobs.provideRejectionReason"));
       return;
     }
 
@@ -316,13 +318,13 @@ export default function AdminJobDetailPage() {
       if (response.error) {
         throw new Error(response.error);
       }
-      showToast("success", "Success", "Job rejected successfully");
+      showToast("success", t("common.success"), t("jobs.rejectSuccess"));
       setRejectDialogVisible(false);
       setActionReason("");
       setActionNotes("");
       await loadJob(job.id);
     } catch (error) {
-      showToast("error", "Error", "Failed to reject job");
+      showToast("error", t("common.error"), t("jobs.failedToReject"));
     } finally {
       setProcessing(false);
     }
@@ -330,7 +332,7 @@ export default function AdminJobDetailPage() {
 
   const handleSuspend = async () => {
     if (!job || !actionReason.trim()) {
-      showToast("warn", "Warning", "Please provide a suspension reason");
+      showToast("warn", t("common.warning"), t("jobs.provideSuspensionReason"));
       return;
     }
 
@@ -340,12 +342,12 @@ export default function AdminJobDetailPage() {
       if (response.error) {
         throw new Error(response.error);
       }
-      showToast("success", "Success", "Job suspended successfully");
+      showToast("success", t("common.success"), t("jobs.suspendSuccess"));
       setSuspendDialogVisible(false);
       setActionReason("");
       await loadJob(job.id);
     } catch (error) {
-      showToast("error", "Error", "Failed to suspend job");
+      showToast("error", t("common.error"), t("jobs.failedToSuspend"));
     } finally {
       setProcessing(false);
     }
@@ -425,10 +427,10 @@ export default function AdminJobDetailPage() {
                     <i className="pi pi-exclamation-triangle text-4xl"></i>
                   </div>
                 </div>
-                <h2 className="text-3xl font-bold text-900 mb-3">Job Not Found</h2>
-                <p className="text-xl text-600 mb-5">The requested job could not be found.</p>
+                <h2 className="text-3xl font-bold text-900 mb-3">{t("jobs.notFound")}</h2>
+                <p className="text-xl text-600 mb-5">{t("jobs.notFoundDescription")}</p>
                 <Button
-                  label="Back to Jobs"
+                  label={t("jobs.backToJobs")}
                   icon="pi pi-arrow-left"
                   onClick={() => router.push("/admin/jobs")}
                   className="action-button"
@@ -462,7 +464,7 @@ export default function AdminJobDetailPage() {
                     <h1 className="text-3xl font-bold m-0 text-white">{job.title}</h1>
                     <div className="flex align-items-center gap-2 mt-2">
                       <i className="pi pi-building text-lg"></i>
-                      <span className="text-lg text-white-50">{job.employer?.companyName || 'Unknown Company'}</span>
+                      <span className="text-lg text-white-50">{job.employer?.companyName || t("jobs.unknownCompany")}</span>
                     </div>
                   </div>
                 </div>
@@ -471,7 +473,7 @@ export default function AdminJobDetailPage() {
                 {job.status === "PENDING" && (
                   <>
                     <Button
-                      label="Approve"
+                      label={t("jobs.approve")}
                       icon="pi pi-check"
                       severity="success"
                       onClick={() => setApproveDialogVisible(true)}
@@ -479,7 +481,7 @@ export default function AdminJobDetailPage() {
                       size="large"
                     />
                     <Button
-                      label="Reject"
+                      label={t("jobs.reject")}
                       icon="pi pi-times"
                       severity="danger"
                       onClick={() => setRejectDialogVisible(true)}
@@ -490,7 +492,7 @@ export default function AdminJobDetailPage() {
                 )}
                 {job.status === "APPROVED" && (
                   <Button
-                    label="Suspend"
+                    label={t("employers.suspend")}
                     icon="pi pi-ban"
                     severity="warning"
                     onClick={() => setSuspendDialogVisible(true)}
@@ -499,7 +501,7 @@ export default function AdminJobDetailPage() {
                   />
                 )}
                 <Button
-                  label="Back"
+                  label={t("common.back")}
                   icon="pi pi-arrow-left"
                   outlined
                   onClick={() => router.push("/admin/jobs")}
@@ -541,12 +543,12 @@ export default function AdminJobDetailPage() {
                     <div className="icon-wrapper blue">
                       <i className="pi pi-info-circle text-xl"></i>
                     </div>
-                    <h3 className="text-xl font-bold m-0">Job Details</h3>
+                    <h3 className="text-xl font-bold m-0">{t("jobs.jobDetails")}</h3>
                   </div>
                   <div className="flex flex-column gap-3">
                     <div>
                       <label className="font-bold text-600 block mb-2">
-                        <i className="pi pi-briefcase mr-2"></i>Employment Type
+                        <i className="pi pi-briefcase mr-2"></i>{t("jobs.employmentType")}
                       </label>
                       <div className="text-lg font-semibold text-900">
                         {getEmploymentTypeLabel(job.employmentType)}
@@ -555,7 +557,7 @@ export default function AdminJobDetailPage() {
                     {job.location && (
                       <div>
                         <label className="font-bold text-600 block mb-2">
-                          <i className="pi pi-map-marker mr-2"></i>Location
+                          <i className="pi pi-map-marker mr-2"></i>{t("jobs.location")}
                         </label>
                         <div className="text-lg font-semibold text-900">{job.location}</div>
                       </div>
@@ -563,7 +565,7 @@ export default function AdminJobDetailPage() {
                     {job.salaryRange && (
                       <div>
                         <label className="font-bold text-600 block mb-2">
-                          <i className="pi pi-dollar mr-2"></i>Salary Range
+                          <i className="pi pi-dollar mr-2"></i>{t("jobs.salaryRange")}
                         </label>
                         <div className="text-lg font-semibold text-green-600">{job.salaryRange}</div>
                       </div>
@@ -571,7 +573,7 @@ export default function AdminJobDetailPage() {
                     {job.category && (
                       <div>
                         <label className="font-bold text-600 block mb-2">
-                          <i className="pi pi-tag mr-2"></i>Category
+                          <i className="pi pi-tag mr-2"></i>{t("jobs.category")}
                         </label>
                         <div className="text-lg font-semibold text-900">{job.category}</div>
                       </div>
@@ -585,12 +587,12 @@ export default function AdminJobDetailPage() {
                     <div className="icon-wrapper green">
                       <i className="pi pi-chart-line text-xl"></i>
                     </div>
-                    <h3 className="text-xl font-bold m-0">Statistics</h3>
+                    <h3 className="text-xl font-bold m-0">{t("jobs.statistics")}</h3>
                   </div>
                   <div className="flex flex-column gap-3">
                     <div>
                       <label className="font-bold text-600 block mb-2">
-                        <i className="pi pi-eye mr-2"></i>Views
+                        <i className="pi pi-eye mr-2"></i>{t("jobs.views")}
                       </label>
                       <span className="stat-badge views">
                         <i className="pi pi-eye"></i>
@@ -599,7 +601,7 @@ export default function AdminJobDetailPage() {
                     </div>
                     <div>
                       <label className="font-bold text-600 block mb-2">
-                        <i className="pi pi-file mr-2"></i>Applications
+                        <i className="pi pi-file mr-2"></i>{t("jobs.applications")}
                       </label>
                       <span className="stat-badge applications">
                         <i className="pi pi-file"></i>
@@ -608,14 +610,14 @@ export default function AdminJobDetailPage() {
                     </div>
                     <div>
                       <label className="font-bold text-600 block mb-2">
-                        <i className="pi pi-calendar mr-2"></i>Posted
+                        <i className="pi pi-calendar mr-2"></i>{t("jobs.posted")}
                       </label>
                       <div className="text-lg font-semibold text-900">{formatDate(job.createdAt)}</div>
                     </div>
                     {job.expiresAt && (
                       <div>
                         <label className="font-bold text-600 block mb-2">
-                          <i className="pi pi-clock mr-2"></i>Expires
+                          <i className="pi pi-clock mr-2"></i>{t("jobs.expires")}
                         </label>
                         <div className="text-lg font-semibold text-orange-600">{formatDate(job.expiresAt)}</div>
                       </div>
@@ -631,7 +633,7 @@ export default function AdminJobDetailPage() {
                 <div className="icon-wrapper purple">
                   <i className="pi pi-file-edit text-xl"></i>
                 </div>
-                <h3 className="text-xl font-bold m-0">Job Description</h3>
+                <h3 className="text-xl font-bold m-0">{t("jobs.jobDescription")}</h3>
               </div>
               <div className="content-section">
                 <div className="whitespace-pre-wrap text-900 line-height-3">{job.description}</div>
@@ -645,7 +647,7 @@ export default function AdminJobDetailPage() {
                   <div className="icon-wrapper orange">
                     <i className="pi pi-list-check text-xl"></i>
                   </div>
-                  <h3 className="text-xl font-bold m-0">Requirements</h3>
+                  <h3 className="text-xl font-bold m-0">{t("jobs.requirements")}</h3>
                 </div>
                 <div className="content-section">
                   <div className="whitespace-pre-wrap text-900 line-height-3">{job.requirements}</div>
@@ -660,7 +662,7 @@ export default function AdminJobDetailPage() {
                   <div className="icon-wrapper" style={{ background: '#000000', color: 'white' }}>
                     <i className="pi pi-check-circle text-xl"></i>
                   </div>
-                  <h3 className="text-xl font-bold m-0">Responsibilities</h3>
+                  <h3 className="text-xl font-bold m-0">{t("jobs.responsibilities")}</h3>
                 </div>
                 <div className="content-section">
                   <div className="whitespace-pre-wrap text-900 line-height-3">{job.responsibilities}</div>
@@ -675,21 +677,21 @@ export default function AdminJobDetailPage() {
                   <div className="icon-wrapper blue">
                     <i className="pi pi-building text-2xl"></i>
                   </div>
-                  <h3 className="text-2xl font-bold m-0 ml-2">Employer Information</h3>
+                  <h3 className="text-2xl font-bold m-0 ml-2">{t("jobs.employerInformation")}</h3>
                 </div>
                 <div className="grid">
                   <div className="col-12 md:col-6">
                     <div className="flex flex-column gap-4">
                       <div className="p-3 bg-white border-round" style={{ borderLeft: '4px solid ##000000' }}>
                         <label className="font-bold text-600 block mb-2">
-                          <i className="pi pi-building mr-2 text-blue-500"></i>Company Name
+                          <i className="pi pi-building mr-2 text-blue-500"></i>{t("employers.companyName")}
                         </label>
                         <div className="text-lg font-semibold text-900">{job.employer.companyName}</div>
                       </div>
                       {job.employer.companyDescription && (
                         <div className="p-3 bg-white border-round" style={{ borderLeft: '4px solid #10b981' }}>
                           <label className="font-bold text-600 block mb-2">
-                            <i className="pi pi-file mr-2 text-green-500"></i>Company Description
+                            <i className="pi pi-file mr-2 text-green-500"></i>{t("jobs.companyDescription")}
                           </label>
                           <div className="text-lg text-900 line-height-3">{job.employer.companyDescription}</div>
                         </div>
@@ -697,7 +699,7 @@ export default function AdminJobDetailPage() {
                       {job.employer.industry && (
                         <div className="p-3 bg-white border-round" style={{ borderLeft: '4px solid #f59e0b' }}>
                           <label className="font-bold text-600 block mb-2">
-                            <i className="pi pi-tag mr-2 text-orange-500"></i>Industry
+                            <i className="pi pi-tag mr-2 text-orange-500"></i>{t("employers.industry")}
                           </label>
                           <div className="text-lg font-semibold text-900">{job.employer.industry}</div>
                         </div>
@@ -705,7 +707,7 @@ export default function AdminJobDetailPage() {
                       {job.employer.companySize && (
                         <div className="p-3 bg-white border-round" style={{ borderLeft: '4px solid #8b5cf6' }}>
                           <label className="font-bold text-600 block mb-2">
-                            <i className="pi pi-users mr-2 text-purple-500"></i>Company Size
+                            <i className="pi pi-users mr-2 text-purple-500"></i>{t("employers.companySize")}
                           </label>
                           <div className="text-lg font-semibold text-900">{job.employer.companySize}</div>
                         </div>
@@ -718,7 +720,7 @@ export default function AdminJobDetailPage() {
                         <>
                           <div className="p-3 bg-white border-round" style={{ borderLeft: '4px solid #ec4899' }}>
                             <label className="font-bold text-600 block mb-2">
-                              <i className="pi pi-user mr-2 text-pink-500"></i>Contact Person
+                              <i className="pi pi-user mr-2 text-pink-500"></i>{t("employers.contactPerson")}
                             </label>
                             <div className="text-lg font-semibold text-900">
                               {job.employer.user.firstName} {job.employer.user.lastName}
@@ -726,7 +728,7 @@ export default function AdminJobDetailPage() {
                           </div>
                           <div className="p-3 bg-white border-round" style={{ borderLeft: '4px solid #06b6d4' }}>
                             <label className="font-bold text-600 block mb-2">
-                              <i className="pi pi-envelope mr-2 text-cyan-500"></i>Email
+                              <i className="pi pi-envelope mr-2 text-cyan-500"></i>{t("common.email")}
                             </label>
                             <div className="text-lg font-semibold text-900">
                               <a href={`mailto:${job.employer.user.email}`} className="text-primary no-underline">
@@ -739,7 +741,7 @@ export default function AdminJobDetailPage() {
                       {job.employer.companyWebsite && (
                         <div className="p-3 bg-white border-round" style={{ borderLeft: '4px solid ##000000' }}>
                           <label className="font-bold text-600 block mb-2">
-                            <i className="pi pi-globe mr-2 text-blue-500"></i>Website
+                            <i className="pi pi-globe mr-2 text-blue-500"></i>{t("employers.website")}
                           </label>
                           <div className="text-lg">
                             <a 
@@ -757,7 +759,7 @@ export default function AdminJobDetailPage() {
                       )}
                       <div className="p-3 bg-white border-round" style={{ borderLeft: '4px solid #10b981' }}>
                         <label className="font-bold text-600 block mb-2">
-                          <i className="pi pi-shield mr-2 text-green-500"></i>Verification Status
+                          <i className="pi pi-shield mr-2 text-green-500"></i>{t("jobs.verificationStatus")}
                         </label>
                         <div>
                           <Tag
@@ -775,7 +777,7 @@ export default function AdminJobDetailPage() {
                       </div>
                       {job.employer.isSuspended && (
                         <div className="p-3 bg-white border-round" style={{ borderLeft: '4px solid #ef4444' }}>
-                          <Tag value="Suspended" severity="danger" style={{ fontSize: '0.9rem', padding: '0.5rem 1rem' }} />
+                          <Tag value={t("jobs.suspended")} severity="danger" style={{ fontSize: '0.9rem', padding: '0.5rem 1rem' }} />
                         </div>
                       )}
                     </div>
@@ -791,7 +793,7 @@ export default function AdminJobDetailPage() {
                   <div className="icon-wrapper" style={{ background: '#000000', color: 'white' }}>
                     <i className="pi pi-comment text-xl"></i>
                   </div>
-                  <h3 className="text-xl font-bold m-0">Moderation Notes</h3>
+                  <h3 className="text-xl font-bold m-0">{t("jobs.moderationNotes")}</h3>
                 </div>
                 <div className="content-section" style={{ background: '#fef3c7', borderColor: '#fbbf24' }}>
                   <div className="whitespace-pre-wrap text-900 line-height-3">{job.moderationNotes}</div>
@@ -802,7 +804,7 @@ export default function AdminJobDetailPage() {
             {/* Actions */}
             <div className="flex gap-3 flex-wrap">
               <Button
-                label="View Applications"
+                label={t("jobs.viewApplications")}
                 icon="pi pi-file"
                 onClick={() => router.push(`/admin/applications?jobId=${job.id}`)}
                 className="action-button"
@@ -814,7 +816,7 @@ export default function AdminJobDetailPage() {
                 }}
               />
               <Button
-                label="View Employer"
+                label={t("jobs.viewEmployer")}
                 icon="pi pi-briefcase"
                 onClick={() => router.push(`/admin/employers?employerId=${job.employerId}`)}
                 className="action-button"
@@ -832,7 +834,7 @@ export default function AdminJobDetailPage() {
 
       {/* Approve Dialog */}
       <Dialog
-        header="Approve Job Listing"
+        header={t("jobs.approveJobListing")}
         visible={approveDialogVisible}
         style={{ width: "50vw" }}
         onHide={() => {
@@ -842,7 +844,7 @@ export default function AdminJobDetailPage() {
         footer={
           <div>
             <Button
-              label="Cancel"
+              label={t("common.cancel")}
               icon="pi pi-times"
               onClick={() => {
                 setApproveDialogVisible(false);
@@ -851,7 +853,7 @@ export default function AdminJobDetailPage() {
               className="p-button-text"
             />
             <Button
-              label="Approve"
+              label={t("jobs.approve")}
               icon="pi pi-check"
               onClick={handleApprove}
               loading={processing}
@@ -861,8 +863,8 @@ export default function AdminJobDetailPage() {
       >
         <div>
           <p>
-            Are you sure you want to approve <strong>{job.title}</strong> from{" "}
-            <strong>{job.employer?.companyName || 'Unknown Company'}</strong>?
+            {t("jobs.approveConfirmFrom")} <strong>{job.title}</strong> {t("common.from")}{" "}
+            <strong>{job.employer?.companyName || t("jobs.unknownCompany")}</strong>?
           </p>
           <div className="mt-3">
             <label htmlFor="approve-notes" className="block mb-2">
@@ -882,7 +884,7 @@ export default function AdminJobDetailPage() {
 
       {/* Reject Dialog */}
       <Dialog
-        header="Reject Job Listing"
+        header={t("jobs.rejectJobListing")}
         visible={rejectDialogVisible}
         style={{ width: "50vw" }}
         onHide={() => {
@@ -893,7 +895,7 @@ export default function AdminJobDetailPage() {
         footer={
           <div>
             <Button
-              label="Cancel"
+              label={t("common.cancel")}
               icon="pi pi-times"
               onClick={() => {
                 setRejectDialogVisible(false);
@@ -903,7 +905,7 @@ export default function AdminJobDetailPage() {
               className="p-button-text"
             />
             <Button
-              label="Reject"
+              label={t("jobs.reject")}
               icon="pi pi-times"
               onClick={handleReject}
               loading={processing}
@@ -914,8 +916,8 @@ export default function AdminJobDetailPage() {
       >
         <div>
           <p>
-            Are you sure you want to reject <strong>{job.title}</strong> from{" "}
-            <strong>{job.employer?.companyName || 'Unknown Company'}</strong>?
+            {t("jobs.rejectConfirmFrom")} <strong>{job.title}</strong> {t("common.from")}{" "}
+            <strong>{job.employer?.companyName || t("jobs.unknownCompany")}</strong>?
           </p>
           <div className="mt-3">
             <label htmlFor="reject-reason" className="block mb-2">
@@ -948,7 +950,7 @@ export default function AdminJobDetailPage() {
 
       {/* Suspend Dialog */}
       <Dialog
-        header="Suspend Job Listing"
+        header={t("jobs.suspendJobListing")}
         visible={suspendDialogVisible}
         style={{ width: "50vw" }}
         onHide={() => {
@@ -958,7 +960,7 @@ export default function AdminJobDetailPage() {
         footer={
           <div>
             <Button
-              label="Cancel"
+              label={t("common.cancel")}
               icon="pi pi-times"
               onClick={() => {
                 setSuspendDialogVisible(false);
@@ -967,7 +969,7 @@ export default function AdminJobDetailPage() {
               className="p-button-text"
             />
             <Button
-              label="Suspend"
+              label={t("employers.suspend")}
               icon="pi pi-ban"
               onClick={handleSuspend}
               loading={processing}
@@ -978,8 +980,8 @@ export default function AdminJobDetailPage() {
       >
         <div>
           <p>
-            Are you sure you want to suspend <strong>{job.title}</strong> from{" "}
-            <strong>{job.employer?.companyName || 'Unknown Company'}</strong>?
+            {t("jobs.suspendConfirmFrom")} <strong>{job.title}</strong> {t("common.from")}{" "}
+            <strong>{job.employer?.companyName || t("jobs.unknownCompany")}</strong>?
           </p>
           <div className="mt-3">
             <label htmlFor="suspend-reason" className="block mb-2">

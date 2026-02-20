@@ -5,6 +5,7 @@ import { Button } from "primereact/button";
 import { InputNumber } from "primereact/inputnumber";
 import React, { useState } from "react";
 import { AuthSplitLayout } from "@/components/auth/AuthSplitLayout";
+import { useLanguage } from "@/context/LanguageContext";
 
 const Verification: Page = () => {
     const [value1, setValue1] = useState<number | null>();
@@ -12,6 +13,7 @@ const Verification: Page = () => {
     const [value3, setValue3] = useState<number | null>();
     const [value4, setValue4] = useState<number | null>();
     const router = useRouter();
+    const { t } = useLanguage();
 
     const onDigitInput = (
         event: React.KeyboardEvent<HTMLSpanElement>,
@@ -44,10 +46,10 @@ const Verification: Page = () => {
                 <div className="border-1 surface-border surface-card border-round py-7 px-4 md:px-7 shadow-2">
                     <div className="mb-4">
                         <div className="text-900 text-xl font-bold mb-2">
-                            Verification
+                            {t("auth.verificationTitle")}
                         </div>
                         <span className="text-600 font-medium">
-                            We have sent code to you email:
+                            {t("auth.weSentCodeToEmail")}
                         </span>
                         <div className="flex align-items-center mt-1">
                             <i className="pi pi-envelope text-600"></i>
@@ -97,13 +99,13 @@ const Verification: Page = () => {
                         </div>
                         <div className="flex flex-wrap gap-2 justify-content-between">
                             <Button
-                                label="Cancel"
+                                label={t("common.cancel")}
                                 outlined
                                 className="flex-auto"
                                 onClick={() => router.push("/")}
                             ></Button>
                             <Button
-                                label="Verify"
+                                label={t("auth.verify")}
                                 className="flex-auto"
                                 onClick={() => router.push("/")}
                             ></Button>

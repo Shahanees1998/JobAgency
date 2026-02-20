@@ -4,12 +4,12 @@ import { useState, useEffect, useRef } from 'react';
 import { Badge } from 'primereact/badge';
 import { OverlayPanel } from 'primereact/overlaypanel';
 import { Button } from 'primereact/button';
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
 import { Tag } from 'primereact/tag';
 import { useAuth } from '@/hooks/useAuth';
 import { usePusher } from '@/hooks/usePusher';
 import { apiClient } from '@/lib/apiClient';
+import { useLanguage } from '@/context/LanguageContext';
+import { useRouter } from 'next/navigation';
 
 interface Notification {
   id: string;
@@ -42,6 +42,8 @@ interface Notification {
 
 export default function NotificationCenter() {
   const { user } = useAuth();
+  const { t } = useLanguage();
+  const router = useRouter();
   const { subscribeUser } = usePusher(user?.id);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -163,17 +165,22 @@ export default function NotificationCenter() {
     const diffInSeconds = Math.floor((now.getTime() - time.getTime()) / 1000);
 
     if (diffInSeconds < 60) {
-      return `${diffInSeconds}s ago`;
+      return t("notifications.secondsAgo").replace("{n}", String(diffInSeconds));
     } else if (diffInSeconds < 3600) {
       const minutes = Math.floor(diffInSeconds / 60);
-      return `${minutes}m ago`;
+      return t("notifications.minutesAgo").replace("{n}", String(minutes));
     } else if (diffInSeconds < 86400) {
       const hours = Math.floor(diffInSeconds / 3600);
-      return `${hours}h ago`;
+      return t("notifications.hoursAgo").replace("{n}", String(hours));
     } else {
       const days = Math.floor(diffInSeconds / 86400);
-      return `${days}d ago`;
+      return t("notifications.daysAgo").replace("{n}", String(days));
     }
+  };
+
+  const handleViewAll = () => {
+    overlayRef.current?.hide();
+    router.push("/admin/notifications");
   };
 
   const handleNotificationClick = (notification: Notification) => {
@@ -196,7 +203,7 @@ export default function NotificationCenter() {
         icon="pi pi-bell"
         className="p-button-text p-button-rounded relative"
         onClick={(e) => overlayRef.current?.toggle(e)}
-        aria-label="Notifications"
+        aria-label={t("notifications.ariaNotifications")}
       >
         {unreadCount > 0 && (
           <Badge 
@@ -207,68 +214,100 @@ export default function NotificationCenter() {
         )}
       </Button>
 
-      <OverlayPanel ref={overlayRef} className="notification-panel">
-        <div className="flex justify-content-between align-items-center mb-3">
-          <h3 className="m-0">Notifications</h3>
-          <div className="flex gap-2">
-            {unreadCount > 0 && (
+      <OverlayPanel 
+        ref={overlayRef} 
+        className="notification-panel"
+        style={{ width: "min(380px, 95vw)" }}
+      >
+        <div className="flex flex-column" style={{ minHeight: "200px" }}>
+          {/* Header */}
+          <div className="flex justify-content-between align-items-center mb-3 pb-2 border-bottom-1 surface-border">
+            <h3 className="m-0 text-lg font-semibold text-900">
+              {t("notifications.title")}
+            </h3>
+            <div className="flex gap-1">
+              {unreadCount > 0 && (
+                <Button
+                  label={t("notifications.markAllAsRead")}
+                  size="small"
+                  className="p-button-outlined p-button-sm"
+                  onClick={markAllAsRead}
+                />
+              )}
               <Button
-                label="Mark All Read"
+                icon="pi pi-refresh"
                 size="small"
-                className="p-button-outlined p-button-sm"
-                onClick={markAllAsRead}
+                className="p-button-outlined p-button-sm p-button-icon-only"
+                onClick={loadNotifications}
+                loading={loading}
+                aria-label={t("notifications.ariaRefresh")}
               />
-            )}
-            <Button
-              icon="pi pi-refresh"
-              size="small"
-              className="p-button-outlined p-button-sm"
-              onClick={loadNotifications}
-              loading={loading}
-            />
+            </div>
           </div>
-        </div>
 
-        {notifications.length === 0 ? (
-          <div className="text-center py-4">
-            <i className="pi pi-bell-slash text-4xl text-400 mb-3"></i>
-            <p className="text-600 m-0">No notifications yet</p>
-          </div>
-        ) : (
-          <div className="notification-list" style={{ maxHeight: '400px', overflowY: 'auto' }}>
-            {notifications.map((notification) => (
-              <div
-                key={notification.id}
-                className={`notification-item p-3 border-1 border-200 border-round mb-2 cursor-pointer transition-colors ${
-                  !notification.isRead ? 'bg-blue-50 border-blue-200' : 'hover:bg-gray-50'
-                }`}
-                onClick={() => handleNotificationClick(notification)}
+          {/* Content */}
+          {notifications.length === 0 ? (
+            <div className="flex flex-column align-items-center justify-content-center py-5 px-3">
+              <i className="pi pi-bell-slash text-4xl text-400 mb-3" aria-hidden></i>
+              <p className="text-600 m-0 mb-3 text-center">
+                {t("notifications.noNotificationsYet")}
+              </p>
+              <Button
+                label={t("notifications.viewAll")}
+                link
+                className="p-0"
+                onClick={handleViewAll}
+              />
+            </div>
+          ) : (
+            <>
+              <div 
+                className="notification-list flex-1 overflow-y-auto" 
+                style={{ maxHeight: "320px" }}
               >
-                <div className="flex justify-content-between align-items-start mb-2">
-                  <div className="flex align-items-center gap-2">
-                    <Tag 
-                      value={getTypeLabel(notification.type)} 
-                      severity={getSeverity(notification.type)}
-                      className="text-xs"
-                    />
-                    {!notification.isRead && (
-                      <div className="w-2 h-2 bg-blue-500 border-round"></div>
-                    )}
+                {notifications.map((notification) => (
+                  <div
+                    key={notification.id}
+                    className={`notification-item p-3 border-1 border-200 border-round mb-2 cursor-pointer transition-colors ${
+                      !notification.isRead ? "bg-blue-50 border-blue-200" : "hover:bg-gray-50"
+                    }`}
+                    onClick={() => handleNotificationClick(notification)}
+                  >
+                    <div className="flex justify-content-between align-items-start mb-2">
+                      <div className="flex align-items-center gap-2 flex-wrap">
+                        <Tag 
+                          value={getTypeLabel(notification.type)} 
+                          severity={getSeverity(notification.type)}
+                          className="text-xs"
+                        />
+                        {!notification.isRead && (
+                          <span className="w-2 h-2 bg-blue-500 border-round inline-block flex-shrink-0" aria-hidden />
+                        )}
+                      </div>
+                      <span className="text-xs text-600 flex-shrink-0 ml-2">
+                        {formatTime(notification.createdAt)}
+                      </span>
+                    </div>
+                    <h4 className="text-sm font-semibold m-0 mb-1 text-900">
+                      {notification.title}
+                    </h4>
+                    <p className="text-sm text-600 m-0 line-height-3">
+                      {notification.message}
+                    </p>
                   </div>
-                  <span className="text-xs text-600">
-                    {formatTime(notification.createdAt)}
-                  </span>
-                </div>
-                <h4 className="text-sm font-semibold m-0 mb-1">
-                  {notification.title}
-                </h4>
-                <p className="text-sm text-600 m-0 line-height-3">
-                  {notification.message}
-                </p>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
+              <div className="pt-2 mt-2 border-top-1 surface-border">
+                <Button
+                  label={t("notifications.viewAll")}
+                  link
+                  className="w-full p-2"
+                  onClick={handleViewAll}
+                />
+              </div>
+            </>
+          )}
+        </div>
       </OverlayPanel>
     </div>
   );

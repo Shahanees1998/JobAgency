@@ -9,6 +9,7 @@ import { Skeleton } from "primereact/skeleton";
 import { Toast } from "primereact/toast";
 import { apiClient } from "@/lib/apiClient";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/context/LanguageContext";
 
 // Add custom styles (same as other detail pages)
 const styles = `
@@ -216,6 +217,7 @@ export default function AdminCandidateDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [candidate, setCandidate] = useState<Candidate | null>(null);
   const [loading, setLoading] = useState(true);
   const toast = useRef<Toast>(null);
@@ -240,11 +242,11 @@ export default function AdminCandidateDetailPage() {
       if (candidateData) {
         setCandidate(candidateData);
       } else {
-        showToast("error", "Error", "Candidate not found");
+        showToast("error", t("common.error"), t("candidates.notFound"));
       }
     } catch (error) {
       console.error("Error loading candidate:", error);
-      showToast("error", "Error", "Failed to load candidate details");
+      showToast("error", t("common.error"), t("candidates.failedToLoadDetails"));
     } finally {
       setLoading(false);
     }
@@ -323,10 +325,10 @@ export default function AdminCandidateDetailPage() {
                     <i className="pi pi-exclamation-triangle text-4xl"></i>
                   </div>
                 </div>
-                <h2 className="text-3xl font-bold text-900 mb-3">Candidate Not Found</h2>
-                <p className="text-xl text-600 mb-5">The requested candidate could not be found.</p>
+                <h2 className="text-3xl font-bold text-900 mb-3">{t("candidates.notFound")}</h2>
+                <p className="text-xl text-600 mb-5">{t("candidates.notFoundDescription")}</p>
                 <Button
-                  label="Back to Candidates"
+                  label={t("candidates.backToCandidates")}
                   icon="pi pi-arrow-left"
                   onClick={() => router.push("/admin/candidates")}
                   className="action-button"
@@ -386,7 +388,7 @@ export default function AdminCandidateDetailPage() {
               </div>
               <div className="flex gap-2 flex-wrap">
                 <Button
-                  label="Back"
+                  label={t("common.back")}
                   icon="pi pi-arrow-left"
                   outlined
                   onClick={() => router.push("/admin/candidates")}
@@ -399,7 +401,7 @@ export default function AdminCandidateDetailPage() {
             {/* Status and Meta Badges */}
             <div className="flex flex-wrap align-items-center gap-3 mt-4">
               <div className="flex align-items-center gap-2">
-                <span className="font-bold text-white">Account Status:</span>
+                <span className="font-bold text-white">{t("candidates.accountStatusLabel")}</span>
                 <Tag 
                   value={candidate.user.status} 
                   severity={getStatusSeverity(candidate.user.status)} 
@@ -407,16 +409,16 @@ export default function AdminCandidateDetailPage() {
                 />
               </div>
               <div className="flex align-items-center gap-2">
-                <span className="font-bold text-white">Profile Status:</span>
+                <span className="font-bold text-white">{t("candidates.profileStatusLabel")}</span>
                 <Tag 
-                  value={candidate.isProfileComplete ? "Complete" : "Incomplete"} 
+                  value={candidate.isProfileComplete ? t("candidates.complete") : t("candidates.incomplete")} 
                   severity={candidate.isProfileComplete ? "success" : "warning"} 
                   style={{ fontSize: '0.9rem', padding: '0.5rem 1rem' }} 
                 />
               </div>
               <span className="stat-badge applications">
                 <i className="pi pi-file"></i>
-                {candidate.totalApplications} Applications
+                {t("candidates.applicationsCount").replace("{n}", String(candidate.totalApplications))}
               </span>
             </div>
           </div>
@@ -431,12 +433,12 @@ export default function AdminCandidateDetailPage() {
                       <div className="icon-wrapper blue">
                         <i className="pi pi-user text-xl"></i>
                       </div>
-                      <h3 className="text-xl font-bold m-0">Contact Information</h3>
+                      <h3 className="text-xl font-bold m-0">{t("candidates.contactInformation")}</h3>
                     </div>
                     <div className="flex flex-column gap-3">
                       <div>
                         <label className="font-bold text-600 block mb-2">
-                          <i className="pi pi-envelope mr-2"></i>Email
+                          <i className="pi pi-envelope mr-2"></i>{t("common.email")}
                         </label>
                         <div className="text-lg font-semibold text-900">
                           <a href={`mailto:${candidate.user.email}`} className="text-primary no-underline">
@@ -447,7 +449,7 @@ export default function AdminCandidateDetailPage() {
                       {candidate.user.phone && (
                         <div>
                           <label className="font-bold text-600 block mb-2">
-                            <i className="pi pi-phone mr-2"></i>Phone
+                            <i className="pi pi-phone mr-2"></i>{t("candidates.phone")}
                           </label>
                           <div className="text-lg font-semibold text-900">
                             <a href={`tel:${candidate.user.phone}`} className="text-primary no-underline">
@@ -459,14 +461,14 @@ export default function AdminCandidateDetailPage() {
                       {candidate.location && (
                         <div>
                           <label className="font-bold text-600 block mb-2">
-                            <i className="pi pi-map-marker mr-2"></i>Location
+                            <i className="pi pi-map-marker mr-2"></i>{t("candidates.location")}
                           </label>
                           <div className="text-lg font-semibold text-900">{candidate.location}</div>
                         </div>
                       )}
                       <div>
                         <label className="font-bold text-600 block mb-2">
-                          <i className="pi pi-calendar mr-2"></i>Registered
+                          <i className="pi pi-calendar mr-2"></i>{t("candidates.registered")}
                         </label>
                         <div className="text-lg font-semibold text-900">{formatDate(candidate.createdAt)}</div>
                       </div>
@@ -479,13 +481,13 @@ export default function AdminCandidateDetailPage() {
                       <div className="icon-wrapper green">
                         <i className="pi pi-info-circle text-xl"></i>
                       </div>
-                      <h3 className="text-xl font-bold m-0">Career Information</h3>
+                      <h3 className="text-xl font-bold m-0">{t("candidates.careerInformation")}</h3>
                     </div>
                     <div className="flex flex-column gap-3">
                       {candidate.availability && (
                         <div>
                           <label className="font-bold text-600 block mb-2">
-                            <i className="pi pi-clock mr-2"></i>Availability
+                            <i className="pi pi-clock mr-2"></i>{t("candidates.availability")}
                           </label>
                           <div className="text-lg font-semibold text-900">{candidate.availability}</div>
                         </div>
@@ -493,7 +495,7 @@ export default function AdminCandidateDetailPage() {
                       {candidate.expectedSalary && (
                         <div>
                           <label className="font-bold text-600 block mb-2">
-                            <i className="pi pi-dollar mr-2"></i>Expected Salary
+                            <i className="pi pi-dollar mr-2"></i>{t("candidates.expectedSalary")}
                           </label>
                           <div className="text-lg font-semibold text-green-600">{candidate.expectedSalary}</div>
                         </div>
@@ -501,10 +503,10 @@ export default function AdminCandidateDetailPage() {
                       {candidate.cvUrl && (
                         <div>
                           <label className="font-bold text-600 block mb-2">
-                            <i className="pi pi-file-pdf mr-2"></i>CV/Resume
+                            <i className="pi pi-file-pdf mr-2"></i>{t("candidates.cvResume")}
                           </label>
                           <Button
-                            label="View CV"
+                            label={t("candidates.viewCv")}
                             icon="pi pi-download"
                             onClick={() => window.open(candidate.cvUrl, '_blank')}
                             className="action-button"
@@ -525,7 +527,7 @@ export default function AdminCandidateDetailPage() {
                     <div className="icon-wrapper purple">
                       <i className="pi pi-file-edit text-xl"></i>
                     </div>
-                    <h3 className="text-xl font-bold m-0">Bio</h3>
+                    <h3 className="text-xl font-bold m-0">{t("candidates.bio")}</h3>
                   </div>
                   <div className="content-section">
                     <div className="whitespace-pre-wrap text-900 line-height-3">{candidate.bio}</div>
@@ -540,7 +542,7 @@ export default function AdminCandidateDetailPage() {
                     <div className="icon-wrapper orange">
                       <i className="pi pi-tags text-xl"></i>
                     </div>
-                    <h3 className="text-xl font-bold m-0">Skills</h3>
+                    <h3 className="text-xl font-bold m-0">{t("candidates.skills")}</h3>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {candidate.skills.map((skill, index) => (
@@ -557,7 +559,7 @@ export default function AdminCandidateDetailPage() {
                     <div className="icon-wrapper blue">
                       <i className="pi pi-briefcase text-xl"></i>
                     </div>
-                    <h3 className="text-xl font-bold m-0">Experience</h3>
+                    <h3 className="text-xl font-bold m-0">{t("candidates.experience")}</h3>
                   </div>
                   <div className="content-section">
                     <div className="whitespace-pre-wrap text-900 line-height-3">{candidate.experience}</div>
@@ -572,7 +574,7 @@ export default function AdminCandidateDetailPage() {
                     <div className="icon-wrapper green">
                       <i className="pi pi-graduation-cap text-xl"></i>
                     </div>
-                    <h3 className="text-xl font-bold m-0">Education</h3>
+                    <h3 className="text-xl font-bold m-0">{t("candidates.education")}</h3>
                   </div>
                   <div className="content-section">
                     <div className="whitespace-pre-wrap text-900 line-height-3">{candidate.education}</div>
@@ -587,7 +589,7 @@ export default function AdminCandidateDetailPage() {
                     <div className="icon-wrapper" style={{ background: '#000000', color: 'white' }}>
                       <i className="pi pi-file text-xl"></i>
                     </div>
-                    <h3 className="text-xl font-bold m-0">Recent Applications ({candidate.totalApplications} total)</h3>
+                    <h3 className="text-xl font-bold m-0">{t("candidates.recentApplicationsTotal").replace("{n}", String(candidate.totalApplications))}</h3>
                   </div>
                   <div className="flex flex-column gap-2">
                     {candidate.applications.slice(0, 5).map((application) => (
@@ -624,7 +626,7 @@ export default function AdminCandidateDetailPage() {
               {/* Actions */}
               <div className="flex gap-3 flex-wrap">
                 <Button
-                  label="View All Applications"
+                  label={t("candidates.viewAllApplications")}
                   icon="pi pi-file"
                   onClick={() => router.push(`/admin/applications?candidateId=${candidate.id}`)}
                   className="action-button"

@@ -2,9 +2,11 @@
 import type { Page } from "@/types/index";
 import { useRouter } from "next/navigation";
 import { Button } from "primereact/button";
+import { useLanguage } from "@/context/LanguageContext";
 
 const AccessDenied: Page = () => {
     const router = useRouter();
+    const { t } = useLanguage();
     return (
         <>
             <svg
@@ -33,19 +35,18 @@ const AccessDenied: Page = () => {
             <div className="px-5 min-h-screen flex justify-content-center align-items-center -mt-8 sm:mt-0">
                 <div className="z-1 text-center">
                     <div className="text-900 font-bold text-8xl mb-4">
-                        Access Denied
+                        {t("access.title")}
                     </div>
                     <p className="line-height-3 mt-0 mb-5 text-700 text-xl font-medium">
-                        You don&lsquo;t have the permissions to access this page
+                        {t("access.message")}
                     </p>
                     <Button
                         onClick={() => router.push("/")}
                         severity="help"
                         raised
                         className="font-medium"
-                    >
-                        Go to Dashboard
-                    </Button>
+                        label={t("access.goToDashboard")}
+                    />
                 </div>
             </div>
         </>

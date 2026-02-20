@@ -16,6 +16,7 @@ import { apiClient } from "@/lib/apiClient";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDebounce } from "@/hooks/useDebounce";
 import TableLoader from "@/components/TableLoader";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface Application {
   id: string;
@@ -56,6 +57,7 @@ export default function AdminApplications() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -116,7 +118,7 @@ export default function AdminApplications() {
       }
     } catch (error) {
       console.error("Error loading applications:", error);
-      showToast("error", "Error", "Failed to load applications");
+      showToast("error", t("common.error"), t("applications.failedToLoad"));
       setApplications([]);
       setTotalRecords(0);
     } finally {
@@ -133,7 +135,7 @@ export default function AdminApplications() {
       }
     } catch (error) {
       console.error("Error loading application details:", error);
-      showToast("error", "Error", "Failed to load application details");
+      showToast("error", t("common.error"), t("applications.failedToLoadDetails"));
     }
   };
 
@@ -190,14 +192,14 @@ export default function AdminApplications() {
   return (
     <div className="grid">
       <div className="col-12">
-        <Card title="Applications Monitoring">
+        <Card title={t("applications.monitoring")}>
           {/* Filters */}
           <div className="grid mb-4">
             <div className="col-12 md:col-4">
               <span className="p-input-icon-left w-full">
                 <i className="pi pi-search" />
                 <InputText
-                  placeholder="Search applications..."
+                  placeholder={t("applications.searchPlaceholder")}
                   value={filters.search}
                   onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                   className="w-full"
@@ -208,27 +210,27 @@ export default function AdminApplications() {
               <Dropdown
                 value={filters.status}
                 options={[
-                  { label: "All Statuses", value: "" },
-                  { label: "Applied", value: "APPLIED" },
-                  { label: "Reviewing", value: "REVIEWING" },
-                  { label: "Approved", value: "APPROVED" },
-                  { label: "Rejected", value: "REJECTED" },
-                  { label: "Interview Scheduled", value: "INTERVIEW_SCHEDULED" },
-                  { label: "Interview Completed", value: "INTERVIEW_COMPLETED" },
-                  { label: "Offered", value: "OFFERED" },
-                  { label: "Accepted", value: "ACCEPTED" },
-                  { label: "Declined", value: "DECLINED" },
+                  { label: t("applications.allStatuses"), value: "" },
+                  { label: t("applications.applied"), value: "APPLIED" },
+                  { label: t("applications.reviewing"), value: "REVIEWING" },
+                  { label: t("applications.approved"), value: "APPROVED" },
+                  { label: t("applications.rejected"), value: "REJECTED" },
+                  { label: t("applications.interviewScheduled"), value: "INTERVIEW_SCHEDULED" },
+                  { label: t("applications.interviewCompleted"), value: "INTERVIEW_COMPLETED" },
+                  { label: t("applications.offered"), value: "OFFERED" },
+                  { label: t("applications.accepted"), value: "ACCEPTED" },
+                  { label: t("applications.declined"), value: "DECLINED" },
                 ]}
                 optionLabel="label"
                 optionValue="value"
                 onChange={(e) => setFilters({ ...filters, status: e.value ?? "" })}
-                placeholder="Filter by Status"
+                placeholder={t("applications.filterByStatus")}
                 className="w-full"
               />
             </div>
             <div className="col-12 md:col-4">
               <Button
-                label="Clear Filters"
+                label={t("applications.clearFilters")}
                 icon="pi pi-filter-slash"
                 className="p-button-outlined w-full"
                 onClick={() => setFilters({ status: "", jobId: "", candidateId: "", search: "" })}
@@ -238,7 +240,7 @@ export default function AdminApplications() {
 
           {/* Data Table */}
           {loading ? (
-            <TableLoader message="Loading applications..." />
+            <TableLoader message={t("applications.loading")} />
           ) : (
             <DataTable
               value={applications}
@@ -252,31 +254,31 @@ export default function AdminApplications() {
                 setCurrentPage((e.page || 0) + 1);
                 setRowsPerPage(e.rows || 10);
               }}
-              emptyMessage="No applications found"
+              emptyMessage={t("applications.noApplications")}
             >
             <Column
               field="job.title"
-              header="Job Title"
+              header={t("applications.jobTitle")}
               sortable
             />
             <Column
               field="job.employer.companyName"
-              header="Company"
+              header={t("applications.company")}
               sortable
             />
             <Column
               field="candidate.user.firstName"
-              header="Candidate"
+              header={t("applications.candidate")}
               body={(rowData) => `${rowData.candidate.user.firstName} ${rowData.candidate.user.lastName}`}
               sortable
             />
             <Column
               field="candidate.user.email"
-              header="Candidate Email"
+              header={t("applications.candidateEmail")}
             />
             <Column
               field="status"
-              header="Status"
+              header={t("applications.status")}
               body={(rowData) => (
                 <Tag
                   value={rowData.status.replace("_", " ")}
@@ -287,7 +289,7 @@ export default function AdminApplications() {
             />
             <Column
               field="interviewScheduled"
-              header="Interview"
+              header={t("applications.interview")}
               body={(rowData) => (
                 rowData.interviewScheduled ? (
                   <Tag value="Scheduled" severity="success" />
@@ -298,12 +300,12 @@ export default function AdminApplications() {
             />
             <Column
               field="appliedAt"
-              header="Applied Date"
+              header={t("applications.appliedDate")}
               body={(rowData) => formatDate(rowData.appliedAt)}
               sortable
             />
             <Column
-              header="Actions"
+              header={t("common.actions")}
               body={actionBodyTemplate}
               style={{ width: "150px" }}
             />
@@ -312,9 +314,8 @@ export default function AdminApplications() {
         </Card>
       </div>
 
-      {/* View Details Dialog */}
       <Dialog
-        header="Application Details"
+        header={t("applications.applicationDetails")}
         visible={viewDialogVisible}
         style={{ width: "70vw" }}
         onHide={() => {
@@ -324,7 +325,7 @@ export default function AdminApplications() {
         footer={
           <div>
             <Button
-              label="Close"
+              label={t("common.close")}
               icon="pi pi-times"
               onClick={() => {
                 setViewDialogVisible(false);
@@ -334,7 +335,7 @@ export default function AdminApplications() {
             />
             {selectedApplication && (
               <Button
-                label="View Chat"
+                label={t("applications.viewChat")}
                 icon="pi pi-comments"
                 onClick={() => {
                   setViewDialogVisible(false);

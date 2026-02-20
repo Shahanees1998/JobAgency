@@ -9,6 +9,7 @@ import { Toast } from "primereact/toast";
 import { useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { canAccessSection } from "@/lib/rolePermissions";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface SettingsData {
   emailNotifications: boolean;
@@ -20,13 +21,6 @@ interface SettingsData {
   dateFormat: string;
   theme: string;
 }
-
-const languages = [
-  { label: "English", value: "en" },
-  { label: "Spanish", value: "es" },
-  { label: "French", value: "fr" },
-  { label: "German", value: "de" },
-];
 
 const timezones = [
   { label: "UTC-12:00", value: "UTC-12" },
@@ -62,15 +56,21 @@ const dateFormats = [
   { label: "YYYY-MM-DD", value: "YYYY-MM-DD" },
 ];
 
-const themes = [
-  { label: "Light", value: "light" },
-  { label: "Dark", value: "dark" },
-  { label: "Auto", value: "auto" },
-];
-
 export default function AdminProfileSettings() {
   const toast = useRef<Toast>(null);
   const { user } = useAuth();
+  const { t } = useLanguage();
+  const languages = [
+    { label: t("profile.english"), value: "en" },
+    { label: t("profile.spanish"), value: "es" },
+    { label: t("profile.french"), value: "fr" },
+    { label: t("profile.german"), value: "de" },
+  ];
+  const themes = [
+    { label: t("profile.light"), value: "light" },
+    { label: t("profile.dark"), value: "dark" },
+    { label: t("profile.auto"), value: "auto" },
+  ];
   const [settingsData, setSettingsData] = useState<SettingsData>({
     emailNotifications: true,
     smsNotifications: false,
@@ -104,7 +104,7 @@ export default function AdminProfileSettings() {
       });
     } catch (error) {
       console.error("Error loading settings data:", error);
-      showToast("error", "Error", "Failed to load settings");
+      showToast("error", t("common.error"), t("profile.failedToLoadSettings"));
     }
   };
 
@@ -113,10 +113,10 @@ export default function AdminProfileSettings() {
     try {
       // In a real app, this would save to an API
       await new Promise(resolve => setTimeout(resolve, 1000));
-      showToast("success", "Success", "Settings updated successfully");
+      showToast("success", t("common.success"), t("profile.settingsUpdated"));
     } catch (error) {
       console.error("Error saving settings:", error);
-      showToast("error", "Error", "Failed to save settings");
+      showToast("error", t("common.error"), t("profile.failedToSaveSettings"));
     } finally {
       setSaving(false);
     }
@@ -131,8 +131,8 @@ export default function AdminProfileSettings() {
       <div className="flex align-items-center justify-content-center min-h-screen">
         <div className="text-center">
           <i className="pi pi-exclamation-triangle text-4xl text-red-500 mb-3"></i>
-          <h2>Access Denied</h2>
-          <p>You don't have permission to access this page.</p>
+          <h2>{t("auth.accessDenied")}</h2>
+          <p>{t("auth.onlyAdminAccess")}</p>
         </div>
       </div>
     );
@@ -140,19 +140,17 @@ export default function AdminProfileSettings() {
 
   return (
     <div className="grid">
-      {/* Header */}
       <div className="col-12">
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center gap-3 mb-4">
           <div>
-            <h1 className="text-3xl font-bold m-0">Account Settings</h1>
-            <p className="text-600 mt-2 mb-0">Customize your account preferences and notification settings.</p>
+            <h1 className="text-3xl font-bold m-0">{t("menu.accountSettings")}</h1>
+            <p className="text-600 mt-2 mb-0">{t("profile.accountSettingsSubtitle")}</p>
           </div>
         </div>
       </div>
 
-      {/* Row 1: Notification + Account Actions (same height on lg+) */}
       <div className="col-12 lg:col-8 flex">
-        <Card title="Notification Preferences" className="mb-4 flex-1 h-full">
+        <Card title={t("profile.notificationPreferences")} className="mb-4 flex-1 h-full">
           <div className="grid">
             <div className="col-12">
               <div className="flex align-items-center gap-3 mb-4">
@@ -161,8 +159,8 @@ export default function AdminProfileSettings() {
                   onChange={(e) => setSettingsData({ ...settingsData, emailNotifications: e.checked || false })}
                 />
                 <div>
-                  <label className="text-900 font-medium">Email Notifications</label>
-                  <p className="text-600 text-sm m-0">Receive important updates and alerts via email</p>
+                  <label className="text-900 font-medium">{t("profile.emailNotifications")}</label>
+                  <p className="text-600 text-sm m-0">{t("profile.emailNotificationsDesc")}</p>
                 </div>
               </div>
             </div>
@@ -173,8 +171,8 @@ export default function AdminProfileSettings() {
                   onChange={(e) => setSettingsData({ ...settingsData, smsNotifications: e.checked || false })}
                 />
                 <div>
-                  <label className="text-900 font-medium">SMS Notifications</label>
-                  <p className="text-600 text-sm m-0">Receive urgent alerts via text message</p>
+                  <label className="text-900 font-medium">{t("profile.smsNotifications")}</label>
+                  <p className="text-600 text-sm m-0">{t("profile.smsNotificationsDesc")}</p>
                 </div>
               </div>
             </div>
@@ -185,8 +183,8 @@ export default function AdminProfileSettings() {
                   onChange={(e) => setSettingsData({ ...settingsData, pushNotifications: e.checked || false })}
                 />
                 <div>
-                  <label className="text-900 font-medium">Push Notifications</label>
-                  <p className="text-600 text-sm m-0">Receive browser notifications for real-time updates</p>
+                  <label className="text-900 font-medium">{t("profile.pushNotifications")}</label>
+                  <p className="text-600 text-sm m-0">{t("profile.pushNotificationsDesc")}</p>
                 </div>
               </div>
             </div>
@@ -197,8 +195,8 @@ export default function AdminProfileSettings() {
                   onChange={(e) => setSettingsData({ ...settingsData, marketingEmails: e.checked || false })}
                 />
                 <div>
-                  <label className="text-900 font-medium">Marketing Emails</label>
-                  <p className="text-600 text-sm m-0">Receive promotional content and product updates</p>
+                  <label className="text-900 font-medium">{t("profile.marketingEmails")}</label>
+                  <p className="text-600 text-sm m-0">{t("profile.marketingEmailsDesc")}</p>
                 </div>
               </div>
             </div>
@@ -207,42 +205,41 @@ export default function AdminProfileSettings() {
       </div>
 
       <div className="col-12 lg:col-4 flex">
-        <Card title="Account Actions" className="mb-4 flex-1 h-full">
+        <Card title={t("profile.accountActions")} className="mb-4 flex-1 h-full">
           <div className="flex flex-column gap-3">
             <Button
-              label="Export Data"
+              label={t("profile.exportData")}
               icon="pi pi-download"
               className="p-button-outlined"
-              onClick={() => showToast("info", "Info", "Data export initiated")}
+              onClick={() => showToast("info", t("common.info"), t("profile.dataExportInitiated"))}
             />
             <Button
-              label="Download Backup"
+              label={t("profile.downloadBackup")}
               icon="pi pi-file"
               className="p-button-outlined"
-              onClick={() => showToast("info", "Info", "Backup download started")}
+              onClick={() => showToast("info", t("common.info"), t("profile.backupStarted"))}
             />
             <Button
-              label="Clear Cache"
+              label={t("profile.clearCache")}
               icon="pi pi-refresh"
               className="p-button-outlined"
-              onClick={() => showToast("info", "Info", "Cache cleared")}
+              onClick={() => showToast("info", t("common.info"), t("profile.cacheCleared"))}
             />
             <Button
-              label="Sign Out All Devices"
+              label={t("profile.signOutAllDevices")}
               icon="pi pi-sign-out"
               className="p-button-outlined p-button-danger"
-              onClick={() => showToast("warn", "Warning", "All devices will be signed out")}
+              onClick={() => showToast("warn", t("common.warning"), t("profile.allDevicesSignedOut"))}
             />
           </div>
         </Card>
       </div>
 
-      {/* Row 2: Display + Danger Zone (same height on lg+) */}
       <div className="col-12 lg:col-8 flex">
-        <Card title="Display Preferences" className="mb-4 flex-1 h-full">
+        <Card title={t("profile.displayPreferences")} className="mb-4 flex-1 h-full">
           <div className="grid">
             <div className="col-12 md:col-6">
-              <label className="block text-900 font-medium mb-2">Language</label>
+              <label className="block text-900 font-medium mb-2">{t("profile.language")}</label>
               <Dropdown
                 value={settingsData.language}
                 options={languages}
@@ -252,7 +249,7 @@ export default function AdminProfileSettings() {
               />
             </div>
             <div className="col-12 md:col-6">
-              <label className="block text-900 font-medium mb-2">Timezone</label>
+              <label className="block text-900 font-medium mb-2">{t("profile.timezone")}</label>
               <Dropdown
                 value={settingsData.timezone}
                 options={timezones}
@@ -262,7 +259,7 @@ export default function AdminProfileSettings() {
               />
             </div>
             <div className="col-12 md:col-6">
-              <label className="block text-900 font-medium mb-2">Date Format</label>
+              <label className="block text-900 font-medium mb-2">{t("profile.dateFormat")}</label>
               <Dropdown
                 value={settingsData.dateFormat}
                 options={dateFormats}
@@ -272,7 +269,7 @@ export default function AdminProfileSettings() {
               />
             </div>
             <div className="col-12 md:col-6">
-              <label className="block text-900 font-medium mb-2">Theme</label>
+              <label className="block text-900 font-medium mb-2">{t("profile.theme")}</label>
               <Dropdown
                 value={settingsData.theme}
                 options={themes}
@@ -286,35 +283,34 @@ export default function AdminProfileSettings() {
       </div>
 
       <div className="col-12 lg:col-4 flex">
-        <Card title="Danger Zone" className="mb-4 flex-1 h-full">
+        <Card title={t("profile.dangerZone")} className="mb-4 flex-1 h-full">
           <div className="flex flex-column gap-3">
             <Button
-              label="Deactivate Account"
+              label={t("profile.deactivateAccount")}
               icon="pi pi-ban"
               className="p-button-outlined p-button-danger"
-              onClick={() => showToast("warn", "Warning", "Account deactivation requires confirmation")}
+              onClick={() => showToast("warn", t("common.warning"), t("profile.deactivateConfirm"))}
             />
             <Button
-              label="Delete Account"
+              label={t("profile.deleteAccount")}
               icon="pi pi-trash"
               className="p-button-outlined p-button-danger"
-              onClick={() => showToast("error", "Error", "Account deletion is permanent and cannot be undone")}
+              onClick={() => showToast("error", t("common.error"), t("profile.deleteConfirm"))}
             />
           </div>
         </Card>
       </div>
 
-      {/* Actions */}
       <div className="col-12">
         <div className="flex justify-content-end gap-3">
           <Button
-            label="Reset to Default"
+            label={t("profile.resetToDefault")}
             icon="pi pi-refresh"
             className="p-button-outlined"
             onClick={() => loadSettingsData()}
           />
           <Button
-            label="Save Settings"
+            label={t("profile.saveSettings")}
             icon="pi pi-save"
             onClick={handleSave}
             loading={saving}

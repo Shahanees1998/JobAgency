@@ -17,6 +17,7 @@ import { apiClient } from "@/lib/apiClient";
 import { useRouter } from "next/navigation";
 import { useDebounce } from "@/hooks/useDebounce";
 import TableLoader from "@/components/TableLoader";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface Employer {
   id: string;
@@ -51,6 +52,7 @@ interface Employer {
 export default function AdminEmployers() {
   const router = useRouter();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [employers, setEmployers] = useState<Employer[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -105,7 +107,7 @@ export default function AdminEmployers() {
       }
     } catch (error) {
       console.error("Error loading employers:", error);
-      showToast("error", "Error", "Failed to load employers");
+      showToast("error", t("common.error"), t("employers.failedToLoad"));
       setEmployers([]);
       setTotalRecords(0);
     } finally {
@@ -123,13 +125,13 @@ export default function AdminEmployers() {
     setProcessing(true);
     try {
       await apiClient.approveEmployer(selectedEmployer.id, actionNotes);
-      showToast("success", "Success", "Employer approved successfully");
+      showToast("success", t("common.success"), t("employers.approveSuccess"));
       setApproveDialogVisible(false);
       setActionNotes("");
       setSelectedEmployer(null);
       loadEmployers();
     } catch (error) {
-      showToast("error", "Error", "Failed to approve employer");
+      showToast("error", t("common.error"), t("employers.failedToApprove"));
     } finally {
       setProcessing(false);
     }
@@ -137,21 +139,21 @@ export default function AdminEmployers() {
 
   const handleReject = async () => {
     if (!selectedEmployer || !actionReason) {
-      showToast("warn", "Warning", "Please provide a rejection reason");
+      showToast("warn", t("common.warning"), t("employers.provideRejectionReasonRequired"));
       return;
     }
     
     setProcessing(true);
     try {
       await apiClient.rejectEmployer(selectedEmployer.id, actionReason, actionNotes);
-      showToast("success", "Success", "Employer rejected successfully");
+      showToast("success", t("common.success"), t("employers.rejectSuccess"));
       setRejectDialogVisible(false);
       setActionReason("");
       setActionNotes("");
       setSelectedEmployer(null);
       loadEmployers();
     } catch (error) {
-      showToast("error", "Error", "Failed to reject employer");
+      showToast("error", t("common.error"), t("employers.failedToReject"));
     } finally {
       setProcessing(false);
     }
@@ -159,20 +161,20 @@ export default function AdminEmployers() {
 
   const handleSuspend = async () => {
     if (!selectedEmployer || !actionReason) {
-      showToast("warn", "Warning", "Please provide a suspension reason");
+      showToast("warn", t("common.warning"), t("employers.provideSuspensionReasonRequired"));
       return;
     }
     
     setProcessing(true);
     try {
       await apiClient.suspendEmployer(selectedEmployer.id, actionReason);
-      showToast("success", "Success", "Employer suspended successfully");
+      showToast("success", t("common.success"), t("employers.suspendSuccess"));
       setSuspendDialogVisible(false);
       setActionReason("");
       setSelectedEmployer(null);
       loadEmployers();
     } catch (error) {
-      showToast("error", "Error", "Failed to suspend employer");
+      showToast("error", t("common.error"), t("employers.failedToSuspend"));
     } finally {
       setProcessing(false);
     }
@@ -181,10 +183,10 @@ export default function AdminEmployers() {
   const handleUnsuspend = async (employerId: string) => {
     try {
       await apiClient.unsuspendEmployer(employerId);
-      showToast("success", "Success", "Employer unsuspended successfully");
+      showToast("success", t("common.success"), t("employers.unsuspendSuccess"));
       loadEmployers();
     } catch (error) {
-      showToast("error", "Error", "Failed to unsuspend employer");
+      showToast("error", t("common.error"), t("employers.failedToUnsuspend"));
     }
   };
 
@@ -228,7 +230,7 @@ export default function AdminEmployers() {
                 setSelectedEmployer(rowData);
                 setApproveDialogVisible(true);
               }}
-              tooltip="Approve"
+              tooltip={t("employers.approve")}
             />
             <Button
               icon="pi pi-times"
@@ -237,7 +239,7 @@ export default function AdminEmployers() {
                 setSelectedEmployer(rowData);
                 setRejectDialogVisible(true);
               }}
-              tooltip="Reject"
+              tooltip={t("employers.reject")}
             />
           </>
         )}
@@ -246,7 +248,7 @@ export default function AdminEmployers() {
             icon="pi pi-unlock"
             className="p-button-success p-button-sm"
             onClick={() => handleUnsuspend(rowData.id)}
-            tooltip="Unsuspend"
+            tooltip={t("employers.unsuspend")}
           />
         ) : (
           rowData.verificationStatus === "APPROVED" && (
@@ -257,7 +259,7 @@ export default function AdminEmployers() {
                 setSelectedEmployer(rowData);
                 setSuspendDialogVisible(true);
               }}
-              tooltip="Suspend"
+              tooltip={t("employers.suspend")}
             />
           )
         )}
@@ -265,7 +267,7 @@ export default function AdminEmployers() {
           icon="pi pi-eye"
           className="p-button-info p-button-sm"
           onClick={() => router.push(`/admin/employers/${rowData.id}`)}
-          tooltip="View Details"
+          tooltip={t("employers.viewDetails")}
         />
       </div>
     );
@@ -274,14 +276,13 @@ export default function AdminEmployers() {
   return (
     <div className="grid">
       <div className="col-12">
-        <Card title="Employer Management">
-          {/* Filters */}
+        <Card title={t("employers.management")}>
           <div className="grid mb-4">
             <div className="col-12 md:col-4">
               <span className="p-input-icon-left w-full">
                 <i className="pi pi-search" />
                 <InputText
-                  placeholder="Search employers..."
+                  placeholder={t("employers.searchPlaceholder")}
                   value={filters.search}
                   onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                   className="w-full"
@@ -292,15 +293,15 @@ export default function AdminEmployers() {
               <Dropdown
                 value={filters.status}
                 options={[
-                  { label: "All Statuses", value: "" },
-                  { label: "Pending", value: "PENDING" },
-                  { label: "Approved", value: "APPROVED" },
-                  { label: "Rejected", value: "REJECTED" },
+                  { label: t("employers.allStatuses"), value: "" },
+                  { label: t("employers.pending"), value: "PENDING" },
+                  { label: t("employers.approved"), value: "APPROVED" },
+                  { label: t("employers.rejected"), value: "REJECTED" },
                 ]}
                 optionLabel="label"
                 optionValue="value"
                 onChange={(e) => setFilters({ ...filters, status: e.value ?? "" })}
-                placeholder="Filter by Status"
+                placeholder={t("employers.filterByStatus")}
                 className="w-full"
               />
             </div>
@@ -308,22 +309,21 @@ export default function AdminEmployers() {
               <Dropdown
                 value={filters.isSuspended}
                 options={[
-                  { label: "All", value: "" },
-                  { label: "Suspended", value: "true" },
-                  { label: "Not Suspended", value: "false" },
+                  { label: t("common.all"), value: "" },
+                  { label: t("employers.suspended"), value: "true" },
+                  { label: t("employers.notSuspended"), value: "false" },
                 ]}
                 optionLabel="label"
                 optionValue="value"
                 onChange={(e) => setFilters({ ...filters, isSuspended: e.value ?? "" })}
-                placeholder="Filter by Suspension"
+                placeholder={t("employers.filterBySuspension")}
                 className="w-full"
               />
             </div>
           </div>
 
-          {/* Data Table */}
           {loading ? (
-            <TableLoader message="Loading employers..." />
+            <TableLoader message={t("employers.loading")} />
           ) : (
             <DataTable
               value={employers}
@@ -337,22 +337,18 @@ export default function AdminEmployers() {
                 setCurrentPage((e.page || 0) + 1);
                 setRowsPerPage(e.rows || 10);
               }}
-              emptyMessage="No employers found"
+              emptyMessage={t("employers.noEmployers")}
             >
-            <Column field="companyName" header="Company Name" sortable />
-            <Column
-              field="user.email"
-              header="Contact Email"
-              sortable
-            />
+            <Column field="companyName" header={t("employers.companyName")} sortable />
+            <Column field="user.email" header={t("employers.contactEmail")} sortable />
             <Column
               field="user.firstName"
-              header="Contact Name"
+              header={t("employers.contactName")}
               body={(rowData) => `${rowData.user.firstName} ${rowData.user.lastName}`}
             />
             <Column
               field="verificationStatus"
-              header="Verification"
+              header={t("employers.verification")}
               body={(rowData) => (
                 <Tag
                   value={rowData.verificationStatus}
@@ -363,7 +359,7 @@ export default function AdminEmployers() {
             />
             <Column
               field="user.status"
-              header="User Status"
+              header={t("employers.userStatus")}
               body={(rowData) => (
                 <Tag
                   value={rowData.user.status}
@@ -372,19 +368,15 @@ export default function AdminEmployers() {
               )}
               sortable
             />
-            <Column
-              field="totalJobs"
-              header="Total Jobs"
-              sortable
-            />
+            <Column field="totalJobs" header={t("employers.totalJobs")} sortable />
             <Column
               field="createdAt"
-              header="Registered"
+              header={t("employers.registered")}
               body={(rowData) => formatDate(rowData.createdAt)}
               sortable
             />
             <Column
-              header="Actions"
+              header={t("common.actions")}
               body={actionBodyTemplate}
               style={{ width: "200px" }}
             />
@@ -393,9 +385,8 @@ export default function AdminEmployers() {
         </Card>
       </div>
 
-      {/* Approve Dialog */}
       <Dialog
-        header="Approve Employer"
+        header={t("employers.approveEmployer")}
         visible={approveDialogVisible}
         style={{ width: "50vw" }}
         onHide={() => {
@@ -406,7 +397,7 @@ export default function AdminEmployers() {
         footer={
           <div>
             <Button
-              label="Cancel"
+              label={t("common.cancel")}
               icon="pi pi-times"
               onClick={() => {
                 setApproveDialogVisible(false);
@@ -416,7 +407,7 @@ export default function AdminEmployers() {
               className="p-button-text"
             />
             <Button
-              label="Approve"
+              label={t("employers.approve")}
               icon="pi pi-check"
               onClick={handleApprove}
               loading={processing}
@@ -427,11 +418,11 @@ export default function AdminEmployers() {
         {selectedEmployer && (
           <div>
             <p>
-              Are you sure you want to approve <strong>{selectedEmployer.companyName}</strong>?
+              {t("employers.approveConfirm")} <strong>{selectedEmployer.companyName}</strong>?
             </p>
             <div className="mt-3">
               <label htmlFor="approve-notes" className="block mb-2">
-                Notes (optional)
+                {t("employers.notesOptional")}
               </label>
               <InputTextarea
                 id="approve-notes"
@@ -439,16 +430,15 @@ export default function AdminEmployers() {
                 onChange={(e) => setActionNotes(e.target.value)}
                 rows={4}
                 className="w-full"
-                placeholder="Add any notes about this approval..."
+                placeholder={t("employers.addNotesApproval")}
               />
             </div>
           </div>
         )}
       </Dialog>
 
-      {/* Reject Dialog */}
       <Dialog
-        header="Reject Employer"
+        header={t("employers.rejectEmployer")}
         visible={rejectDialogVisible}
         style={{ width: "50vw" }}
         onHide={() => {
@@ -460,7 +450,7 @@ export default function AdminEmployers() {
         footer={
           <div>
             <Button
-              label="Cancel"
+              label={t("common.cancel")}
               icon="pi pi-times"
               onClick={() => {
                 setRejectDialogVisible(false);
@@ -471,7 +461,7 @@ export default function AdminEmployers() {
               className="p-button-text"
             />
             <Button
-              label="Reject"
+              label={t("employers.reject")}
               icon="pi pi-times"
               onClick={handleReject}
               loading={processing}
@@ -483,11 +473,11 @@ export default function AdminEmployers() {
         {selectedEmployer && (
           <div>
             <p>
-              Are you sure you want to reject <strong>{selectedEmployer.companyName}</strong>?
+              {t("employers.rejectConfirm")} <strong>{selectedEmployer.companyName}</strong>?
             </p>
             <div className="mt-3">
               <label htmlFor="reject-reason" className="block mb-2">
-                Reason <span className="text-red-500">*</span>
+                {t("employers.reasonRequired")} <span className="text-red-500">*</span>
               </label>
               <InputTextarea
                 id="reject-reason"
@@ -495,13 +485,13 @@ export default function AdminEmployers() {
                 onChange={(e) => setActionReason(e.target.value)}
                 rows={3}
                 className="w-full"
-                placeholder="Please provide a reason for rejection..."
+                placeholder={t("employers.provideRejectionReason")}
                 required
               />
             </div>
             <div className="mt-3">
               <label htmlFor="reject-notes" className="block mb-2">
-                Additional Notes (optional)
+                {t("employers.additionalNotes")}
               </label>
               <InputTextarea
                 id="reject-notes"
@@ -509,16 +499,15 @@ export default function AdminEmployers() {
                 onChange={(e) => setActionNotes(e.target.value)}
                 rows={3}
                 className="w-full"
-                placeholder="Add any additional notes..."
+                placeholder={t("employers.addAdditionalNotes")}
               />
             </div>
           </div>
         )}
       </Dialog>
 
-      {/* Suspend Dialog */}
       <Dialog
-        header="Suspend Employer"
+        header={t("employers.suspendEmployer")}
         visible={suspendDialogVisible}
         style={{ width: "50vw" }}
         onHide={() => {
@@ -529,7 +518,7 @@ export default function AdminEmployers() {
         footer={
           <div>
             <Button
-              label="Cancel"
+              label={t("common.cancel")}
               icon="pi pi-times"
               onClick={() => {
                 setSuspendDialogVisible(false);
@@ -539,7 +528,7 @@ export default function AdminEmployers() {
               className="p-button-text"
             />
             <Button
-              label="Suspend"
+              label={t("employers.suspend")}
               icon="pi pi-ban"
               onClick={handleSuspend}
               loading={processing}
@@ -551,12 +540,12 @@ export default function AdminEmployers() {
         {selectedEmployer && (
           <div>
             <p>
-              Are you sure you want to suspend <strong>{selectedEmployer.companyName}</strong>?
-              This will also suspend all their active job listings.
+              {t("employers.suspendConfirm")} <strong>{selectedEmployer.companyName}</strong>?
+              {t("employers.suspendConfirmNote")}
             </p>
             <div className="mt-3">
               <label htmlFor="suspend-reason" className="block mb-2">
-                Reason <span className="text-red-500">*</span>
+                {t("employers.reasonRequired")} <span className="text-red-500">*</span>
               </label>
               <InputTextarea
                 id="suspend-reason"
@@ -564,7 +553,7 @@ export default function AdminEmployers() {
                 onChange={(e) => setActionReason(e.target.value)}
                 rows={4}
                 className="w-full"
-                placeholder="Please provide a reason for suspension..."
+                placeholder={t("employers.provideSuspensionReason")}
                 required
               />
             </div>

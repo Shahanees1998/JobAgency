@@ -21,6 +21,7 @@ import { ProgressBar } from "primereact/progressbar";
 import { apiClient } from "@/lib/apiClient";
 import { getProfileImageUrl } from "@/lib/cloudinary-client";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface User {
     id: string;
@@ -64,6 +65,7 @@ interface CSVUserData {
 
 export default function MembersPage() {
     const router = useRouter();
+    const { t } = useLanguage();
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [totalRecords, setTotalRecords] = useState(0);
@@ -110,10 +112,10 @@ export default function MembersPage() {
     const debouncedFilterValue = useDebounce(globalFilterValue, 500);
 
     const statusOptions = [
-        { label: "Active", value: "ACTIVE" },
-        { label: "Pending", value: "PENDING" },
-        { label: "Inactive", value: "INACTIVE" },
-        { label: "Deactivated", value: "DEACTIVATED" },
+        { label: t("users.active"), value: "ACTIVE" },
+        { label: t("users.pendingStatus"), value: "PENDING" },
+        { label: t("users.inactive"), value: "INACTIVE" },
+        { label: t("users.deactivated"), value: "DEACTIVATED" },
     ];
 
     useEffect(() => {
@@ -140,7 +142,7 @@ export default function MembersPage() {
             setTotalRecords(response.data?.pagination?.total || 0);
         } catch (error) {
             setError("Failed to load members. Please check your connection or try again later.");
-            showToast("error", "Error", "Failed to load members");
+            showToast("error", t("common.error"), t("users.failedToLoad"));
         } finally {
             setLoading(false);
         }
@@ -225,15 +227,15 @@ export default function MembersPage() {
                     user.id === editingUser.id ? response.data : user
                 );
                 setUsers(updatedUsers);
-                showToast("success", "Success", "Member updated successfully");
+                showToast("success", t("common.success"), t("users.memberUpdated"));
             } else {
                 setUsers([response.data, ...users]);
-                showToast("success", "Success", "Member created successfully");
+                showToast("success", t("common.success"), t("users.memberCreated"));
             }
 
             setShowUserDialog(false);
         } catch (error) {
-            showToast("error", "Error", error instanceof Error ? error.message : "Failed to save member");
+            showToast("error", t("common.error"), error instanceof Error ? error.message : t("users.failedToSave"));
         } finally {
             setSaveLoading(false);
         }
@@ -241,8 +243,8 @@ export default function MembersPage() {
 
     const confirmDeleteUser = (user: User) => {
         confirmDialog({
-            message: `Are you sure you want to delete ${user.firstName} ${user.lastName}?`,
-            header: "Delete Confirmation",
+            message: t("users.deleteConfirmMessage").replace("{name}", `${user.firstName} ${user.lastName}`),
+            header: t("users.deleteConfirmHeader"),
             icon: "pi pi-exclamation-triangle",
             acceptClassName: "p-button-danger",
             accept: () => deleteUser(user.id),
@@ -253,8 +255,8 @@ export default function MembersPage() {
         if (selectedUsers.length === 0) return;
 
         confirmDialog({
-            message: `Are you sure you want to delete ${selectedUsers.length} selected user(s)?`,
-            header: "Bulk Delete Confirmation",
+            message: t("users.bulkDeleteConfirmMessage").replace("{count}", String(selectedUsers.length)),
+            header: t("users.bulkDeleteConfirmHeader"),
             icon: "pi pi-exclamation-triangle",
             acceptClassName: "p-button-danger",
             accept: () => bulkDeleteUsers(),
@@ -270,10 +272,10 @@ export default function MembersPage() {
             await Promise.all(deletePromises);
 
             setSelectedUsers([]);
-            showToast("success", "Success", `${selectedUsers.length} user(s) deleted successfully`);
+            showToast("success", t("common.success"), t("users.usersDeleted").replace("{count}", String(selectedUsers.length)));
             loadMembers();
         } catch (error) {
-            showToast("error", "Error", "Failed to delete some users");
+            showToast("error", t("common.error"), t("users.failedToDeleteSome"));
         } finally {
             setBulkDeleting(false);
         }
@@ -289,9 +291,9 @@ export default function MembersPage() {
             }
 
             setUsers(users.filter(user => user.id !== userId));
-            showToast("success", "Success", "Member deleted successfully");
+            showToast("success", t("common.success"), t("users.memberDeleted"));
         } catch (error) {
-            showToast("error", "Error", "Failed to delete member");
+            showToast("error", t("common.error"), t("users.failedToDelete"));
         } finally {
             setDeletingId(null);
         }
@@ -387,7 +389,7 @@ Jane,Smith,jane.smith@example.com,+1234567891,ACTIVE,primo1235,2024-01-16,2024-0
 
     const processBulkUpload = async () => {
         if (csvData.length === 0) {
-            showToast("error", "Error", "No valid data to upload");
+            showToast("error", t("common.error"), t("users.noValidData"));
             return;
         }
 
@@ -432,12 +434,12 @@ Jane,Smith,jane.smith@example.com,+1234567891,ACTIVE,primo1235,2024-01-16,2024-0
         setBulkUploadStatus(`Upload completed. ${successCount} successful, ${errorCount} failed.`);
 
         if (successCount > 0) {
-            showToast("success", "Bulk Upload Complete", `${successCount} members added successfully`);
+            showToast("success", t("users.bulkUploadComplete"), t("users.membersAdded").replace("{count}", String(successCount)));
             loadMembers(); // Refresh the list
         }
 
         if (errorCount > 0) {
-            showToast("warn", "Bulk Upload Issues", `${errorCount} members failed to upload. Check the console for details.`);
+            showToast("warn", t("users.bulkUploadIssues"), t("users.membersFailedUpload").replace("{count}", String(errorCount)));
             console.error("Bulk upload errors:", errors);
         }
 
@@ -522,8 +524,8 @@ Jane,Smith,jane.smith@example.com,+1234567891,ACTIVE,primo1235,2024-01-16,2024-0
                 <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center gap-3">
 
                     <div className="flex flex-column">
-                        <h2 className="text-2xl font-bold m-0">Member Management</h2>
-                        <span className="text-600">Manage all registered members</span>
+                        <h2 className="text-2xl font-bold m-0">{t("users.memberManagement")}</h2>
+                        <span className="text-600">{t("users.manageMembers")}</span>
                     </div>
                     <div className="flex gap-2">
                     <span className="p-input-icon-left">
@@ -531,19 +533,19 @@ Jane,Smith,jane.smith@example.com,+1234567891,ACTIVE,primo1235,2024-01-16,2024-0
                         <InputText
                             value={globalFilterValue}
                             onChange={onGlobalFilterChange}
-                            placeholder="Search members..."
+                            placeholder={t("users.searchPlaceholder")}
                             className="w-full"
                         />
                     </span>
 
                     <Button
-                        label="Bulk Upload"
+                        label={t("users.bulkUpload")}
                         icon="pi pi-upload"
                         onClick={() => setShowBulkUploadDialog(true)}
                         severity="info"
                     />
                     <Button
-                        label="Add Member"
+                        label={t("users.addMember")}
                         icon="pi pi-plus"
                         onClick={openNewMemberDialog}
                         severity="success"
@@ -552,7 +554,7 @@ Jane,Smith,jane.smith@example.com,+1234567891,ACTIVE,primo1235,2024-01-16,2024-0
             </div>
         </>
 
-    ), [globalFilterValue, selectedUsers, bulkDeleting]);
+    ), [globalFilterValue, selectedUsers, bulkDeleting, t]);
 
     return (
         <div className="grid">
@@ -575,7 +577,7 @@ Jane,Smith,jane.smith@example.com,+1234567891,ACTIVE,primo1235,2024-01-16,2024-0
                                 />
                                 <Column
                                     field="firstName"
-                                    header="Name"
+                                    header={t("users.name")}
                                     body={() => (
                                         <div className="flex align-items-center gap-2">
                                             <Skeleton shape="circle" size="2rem" />
@@ -589,30 +591,30 @@ Jane,Smith,jane.smith@example.com,+1234567891,ACTIVE,primo1235,2024-01-16,2024-0
                                 />
                                 <Column
                                     field="email"
-                                    header="Email"
+                                    header={t("users.email")}
                                     body={() => <Skeleton width="200px" height="16px" />}
                                     style={{ minWidth: "200px" }}
                                 />
                                 <Column
                                     field="phone"
-                                    header="Phone"
+                                    header={t("users.phone")}
                                     body={() => <Skeleton width="120px" height="16px" />}
                                     style={{ minWidth: "150px" }}
                                 />
                                 <Column
                                     field="paidDate"
-                                    header="Paid Date"
+                                    header={t("users.paidDate")}
                                     body={() => <Skeleton width="100px" height="16px" />}
                                     style={{ minWidth: "120px" }}
                                 />
                                 <Column
                                     field="role"
-                                    header="Role"
+                                    header={t("users.role")}
                                     body={() => <Skeleton width="80px" height="24px" />}
                                     style={{ minWidth: "100px" }}
                                 />
                                 <Column
-                                    header="Actions"
+                                    header={t("users.actions")}
                                     body={() => (
                                         <div className="flex gap-2">
                                             <Skeleton width="32px" height="32px" />
@@ -640,7 +642,7 @@ Jane,Smith,jane.smith@example.com,+1234567891,ACTIVE,primo1235,2024-01-16,2024-0
                                 filterDisplay="menu"
                                 globalFilterFields={["firstName", "lastName", "email", "membershipNumber"]}
                                 header={header}
-                                emptyMessage={error ? "Unable to load members. Please check your connection or try again later." : "No members found."}
+                                emptyMessage={error ? t("users.unableToLoad") : t("users.noMembers")}
                                 responsiveLayout="scroll"
                                 onSort={(e) => {
                                     setSortField(e.sortField);
@@ -657,16 +659,16 @@ Jane,Smith,jane.smith@example.com,+1234567891,ACTIVE,primo1235,2024-01-16,2024-0
                                     headerStyle={{ width: '3rem' }}
                                     style={{ width: '3rem' }}
                                 />
-                                <Column field="firstName" header="Name" body={nameBodyTemplate} style={{ minWidth: "200px" }} />
-                                <Column field="email" header="Email" style={{ minWidth: "200px" }} />
-                                <Column field="phone" header="Phone" style={{ minWidth: "150px" }} />
-                                <Column field="paidDate" header="Paid Date" body={(rowData) => (
-                                    rowData.paidDate ? new Date(rowData.paidDate).toLocaleDateString() : "Not paid"
+                                <Column field="firstName" header={t("users.name")} body={nameBodyTemplate} style={{ minWidth: "200px" }} />
+                                <Column field="email" header={t("users.email")} style={{ minWidth: "200px" }} />
+                                <Column field="phone" header={t("users.phone")} style={{ minWidth: "150px" }} />
+                                <Column field="paidDate" header={t("users.paidDate")} body={(rowData) => (
+                                    rowData.paidDate ? new Date(rowData.paidDate).toLocaleDateString() : t("users.notPaid")
                                 )} style={{ minWidth: "120px" }} />
-                                <Column field="status" header="Status" body={(rowData) => (
+                                <Column field="status" header={t("common.status")} body={(rowData) => (
                                     <div className="flex align-items-center gap-2">
                                         <Tag value={rowData.status} severity={getStatusSeverity(rowData.status)} />
-                                        {rowData.isDeleted && <Tag value="Deleted" severity="danger" />}
+                                        {rowData.isDeleted && <Tag value={t("users.deleted")} severity="danger" />}
                                     </div>
                                 )} style={{ minWidth: "150px" }} />
                                 {/* <Column field="joinDate" header="Join Date" body={(rowData) => (
@@ -683,15 +685,15 @@ Jane,Smith,jane.smith@example.com,+1234567891,ACTIVE,primo1235,2024-01-16,2024-0
             <Dialog
                 visible={showUserDialog}
                 style={{ width: "820px", maxWidth: "95vw", zIndex: 2000, borderRadius: 12 }}
-                header={editingUser ? "Edit Member" : "Add New Member"}
+                header={editingUser ? t("users.editMember") : t("users.addNewMember")}
                 modal
                 className=""
                 onHide={() => setShowUserDialog(false)}
                 footer={
                     <div className="flex gap-2 justify-content-end">
-                        <Button label="Cancel" icon="pi pi-times" text onClick={() => setShowUserDialog(false)} disabled={saveLoading} />
+                        <Button label={t("common.cancel")} icon="pi pi-times" text onClick={() => setShowUserDialog(false)} disabled={saveLoading} />
                         <Button
-                            label="Save"
+                            label={t("common.save")}
                             icon="pi pi-check"
                             onClick={saveUser}
                             loading={saveLoading}
@@ -702,95 +704,95 @@ Jane,Smith,jane.smith@example.com,+1234567891,ACTIVE,primo1235,2024-01-16,2024-0
             >
                 <div className="grid">
                     <div className="col-12 md:col-6">
-                        <label htmlFor="firstName" className="block font-bold mb-2">First Name *</label>
+                        <label htmlFor="firstName" className="block font-bold mb-2">{t("users.firstName")}</label>
                         <InputText
                             id="firstName"
                             value={userForm.firstName}
                             onChange={(e) => setUserForm({ ...userForm, firstName: e.target.value })}
-                            placeholder="Enter first name"
+                            placeholder={t("users.enterFirstName")}
                             required
                             className="w-full"
                         />
                     </div>
                     <div className="col-12 md:col-6">
-                        <label htmlFor="lastName" className="block font-bold mb-2">Last Name *</label>
+                        <label htmlFor="lastName" className="block font-bold mb-2">{t("users.lastName")}</label>
                         <InputText
                             id="lastName"
                             value={userForm.lastName}
                             onChange={(e) => setUserForm({ ...userForm, lastName: e.target.value })}
-                            placeholder="Enter last name"
+                            placeholder={t("users.enterLastName")}
                             required
                             className="w-full"
                         />
                     </div>
                     <div className="col-12 md:col-6">
-                        <label htmlFor="email" className="block font-bold mb-2">Email *</label>
+                        <label htmlFor="email" className="block font-bold mb-2">{t("users.email")} *</label>
                         <InputText
                             id="email"
                             type="email"
                             value={userForm.email}
                             onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
-                            placeholder="Enter email address"
+                            placeholder={t("users.enterEmail")}
                             required
                             className="w-full"
                         />
                     </div>
                     <div className="col-12 md:col-6">
-                        <label htmlFor="phone" className="block font-bold mb-2">Phone</label>
+                        <label htmlFor="phone" className="block font-bold mb-2">{t("users.phone")}</label>
                         <InputText
                             id="phone"
                             value={userForm.phone}
                             onChange={(e) => setUserForm({ ...userForm, phone: e.target.value })}
-                            placeholder="Enter phone number"
+                            placeholder={t("users.enterPhone")}
                             className="w-full"
                         />
                     </div>
                     <div className="col-12 md:col-6">
-                        <label htmlFor="membershipNumber" className="block font-bold mb-2">Member ID</label>
+                        <label htmlFor="membershipNumber" className="block font-bold mb-2">{t("users.memberId")}</label>
                         <InputText
                             id="membershipNumber"
                             value={userForm.membershipNumber}
                             onChange={(e) => setUserForm({ ...userForm, membershipNumber: e.target.value })}
-                            placeholder="Enter member ID (leave blank for auto-generation)"
+                            placeholder={t("users.memberIdPlaceholder")}
                             className="w-full"
                         />
                     </div>
                     <div className="col-12 md:col-6">
-                        <label htmlFor="status" className="block font-bold mb-2">Status *</label>
+                        <label htmlFor="status" className="block font-bold mb-2">{t("common.status")} *</label>
                         <Dropdown
                             id="status"
                             value={userForm.status}
                             options={statusOptions}
                             onChange={(e) => setUserForm({ ...userForm, status: e.value })}
-                            placeholder="Select member status"
+                            placeholder={t("users.selectStatus")}
                             className="w-full"
                             style={{ minWidth: 0 }}
                         />
                     </div>
 
                     <div className="col-12 md:col-6">
-                        <label htmlFor="joinDate" className="block font-bold mb-2">Join Date</label>
+                        <label htmlFor="joinDate" className="block font-bold mb-2">{t("users.joinDate")}</label>
                         <Calendar
                             id="joinDate"
                             value={userForm.joinDate}
                             onChange={(e) => setUserForm({ ...userForm, joinDate: e.value as Date })}
                             showIcon
                             dateFormat="dd/mm/yy"
-                            placeholder="Select join date"
+                            placeholder={t("users.selectJoinDate")}
                             className="w-full"
                             style={{ minWidth: 0 }}
                         />
                     </div>
                     {editingUser && (
                         <div className="col-12 md:col-6">
-                            <label htmlFor="paidDate" className="block font-bold mb-2">Paid Date</label>
+                            <label htmlFor="paidDate" className="block font-bold mb-2">{t("users.paidDate")}</label>
                             <Calendar
                                 id="paidDate"
                                 value={userForm.paidDate}
                                 onChange={(e) => setUserForm({ ...userForm, paidDate: e.value as Date })}
                                 showIcon
                                 dateFormat="dd/mm/yy"
-                                placeholder="Select paid date"
+                                placeholder={t("users.selectPaidDate")}
                                 className="w-full"
                                 style={{ minWidth: 0 }}
                             />
@@ -798,14 +800,14 @@ Jane,Smith,jane.smith@example.com,+1234567891,ACTIVE,primo1235,2024-01-16,2024-0
                     )}
                     {!editingUser && (
                         <div className="col-12">
-                            <label htmlFor="password" className="font-bold">Password</label>
+                            <label htmlFor="password" className="font-bold">{t("users.password")}</label>
                             <div className="p-input-icon-right w-full">
                                 <InputText
                                     id="password"
                                     type={showPassword ? "text" : "password"}
                                     value={userForm.password}
                                     onChange={e => setUserForm({ ...userForm, password: e.target.value })}
-                                    placeholder="Set password (leave blank for default)"
+                                    placeholder={t("users.setPasswordPlaceholder")}
                                     className="w-full"
                                 />
                                 <i
@@ -823,26 +825,26 @@ Jane,Smith,jane.smith@example.com,+1234567891,ACTIVE,primo1235,2024-01-16,2024-0
             <Dialog
                 visible={showBulkUploadDialog}
                 style={{ width: "600px", maxWidth: "95vw", zIndex: 2000, borderRadius: 12 }}
-                header="Bulk Upload Members"
+                header={t("users.bulkUploadMembers")}
                 modal
                 className=""
                 onHide={() => setShowBulkUploadDialog(false)}
                 footer={
                     <div className="flex gap-2 justify-content-end">
                         <Button
-                            label="Download Template"
+                            label={t("users.downloadTemplate")}
                             icon="pi pi-download"
                             text
                             onClick={downloadCSVTemplate}
                         />
                         <Button
-                            label="Cancel"
+                            label={t("common.cancel")}
                             icon="pi pi-times"
                             text
                             onClick={() => setShowBulkUploadDialog(false)}
                         />
                         <Button
-                            label={bulkUploadLoading ? "Uploading..." : "Upload Members"}
+                            label={bulkUploadLoading ? t("users.uploading") : t("users.uploadMembers")}
                             icon={bulkUploadLoading ? "pi pi-spin pi-spinner" : "pi pi-upload"}
                             onClick={processBulkUpload}
                             disabled={csvData.length === 0 || csvErrors.length > 0 || bulkUploadLoading}
@@ -852,10 +854,9 @@ Jane,Smith,jane.smith@example.com,+1234567891,ACTIVE,primo1235,2024-01-16,2024-0
             >
                 <div className="flex flex-column gap-4">
                     <div>
-                        <h3 className="text-lg font-semibold mb-2">Upload CSV File</h3>
+                        <h3 className="text-lg font-semibold mb-2">{t("users.uploadCsvFile")}</h3>
                         <p className="text-600 mb-3">
-                            Upload a CSV file with member data. The file should include the following columns:
-                            firstname, lastname, email, phone (optional), status (optional), membershipnumber (optional), joindate (optional), paiddate (optional)
+                            {t("users.uploadCsvDesc")}
                         </p>
                         <FileUpload
                             mode="basic"
@@ -865,13 +866,13 @@ Jane,Smith,jane.smith@example.com,+1234567891,ACTIVE,primo1235,2024-01-16,2024-0
                             customUpload
                             uploadHandler={handleCSVUpload}
                             auto
-                            chooseLabel="Choose CSV File"
+                            chooseLabel={t("users.chooseCsvFile")}
                         />
                     </div>
 
                     {csvData.length > 0 && (
                         <div>
-                            <h4 className="font-semibold mb-2">Preview ({csvData.length} members)</h4>
+                            <h4 className="font-semibold mb-2">{t("users.preview")} ({csvData.length} {t("users.members")})</h4>
                             <div className="max-h-40 overflow-y-auto border-1 border-round p-3">
                                 {csvData.slice(0, 5).map((user, index) => (
                                     <div key={index} className="text-sm mb-1">
@@ -879,7 +880,7 @@ Jane,Smith,jane.smith@example.com,+1234567891,ACTIVE,primo1235,2024-01-16,2024-0
                                     </div>
                                 ))}
                                 {csvData.length > 5 && (
-                                    <div className="text-sm text-600">... and {csvData.length - 5} more</div>
+                                    <div className="text-sm text-600">{t("users.andMore").replace("{count}", String(csvData.length - 5))}</div>
                                 )}
                             </div>
                         </div>
@@ -887,7 +888,7 @@ Jane,Smith,jane.smith@example.com,+1234567891,ACTIVE,primo1235,2024-01-16,2024-0
 
                     {csvErrors.length > 0 && (
                         <div>
-                            <h4 className="font-semibold text-red-600 mb-2">Validation Errors ({csvErrors.length})</h4>
+                            <h4 className="font-semibold text-red-600 mb-2">{t("users.validationErrors")} ({csvErrors.length})</h4>
                             <div className="max-h-32 overflow-y-auto border-1 border-round p-3 bg-red-50">
                                 {csvErrors.map((error, index) => (
                                     <div key={index} className="text-sm text-red-600 mb-1">{error}</div>
@@ -898,7 +899,7 @@ Jane,Smith,jane.smith@example.com,+1234567891,ACTIVE,primo1235,2024-01-16,2024-0
 
                     {bulkUploadStatus && (
                         <div>
-                            <h4 className="font-semibold mb-2">Upload Progress</h4>
+                            <h4 className="font-semibold mb-2">{t("users.uploadProgress")}</h4>
                             <ProgressBar value={bulkUploadProgress} />
                             <p className="text-sm mt-2">{bulkUploadStatus}</p>
                         </div>

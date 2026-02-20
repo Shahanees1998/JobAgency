@@ -2,9 +2,11 @@
 import type { Page } from "@/types/index";
 import { useRouter } from "next/navigation";
 import { Button } from "primereact/button";
+import { useLanguage } from "@/context/LanguageContext";
 
 const Error: Page = () => {
     const router = useRouter();
+    const { t } = useLanguage();
 
     return (
         <>
@@ -34,19 +36,18 @@ const Error: Page = () => {
             <div className="min-h-screen flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
                 <div className="border-1 surface-border surface-card border-round py-7 px-4 md:px-7 z-1">
                     <div className="text-900 font-bold text-8xl mb-4">
-                        ERROR
+                        {t("auth.errorTitle").toUpperCase()}
                     </div>
                     <p className="line-height-3 mt-0 mb-5 text-700 text-xl font-medium">
-                        Something went wrong!
+                        {t("auth.errorPageTitle")}
                     </p>
                     <Button
                         onClick={() => router.push("/")}
                         severity="danger"
                         raised
                         className="font-medium"
-                    >
-                        Go to Dashboard
-                    </Button>
+                        label={t("access.goToDashboard")}
+                    />
                 </div>
             </div>
         </>

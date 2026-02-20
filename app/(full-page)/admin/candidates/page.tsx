@@ -16,6 +16,7 @@ import { apiClient } from "@/lib/apiClient";
 import { useRouter } from "next/navigation";
 import { useDebounce } from "@/hooks/useDebounce";
 import TableLoader from "@/components/TableLoader";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface Candidate {
   id: string;
@@ -44,6 +45,7 @@ interface Candidate {
 export default function AdminCandidates() {
   const router = useRouter();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -91,7 +93,7 @@ export default function AdminCandidates() {
       }
     } catch (error) {
       console.error("Error loading candidates:", error);
-      showToast("error", "Error", "Failed to load candidates");
+      showToast("error", t("common.error"), t("candidates.failedToLoad"));
       setCandidates([]);
       setTotalRecords(0);
     } finally {
@@ -108,7 +110,7 @@ export default function AdminCandidates() {
       }
     } catch (error) {
       console.error("Error loading candidate details:", error);
-      showToast("error", "Error", "Failed to load candidate details");
+      showToast("error", t("common.error"), t("candidates.failedToLoadDetails"));
     }
   };
 
@@ -137,7 +139,7 @@ export default function AdminCandidates() {
 
   const skillsBodyTemplate = (rowData: Candidate) => {
     if (!rowData.skills || rowData.skills.length === 0) {
-      return <span className="text-gray-500">No skills listed</span>;
+      return <span className="text-gray-500">{t("candidates.noSkills")}</span>;
     }
     return (
       <div className="flex flex-wrap gap-1">
@@ -158,13 +160,13 @@ export default function AdminCandidates() {
           icon="pi pi-eye"
           className="p-button-info p-button-sm"
           onClick={() => router.push(`/admin/candidates/${rowData.id}`)}
-          tooltip="View Details"
+          tooltip={t("candidates.viewDetails")}
         />
         <Button
           icon="pi pi-file"
           className="p-button-secondary p-button-sm"
           onClick={() => router.push(`/admin/applications?candidateId=${rowData.id}`)}
-          tooltip="View Applications"
+          tooltip={t("candidates.viewApplications")}
         />
       </div>
     );
@@ -173,14 +175,13 @@ export default function AdminCandidates() {
   return (
     <div className="grid">
       <div className="col-12">
-        <Card title="Candidate Management">
-          {/* Filters */}
+        <Card title={t("candidates.management")}>
           <div className="grid mb-4">
             <div className="col-12 md:col-6">
               <span className="p-input-icon-left w-full">
                 <i className="pi pi-search" />
                 <InputText
-                  placeholder="Search candidates..."
+                  placeholder={t("candidates.searchPlaceholder")}
                   value={filters.search}
                   onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                   className="w-full"
@@ -191,22 +192,21 @@ export default function AdminCandidates() {
               <Dropdown
                 value={filters.isProfileComplete}
                 options={[
-                  { label: "All Profiles", value: "" },
-                  { label: "Complete Profiles", value: "true" },
-                  { label: "Incomplete Profiles", value: "false" },
+                  { label: t("candidates.allProfiles"), value: "" },
+                  { label: t("candidates.completeProfiles"), value: "true" },
+                  { label: t("candidates.incompleteProfiles"), value: "false" },
                 ]}
                 optionLabel="label"
                 optionValue="value"
                 onChange={(e) => setFilters({ ...filters, isProfileComplete: e.value ?? "" })}
-                placeholder="Filter by Profile Status"
+                placeholder={t("candidates.filterByProfile")}
                 className="w-full"
               />
             </div>
           </div>
 
-          {/* Data Table */}
           {loading ? (
-            <TableLoader message="Loading candidates..." />
+            <TableLoader message={t("candidates.loading")} />
           ) : (
             <DataTable
               value={candidates}
@@ -220,38 +220,24 @@ export default function AdminCandidates() {
                 setCurrentPage((e.page || 0) + 1);
                 setRowsPerPage(e.rows || 10);
               }}
-              emptyMessage="No candidates found"
+              emptyMessage={t("candidates.noCandidates")}
             >
             <Column
               field="user.firstName"
-              header="Name"
+              header={t("candidates.name")}
               body={(rowData) => `${rowData.user.firstName} ${rowData.user.lastName}`}
               sortable
             />
-            <Column
-              field="user.email"
-              header="Email"
-              sortable
-            />
-            <Column
-              field="user.phone"
-              header="Phone"
-            />
-            <Column
-              field="skills"
-              header="Skills"
-              body={skillsBodyTemplate}
-            />
-            <Column
-              field="location"
-              header="Location"
-            />
+            <Column field="user.email" header={t("common.email")} sortable />
+            <Column field="user.phone" header={t("candidates.phone")} />
+            <Column field="skills" header={t("candidates.skills")} body={skillsBodyTemplate} />
+            <Column field="location" header={t("candidates.location")} />
             <Column
               field="isProfileComplete"
-              header="Profile Status"
+              header={t("candidates.profileStatus")}
               body={(rowData) => (
                 <Tag
-                  value={rowData.isProfileComplete ? "Complete" : "Incomplete"}
+                  value={rowData.isProfileComplete ? t("candidates.complete") : t("candidates.incomplete")}
                   severity={rowData.isProfileComplete ? "success" : "warning"}
                 />
               )}
@@ -259,7 +245,7 @@ export default function AdminCandidates() {
             />
             <Column
               field="user.status"
-              header="Account Status"
+              header={t("candidates.accountStatus")}
               body={(rowData) => (
                 <Tag
                   value={rowData.user.status}
@@ -268,19 +254,15 @@ export default function AdminCandidates() {
               )}
               sortable
             />
-            <Column
-              field="totalApplications"
-              header="Applications"
-              sortable
-            />
+            <Column field="totalApplications" header={t("candidates.applications")} sortable />
             <Column
               field="createdAt"
-              header="Registered"
+              header={t("candidates.registered")}
               body={(rowData) => formatDate(rowData.createdAt)}
               sortable
             />
             <Column
-              header="Actions"
+              header={t("common.actions")}
               body={actionBodyTemplate}
               style={{ width: "150px" }}
             />
@@ -289,9 +271,8 @@ export default function AdminCandidates() {
         </Card>
       </div>
 
-      {/* View Details Dialog */}
       <Dialog
-        header="Candidate Details"
+        header={t("candidates.details")}
         visible={viewDialogVisible}
         style={{ width: "70vw" }}
         onHide={() => {
@@ -301,7 +282,7 @@ export default function AdminCandidates() {
         footer={
           <div>
             <Button
-              label="Close"
+              label={t("common.close")}
               icon="pi pi-times"
               onClick={() => {
                 setViewDialogVisible(false);
@@ -311,7 +292,7 @@ export default function AdminCandidates() {
             />
             {selectedCandidate && (
               <Button
-                label="View Applications"
+                label={t("candidates.viewApplications")}
                 icon="pi pi-file"
                 onClick={() => {
                   setViewDialogVisible(false);
@@ -390,7 +371,7 @@ export default function AdminCandidates() {
               <div className="col-12">
                 <h3 className="mt-3 mb-2">CV</h3>
                 <Button
-                  label="View CV"
+                  label={t("candidates.viewCv")}
                   icon="pi pi-download"
                   onClick={() => window.open(selectedCandidate.cvUrl, '_blank')}
                   className="p-button-outlined"

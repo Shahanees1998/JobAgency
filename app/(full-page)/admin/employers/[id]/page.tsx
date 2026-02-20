@@ -11,6 +11,7 @@ import { Dialog } from "primereact/dialog";
 import { InputTextarea } from "primereact/inputtextarea";
 import { apiClient } from "@/lib/apiClient";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/context/LanguageContext";
 
 // Add custom styles (same as job detail page)
 const styles = `
@@ -196,6 +197,7 @@ export default function AdminEmployerDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [employer, setEmployer] = useState<Employer | null>(null);
   const [loading, setLoading] = useState(true);
   const [approveDialogVisible, setApproveDialogVisible] = useState(false);
@@ -226,11 +228,11 @@ export default function AdminEmployerDetailPage() {
       if (employerData) {
         setEmployer(employerData);
       } else {
-        showToast("error", "Error", "Employer not found");
+        showToast("error", t("common.error"), t("employers.notFound"));
       }
     } catch (error) {
       console.error("Error loading employer:", error);
-      showToast("error", "Error", "Failed to load employer details");
+      showToast("error", t("common.error"), t("employers.failedToLoadDetails"));
     } finally {
       setLoading(false);
     }
@@ -249,12 +251,12 @@ export default function AdminEmployerDetailPage() {
       if (response.error) {
         throw new Error(response.error);
       }
-      showToast("success", "Success", "Employer approved successfully");
+      showToast("success", t("common.success"), t("employers.approveSuccess"));
       setApproveDialogVisible(false);
       setActionNotes("");
       await loadEmployer(employer.id);
     } catch (error) {
-      showToast("error", "Error", "Failed to approve employer");
+      showToast("error", t("common.error"), t("employers.failedToApprove"));
     } finally {
       setProcessing(false);
     }
@@ -262,7 +264,7 @@ export default function AdminEmployerDetailPage() {
 
   const handleReject = async () => {
     if (!employer || !actionReason.trim()) {
-      showToast("warn", "Warning", "Please provide a rejection reason");
+      showToast("warn", t("common.warning"), t("employers.provideRejectionReasonRequired"));
       return;
     }
 
@@ -272,13 +274,13 @@ export default function AdminEmployerDetailPage() {
       if (response.error) {
         throw new Error(response.error);
       }
-      showToast("success", "Success", "Employer rejected successfully");
+      showToast("success", t("common.success"), t("employers.rejectSuccess"));
       setRejectDialogVisible(false);
       setActionReason("");
       setActionNotes("");
       await loadEmployer(employer.id);
     } catch (error) {
-      showToast("error", "Error", "Failed to reject employer");
+      showToast("error", t("common.error"), t("employers.failedToReject"));
     } finally {
       setProcessing(false);
     }
@@ -286,7 +288,7 @@ export default function AdminEmployerDetailPage() {
 
   const handleSuspend = async () => {
     if (!employer || !actionReason.trim()) {
-      showToast("warn", "Warning", "Please provide a suspension reason");
+      showToast("warn", t("common.warning"), t("employers.provideSuspensionReasonRequired"));
       return;
     }
 
@@ -296,12 +298,12 @@ export default function AdminEmployerDetailPage() {
       if (response.error) {
         throw new Error(response.error);
       }
-      showToast("success", "Success", "Employer suspended successfully");
+      showToast("success", t("common.success"), t("employers.suspendSuccess"));
       setSuspendDialogVisible(false);
       setActionReason("");
       await loadEmployer(employer.id);
     } catch (error) {
-      showToast("error", "Error", "Failed to suspend employer");
+      showToast("error", t("common.error"), t("employers.failedToSuspend"));
     } finally {
       setProcessing(false);
     }
@@ -316,10 +318,10 @@ export default function AdminEmployerDetailPage() {
       if (response.error) {
         throw new Error(response.error);
       }
-      showToast("success", "Success", "Employer unsuspended successfully");
+      showToast("success", t("common.success"), t("employers.unsuspendSuccess"));
       await loadEmployer(employer.id);
     } catch (error) {
-      showToast("error", "Error", "Failed to unsuspend employer");
+      showToast("error", t("common.error"), t("employers.failedToUnsuspend"));
     } finally {
       setProcessing(false);
     }
@@ -407,10 +409,10 @@ export default function AdminEmployerDetailPage() {
                     <i className="pi pi-exclamation-triangle text-4xl"></i>
                   </div>
                 </div>
-                <h2 className="text-3xl font-bold text-900 mb-3">Employer Not Found</h2>
-                <p className="text-xl text-600 mb-5">The requested employer could not be found.</p>
+                <h2 className="text-3xl font-bold text-900 mb-3">{t("employers.notFound")}</h2>
+                <p className="text-xl text-600 mb-5">{t("employers.notFoundDescription")}</p>
                 <Button
-                  label="Back to Employers"
+                  label={t("employers.backToEmployers")}
                   icon="pi pi-arrow-left"
                   onClick={() => router.push("/admin/employers")}
                   className="action-button"
@@ -455,7 +457,7 @@ export default function AdminEmployerDetailPage() {
                 {employer.verificationStatus === "PENDING" && (
                   <>
                     <Button
-                      label="Approve"
+                      label={t("employers.approve")}
                       icon="pi pi-check"
                       severity="success"
                       onClick={() => setApproveDialogVisible(true)}
@@ -463,7 +465,7 @@ export default function AdminEmployerDetailPage() {
                       size="large"
                     />
                     <Button
-                      label="Reject"
+                      label={t("employers.reject")}
                       icon="pi pi-times"
                       severity="danger"
                       onClick={() => setRejectDialogVisible(true)}
@@ -474,7 +476,7 @@ export default function AdminEmployerDetailPage() {
                 )}
                 {employer.isSuspended ? (
                   <Button
-                    label="Unsuspend"
+                    label={t("employers.unsuspend")}
                     icon="pi pi-unlock"
                     severity="success"
                     onClick={handleUnsuspend}
@@ -485,7 +487,7 @@ export default function AdminEmployerDetailPage() {
                 ) : (
                   employer.verificationStatus === "APPROVED" && (
                     <Button
-                      label="Suspend"
+                      label={t("employers.suspend")}
                       icon="pi pi-ban"
                       severity="warning"
                       onClick={() => setSuspendDialogVisible(true)}
@@ -495,7 +497,7 @@ export default function AdminEmployerDetailPage() {
                   )
                 )}
                 <Button
-                  label="Back"
+                  label={t("common.back")}
                   icon="pi pi-arrow-left"
                   outlined
                   onClick={() => router.push("/admin/employers")}
@@ -508,15 +510,15 @@ export default function AdminEmployerDetailPage() {
             {/* Status and Meta Badges */}
             <div className="flex flex-wrap align-items-center gap-3 mt-4">
               <div className="flex align-items-center gap-2">
-                <span className="font-bold text-white">Verification Status:</span>
+                <span className="font-bold text-white">{t("employers.verificationStatusLabel")}</span>
                 <Tag value={employer.verificationStatus} severity={getVerificationStatusSeverity(employer.verificationStatus)} style={{ fontSize: '0.9rem', padding: '0.5rem 1rem' }} />
               </div>
               {employer.isSuspended && (
-                <Tag value="Suspended" severity="danger" style={{ fontSize: '0.9rem', padding: '0.5rem 1rem' }} />
+                <Tag value={t("employers.suspended")} severity="danger" style={{ fontSize: '0.9rem', padding: '0.5rem 1rem' }} />
               )}
               <span className="stat-badge jobs">
                 <i className="pi pi-briefcase"></i>
-                {employer.totalJobs} Jobs
+                {t("employers.jobsCount").replace("{n}", String(employer.totalJobs))}
               </span>
             </div>
           </div>
@@ -531,13 +533,13 @@ export default function AdminEmployerDetailPage() {
                       <div className="icon-wrapper blue">
                         <i className="pi pi-building text-xl"></i>
                       </div>
-                      <h3 className="text-xl font-bold m-0">Company Details</h3>
+                      <h3 className="text-xl font-bold m-0">{t("employers.companyDetails")}</h3>
                     </div>
                     <div className="flex flex-column gap-3">
                       {employer.companyDescription && (
                         <div>
                           <label className="font-bold text-600 block mb-2">
-                            <i className="pi pi-file mr-2"></i>Description
+                            <i className="pi pi-file mr-2"></i>{t("employers.description")}
                           </label>
                           <div className="text-lg text-900 line-height-3">{employer.companyDescription}</div>
                         </div>
@@ -545,7 +547,7 @@ export default function AdminEmployerDetailPage() {
                       {employer.companySize && (
                         <div>
                           <label className="font-bold text-600 block mb-2">
-                            <i className="pi pi-users mr-2"></i>Company Size
+                            <i className="pi pi-users mr-2"></i>{t("employers.companySize")}
                           </label>
                           <div className="text-lg font-semibold text-900">{employer.companySize}</div>
                         </div>
@@ -553,7 +555,7 @@ export default function AdminEmployerDetailPage() {
                       {employer.industry && (
                         <div>
                           <label className="font-bold text-600 block mb-2">
-                            <i className="pi pi-tag mr-2"></i>Industry
+                            <i className="pi pi-tag mr-2"></i>{t("employers.industry")}
                           </label>
                           <div className="text-lg font-semibold text-900">{employer.industry}</div>
                         </div>
@@ -561,7 +563,7 @@ export default function AdminEmployerDetailPage() {
                       {employer.companyWebsite && (
                         <div>
                           <label className="font-bold text-600 block mb-2">
-                            <i className="pi pi-globe mr-2"></i>Website
+                            <i className="pi pi-globe mr-2"></i>{t("employers.website")}
                           </label>
                           <div className="text-lg">
                             <a 
@@ -585,13 +587,13 @@ export default function AdminEmployerDetailPage() {
                       <div className="icon-wrapper green">
                         <i className="pi pi-map-marker text-xl"></i>
                       </div>
-                      <h3 className="text-xl font-bold m-0">Location</h3>
+                      <h3 className="text-xl font-bold m-0">{t("employers.location")}</h3>
                     </div>
                     <div className="flex flex-column gap-3">
                       {employer.address && (
                         <div>
                           <label className="font-bold text-600 block mb-2">
-                            <i className="pi pi-map mr-2"></i>Address
+                            <i className="pi pi-map mr-2"></i>{t("employers.address")}
                           </label>
                           <div className="text-lg text-900">{employer.address}</div>
                         </div>
@@ -599,7 +601,7 @@ export default function AdminEmployerDetailPage() {
                       {employer.city && (
                         <div>
                           <label className="font-bold text-600 block mb-2">
-                            <i className="pi pi-building mr-2"></i>City
+                            <i className="pi pi-building mr-2"></i>{t("employers.city")}
                           </label>
                           <div className="text-lg font-semibold text-900">{employer.city}</div>
                         </div>
@@ -607,14 +609,14 @@ export default function AdminEmployerDetailPage() {
                       {employer.country && (
                         <div>
                           <label className="font-bold text-600 block mb-2">
-                            <i className="pi pi-flag mr-2"></i>Country
+                            <i className="pi pi-flag mr-2"></i>{t("employers.country")}
                           </label>
                           <div className="text-lg font-semibold text-900">{employer.country}</div>
                         </div>
                       )}
                       <div>
                         <label className="font-bold text-600 block mb-2">
-                          <i className="pi pi-calendar mr-2"></i>Registered
+                          <i className="pi pi-calendar mr-2"></i>{t("employers.registered")}
                         </label>
                         <div className="text-lg font-semibold text-900">{formatDate(employer.createdAt)}</div>
                       </div>
@@ -629,13 +631,13 @@ export default function AdminEmployerDetailPage() {
                   <div className="icon-wrapper purple">
                     <i className="pi pi-user text-xl"></i>
                   </div>
-                  <h3 className="text-xl font-bold m-0">Contact Information</h3>
+                  <h3 className="text-xl font-bold m-0">{t("employers.contactInformation")}</h3>
                 </div>
                 <div className="grid">
                   <div className="col-12 md:col-6">
                     <div className="p-3 bg-white border-round">
                       <label className="font-bold text-600 block mb-2">
-                        <i className="pi pi-user mr-2 text-pink-500"></i>Contact Person
+                        <i className="pi pi-user mr-2 text-pink-500"></i>{t("employers.contactPerson")}
                       </label>
                       <div className="text-lg font-semibold text-900">
                         {employer.user.firstName} {employer.user.lastName}
@@ -645,7 +647,7 @@ export default function AdminEmployerDetailPage() {
                   <div className="col-12 md:col-6">
                     <div className="p-3 bg-white border-round">
                       <label className="font-bold text-600 block mb-2">
-                        <i className="pi pi-envelope mr-2 text-cyan-500"></i>Email
+                        <i className="pi pi-envelope mr-2 text-cyan-500"></i>{t("common.email")}
                       </label>
                       <div className="text-lg font-semibold text-900">
                         <a href={`mailto:${employer.user.email}`} className="text-primary no-underline">
@@ -658,7 +660,7 @@ export default function AdminEmployerDetailPage() {
                     <div className="col-12 md:col-6">
                       <div className="p-3 bg-white border-round">
                         <label className="font-bold text-600 block mb-2">
-                          <i className="pi pi-phone mr-2 text-blue-500"></i>Phone
+                          <i className="pi pi-phone mr-2 text-blue-500"></i>{t("candidates.phone")}
                         </label>
                         <div className="text-lg font-semibold text-900">
                           <a href={`tel:${employer.user.phone}`} className="text-primary no-underline">
@@ -671,7 +673,7 @@ export default function AdminEmployerDetailPage() {
                   <div className="col-12 md:col-6">
                     <div className="p-3 bg-white border-round">
                       <label className="font-bold text-600 block mb-2">
-                        <i className="pi pi-shield mr-2 text-green-500"></i>User Status
+                        <i className="pi pi-shield mr-2 text-green-500"></i>{t("employers.userStatus")}
                       </label>
                       <div>
                         <Tag
@@ -692,7 +694,7 @@ export default function AdminEmployerDetailPage() {
                     <div className="icon-wrapper" style={{ background: '#000000', color: 'white' }}>
                       <i className="pi pi-comment text-xl"></i>
                     </div>
-                    <h3 className="text-xl font-bold m-0">Verification Notes</h3>
+                    <h3 className="text-xl font-bold m-0">{t("employers.verificationNotes")}</h3>
                   </div>
                   <div className="content-section" style={{ background: '#fef3c7', borderColor: '#fbbf24' }}>
                     <div className="whitespace-pre-wrap text-900 line-height-3">{employer.verificationNotes}</div>
@@ -707,16 +709,16 @@ export default function AdminEmployerDetailPage() {
                     <div className="icon-wrapper" style={{ background: '#000000', color: 'white' }}>
                       <i className="pi pi-ban text-xl"></i>
                     </div>
-                    <h3 className="text-xl font-bold m-0">Suspension Details</h3>
+                    <h3 className="text-xl font-bold m-0">{t("employers.suspensionDetails")}</h3>
                   </div>
                   <div className="content-section" style={{ background: '#fee2e2', borderColor: '#fca5a5' }}>
                     <div className="mb-3">
-                      <label className="font-bold text-600 block mb-2">Reason:</label>
+                      <label className="font-bold text-600 block mb-2">{t("employers.reasonLabel")}</label>
                       <div className="text-lg text-900">{employer.suspensionReason}</div>
                     </div>
                     {employer.suspendedAt && (
                       <div>
-                        <label className="font-bold text-600 block mb-2">Suspended At:</label>
+                        <label className="font-bold text-600 block mb-2">{t("employers.suspendedAt")}</label>
                         <div className="text-lg text-900">{formatDate(employer.suspendedAt)}</div>
                       </div>
                     )}
@@ -731,7 +733,7 @@ export default function AdminEmployerDetailPage() {
                     <div className="icon-wrapper orange">
                       <i className="pi pi-briefcase text-xl"></i>
                     </div>
-                    <h3 className="text-xl font-bold m-0">Recent Jobs ({employer.totalJobs} total)</h3>
+                    <h3 className="text-xl font-bold m-0">{t("employers.recentJobsTotal").replace("{n}", String(employer.totalJobs))}</h3>
                   </div>
                   <div className="flex flex-column gap-2">
                     {employer.recentJobs.map((job) => (
@@ -758,7 +760,7 @@ export default function AdminEmployerDetailPage() {
               {/* Actions */}
               <div className="flex gap-3 flex-wrap">
                 <Button
-                  label="View All Jobs"
+                  label={t("employers.viewAllJobs")}
                   icon="pi pi-briefcase"
                   onClick={() => router.push(`/admin/jobs?employerId=${employer.id}`)}
                   className="action-button"
@@ -777,7 +779,7 @@ export default function AdminEmployerDetailPage() {
 
       {/* Approve Dialog */}
       <Dialog
-        header="Approve Employer"
+        header={t("employers.approveEmployer")}
         visible={approveDialogVisible}
         style={{ width: "50vw" }}
         onHide={() => {
@@ -787,7 +789,7 @@ export default function AdminEmployerDetailPage() {
         footer={
           <div>
             <Button
-              label="Cancel"
+              label={t("common.cancel")}
               icon="pi pi-times"
               onClick={() => {
                 setApproveDialogVisible(false);
@@ -796,7 +798,7 @@ export default function AdminEmployerDetailPage() {
               className="p-button-text"
             />
             <Button
-              label="Approve"
+              label={t("employers.approve")}
               icon="pi pi-check"
               onClick={handleApprove}
               loading={processing}
@@ -806,11 +808,11 @@ export default function AdminEmployerDetailPage() {
       >
         <div>
           <p>
-            Are you sure you want to approve <strong>{employer.companyName}</strong>?
+            {t("employers.approveConfirmMessage")} <strong>{employer.companyName}</strong>?
           </p>
           <div className="mt-3">
             <label htmlFor="approve-notes" className="block mb-2">
-              Notes (optional)
+              {t("employers.notesOptional")}
             </label>
             <InputTextarea
               id="approve-notes"
@@ -818,7 +820,7 @@ export default function AdminEmployerDetailPage() {
               onChange={(e) => setActionNotes(e.target.value)}
               rows={4}
               className="w-full"
-              placeholder="Add any notes about this approval..."
+              placeholder={t("employers.addNotesApproval")}
             />
           </div>
         </div>
@@ -826,7 +828,7 @@ export default function AdminEmployerDetailPage() {
 
       {/* Reject Dialog */}
       <Dialog
-        header="Reject Employer"
+        header={t("employers.rejectEmployer")}
         visible={rejectDialogVisible}
         style={{ width: "50vw" }}
         onHide={() => {
@@ -837,7 +839,7 @@ export default function AdminEmployerDetailPage() {
         footer={
           <div>
             <Button
-              label="Cancel"
+              label={t("common.cancel")}
               icon="pi pi-times"
               onClick={() => {
                 setRejectDialogVisible(false);
@@ -847,7 +849,7 @@ export default function AdminEmployerDetailPage() {
               className="p-button-text"
             />
             <Button
-              label="Reject"
+              label={t("employers.reject")}
               icon="pi pi-times"
               onClick={handleReject}
               loading={processing}
@@ -858,11 +860,11 @@ export default function AdminEmployerDetailPage() {
       >
         <div>
           <p>
-            Are you sure you want to reject <strong>{employer.companyName}</strong>?
+            {t("employers.rejectConfirmMessage")} <strong>{employer.companyName}</strong>?
           </p>
           <div className="mt-3">
             <label htmlFor="reject-reason" className="block mb-2">
-              Reason <span className="text-red-500">*</span>
+              {t("employers.reasonRequired")} <span className="text-red-500">*</span>
             </label>
             <InputTextarea
               id="reject-reason"
@@ -870,12 +872,12 @@ export default function AdminEmployerDetailPage() {
               onChange={(e) => setActionReason(e.target.value)}
               rows={3}
               className="w-full"
-              placeholder="Enter rejection reason..."
+              placeholder={t("employers.enterRejectionReason")}
             />
           </div>
           <div className="mt-3">
             <label htmlFor="reject-notes" className="block mb-2">
-              Notes (optional)
+              {t("employers.additionalNotes")}
             </label>
             <InputTextarea
               id="reject-notes"
@@ -883,7 +885,7 @@ export default function AdminEmployerDetailPage() {
               onChange={(e) => setActionNotes(e.target.value)}
               rows={4}
               className="w-full"
-              placeholder="Add any additional notes..."
+              placeholder={t("employers.addAdditionalNotes")}
             />
           </div>
         </div>
@@ -891,7 +893,7 @@ export default function AdminEmployerDetailPage() {
 
       {/* Suspend Dialog */}
       <Dialog
-        header="Suspend Employer"
+        header={t("employers.suspendEmployer")}
         visible={suspendDialogVisible}
         style={{ width: "50vw" }}
         onHide={() => {
@@ -901,7 +903,7 @@ export default function AdminEmployerDetailPage() {
         footer={
           <div>
             <Button
-              label="Cancel"
+              label={t("common.cancel")}
               icon="pi pi-times"
               onClick={() => {
                 setSuspendDialogVisible(false);
@@ -910,7 +912,7 @@ export default function AdminEmployerDetailPage() {
               className="p-button-text"
             />
             <Button
-              label="Suspend"
+              label={t("employers.suspend")}
               icon="pi pi-ban"
               onClick={handleSuspend}
               loading={processing}
@@ -921,11 +923,11 @@ export default function AdminEmployerDetailPage() {
       >
         <div>
           <p>
-            Are you sure you want to suspend <strong>{employer.companyName}</strong>?
+            {t("employers.suspendConfirmMessage")} <strong>{employer.companyName}</strong>?
           </p>
           <div className="mt-3">
             <label htmlFor="suspend-reason" className="block mb-2">
-              Reason <span className="text-red-500">*</span>
+              {t("employers.reasonRequired")} <span className="text-red-500">*</span>
             </label>
             <InputTextarea
               id="suspend-reason"
@@ -933,7 +935,7 @@ export default function AdminEmployerDetailPage() {
               onChange={(e) => setActionReason(e.target.value)}
               rows={4}
               className="w-full"
-              placeholder="Enter suspension reason..."
+              placeholder={t("employers.provideSuspensionReason")}
             />
           </div>
         </div>

@@ -4,9 +4,11 @@ import { useRouter } from "next/navigation";
 import { Button } from "primereact/button";
 import { Password } from "primereact/password";
 import { AuthSplitLayout } from "@/components/auth/AuthSplitLayout";
+import { useLanguage } from "@/context/LanguageContext";
 
 const NewPassword: Page = () => {
     const router = useRouter();
+    const { t } = useLanguage();
 
     return (
         <>
@@ -14,10 +16,10 @@ const NewPassword: Page = () => {
                 <div className="border-1 surface-border surface-card border-round py-7 px-4 md:px-7 shadow-2">
                     <div className="mb-4">
                         <div className="text-900 text-xl font-bold mb-2">
-                            New Password
+                            {t("auth.newPassword")}
                         </div>
                         <span className="text-600 font-medium">
-                            Enter your new password
+                            {t("auth.enterNewPassword")}
                         </span>
                     </div>
                     <div className="flex flex-column">
@@ -28,7 +30,7 @@ const NewPassword: Page = () => {
                                 className="w-full"
                                 type="text"
                                 inputClassName="w-full"
-                                placeholder="Password"
+                                placeholder={t("auth.passwordPlaceholder")}
                                 toggleMask
                                 inputStyle={{ paddingLeft: "2.5rem" }}
                             />
@@ -40,7 +42,7 @@ const NewPassword: Page = () => {
                                 className="w-full"
                                 type="text"
                                 inputClassName="w-full"
-                                placeholder="Repeat Password"
+                                placeholder={t("auth.repeatPassword")}
                                 toggleMask
                                 feedback={false}
                                 inputStyle={{ paddingLeft: "2.5rem" }}
@@ -48,13 +50,13 @@ const NewPassword: Page = () => {
                         </span>
                         <div className="flex flex-wrap gap-2 justify-content-between">
                             <Button
-                                label="Cancel"
+                                label={t("common.cancel")}
                                 outlined
                                 className="flex-auto"
                                 onClick={() => router.push("/")}
                             ></Button>
                             <Button
-                                label="Submit"
+                                label={t("auth.submit")}
                                 className="flex-auto"
                                 onClick={() => router.push("/")}
                             ></Button>

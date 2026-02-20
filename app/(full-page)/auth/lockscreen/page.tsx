@@ -4,9 +4,11 @@ import { useRouter } from "next/navigation";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { AuthSplitLayout } from "@/components/auth/AuthSplitLayout";
+import { useLanguage } from "@/context/LanguageContext";
 
 const LockScreen: Page = () => {
     const router = useRouter();
+    const { t } = useLanguage();
 
     return (
         <>
@@ -14,10 +16,10 @@ const LockScreen: Page = () => {
                 <div className="border-1 surface-border surface-card border-round py-7 px-4 md:px-7 shadow-2">
                     <div className="mb-6 flex flex-column align-items-center">
                         <div className="text-900 text-xl font-bold mb-2">
-                            Screen Locked
+                            {t("auth.screenLocked")}
                         </div>
                         <span className="text-600 font-medium mb-5">
-                            Please enter your password
+                            {t("auth.pleaseEnterPassword")}
                         </span>
                         <img
                             src="/layout/images/avatar/avatar.png"
@@ -35,12 +37,12 @@ const LockScreen: Page = () => {
                                 id="password"
                                 type="password"
                                 className="w-full"
-                                placeholder="Password"
+                                placeholder={t("auth.passwordPlaceholder")}
                             />
                         </span>
                         <Button
                             icon="pi pi-lock-open"
-                            label="Unlock"
+                            label={t("auth.unlock")}
                             className="w-full"
                             onClick={() => router.push("/")}
                         ></Button>

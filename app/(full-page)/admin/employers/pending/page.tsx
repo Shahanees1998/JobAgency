@@ -14,6 +14,7 @@ import { apiClient } from "@/lib/apiClient";
 import { useRouter } from "next/navigation";
 import { useDebounce } from "@/hooks/useDebounce";
 import TableLoader from "@/components/TableLoader";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface Employer {
   id: string;
@@ -41,6 +42,7 @@ interface Employer {
 
 export default function AdminPendingEmployers() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [employers, setEmployers] = useState<Employer[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -85,7 +87,7 @@ export default function AdminPendingEmployers() {
       }
     } catch (error) {
       console.error("Error loading pending employers:", error);
-      showToast("error", "Error", "Failed to load pending employers");
+      showToast("error", t("common.error"), t("employers.failedToLoadPending"));
       setEmployers([]);
       setTotalRecords(0);
     } finally {
@@ -103,13 +105,13 @@ export default function AdminPendingEmployers() {
     setProcessing(true);
     try {
       await apiClient.approveEmployer(selectedEmployer.id, actionNotes);
-      showToast("success", "Success", "Employer approved successfully");
+      showToast("success", t("common.success"), t("employers.approveSuccess"));
       setApproveDialogVisible(false);
       setActionNotes("");
       setSelectedEmployer(null);
       loadPendingEmployers();
     } catch (error) {
-      showToast("error", "Error", "Failed to approve employer");
+      showToast("error", t("common.error"), t("employers.failedToApprove"));
     } finally {
       setProcessing(false);
     }
@@ -117,21 +119,21 @@ export default function AdminPendingEmployers() {
 
   const handleReject = async () => {
     if (!selectedEmployer || !actionReason) {
-      showToast("warn", "Warning", "Please provide a rejection reason");
+      showToast("warn", t("common.warning"), t("employers.provideRejectionReasonRequired"));
       return;
     }
     
     setProcessing(true);
     try {
       await apiClient.rejectEmployer(selectedEmployer.id, actionReason, actionNotes);
-      showToast("success", "Success", "Employer rejected successfully");
+      showToast("success", t("common.success"), t("employers.rejectSuccess"));
       setRejectDialogVisible(false);
       setActionReason("");
       setActionNotes("");
       setSelectedEmployer(null);
       loadPendingEmployers();
     } catch (error) {
-      showToast("error", "Error", "Failed to reject employer");
+      showToast("error", t("common.error"), t("employers.failedToReject"));
     } finally {
       setProcessing(false);
     }
@@ -156,7 +158,7 @@ export default function AdminPendingEmployers() {
             setSelectedEmployer(rowData);
             setApproveDialogVisible(true);
           }}
-          tooltip="Approve"
+          tooltip={t("employers.approve")}
         />
         <Button
           icon="pi pi-times"
@@ -165,13 +167,13 @@ export default function AdminPendingEmployers() {
             setSelectedEmployer(rowData);
             setRejectDialogVisible(true);
           }}
-          tooltip="Reject"
+          tooltip={t("employers.reject")}
         />
         <Button
           icon="pi pi-eye"
           className="p-button-info p-button-sm"
           onClick={() => router.push(`/admin/employers/${rowData.id}`)}
-          tooltip="View Details"
+          tooltip={t("employers.viewDetails")}
         />
       </div>
     );
@@ -180,18 +182,17 @@ export default function AdminPendingEmployers() {
   return (
     <div className="grid">
       <div className="col-12">
-        <Card title="Pending Employer Approvals">
+        <Card title={t("employers.pendingTitle")}>
           <p className="text-gray-600 mb-4">
-            Review and verify employer registrations that are awaiting approval.
+            {t("employers.pendingDescription")}
           </p>
 
-          {/* Filters - server-side */}
           <div className="grid mb-4">
             <div className="col-12 md:col-4">
               <span className="p-input-icon-left w-full">
                 <i className="pi pi-search" />
                 <InputText
-                  placeholder="Search company, email, name, industry, city..."
+                  placeholder={t("employers.searchPendingPlaceholder")}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="w-full"
@@ -200,9 +201,8 @@ export default function AdminPendingEmployers() {
             </div>
           </div>
 
-          {/* Data Table - server-side pagination */}
           {loading ? (
-            <TableLoader message="Loading pending employers..." />
+            <TableLoader message={t("employers.loadingPending")} />
           ) : (
             <DataTable
               value={employers}
@@ -216,39 +216,26 @@ export default function AdminPendingEmployers() {
                 setCurrentPage((e.page ?? 0) + 1);
                 setRowsPerPage(e.rows ?? 10);
               }}
-              emptyMessage="No pending employers found"
+              emptyMessage={t("employers.noPendingFound")}
             >
-              <Column field="companyName" header="Company Name" sortable />
-              <Column
-                field="user.email"
-                header="Contact Email"
-                sortable
-              />
+              <Column field="companyName" header={t("employers.companyName")} sortable />
+              <Column field="user.email" header={t("employers.contactEmail")} sortable />
               <Column
                 field="user.firstName"
-                header="Contact Name"
+                header={t("employers.contactName")}
                 body={(rowData) => `${rowData.user.firstName} ${rowData.user.lastName}`}
               />
-              <Column
-                field="industry"
-                header="Industry"
-              />
-              <Column
-                field="city"
-                header="City"
-              />
-              <Column
-                field="country"
-                header="Country"
-              />
+              <Column field="industry" header={t("employers.industry")} />
+              <Column field="city" header={t("employers.city")} />
+              <Column field="country" header={t("employers.country")} />
               <Column
                 field="createdAt"
-                header="Registered"
+                header={t("employers.registered")}
                 body={(rowData) => formatDate(rowData.createdAt)}
                 sortable
               />
               <Column
-                header="Actions"
+                header={t("common.actions")}
                 body={actionBodyTemplate}
                 style={{ width: "200px" }}
               />
@@ -257,9 +244,8 @@ export default function AdminPendingEmployers() {
         </Card>
       </div>
 
-      {/* Approve Dialog */}
       <Dialog
-        header="Approve Employer"
+        header={t("employers.approveEmployer")}
         visible={approveDialogVisible}
         style={{ width: "50vw" }}
         onHide={() => {
@@ -270,7 +256,7 @@ export default function AdminPendingEmployers() {
         footer={
           <div>
             <Button
-              label="Cancel"
+              label={t("common.cancel")}
               icon="pi pi-times"
               onClick={() => {
                 setApproveDialogVisible(false);
@@ -280,7 +266,7 @@ export default function AdminPendingEmployers() {
               className="p-button-text"
             />
             <Button
-              label="Approve"
+              label={t("employers.approve")}
               icon="pi pi-check"
               onClick={handleApprove}
               loading={processing}
@@ -291,11 +277,11 @@ export default function AdminPendingEmployers() {
         {selectedEmployer && (
           <div>
             <p>
-              Are you sure you want to approve <strong>{selectedEmployer.companyName}</strong>?
+              {t("employers.approveConfirm")} <strong>{selectedEmployer.companyName}</strong>?
             </p>
             <div className="mt-3">
               <label htmlFor="approve-notes" className="block mb-2">
-                Notes (optional)
+                {t("employers.notesOptional")}
               </label>
               <InputTextarea
                 id="approve-notes"
@@ -303,16 +289,15 @@ export default function AdminPendingEmployers() {
                 onChange={(e) => setActionNotes(e.target.value)}
                 rows={4}
                 className="w-full"
-                placeholder="Add any notes about this approval..."
+                placeholder={t("employers.addNotesApproval")}
               />
             </div>
           </div>
         )}
       </Dialog>
 
-      {/* Reject Dialog */}
       <Dialog
-        header="Reject Employer"
+        header={t("employers.rejectEmployer")}
         visible={rejectDialogVisible}
         style={{ width: "50vw" }}
         onHide={() => {
@@ -324,7 +309,7 @@ export default function AdminPendingEmployers() {
         footer={
           <div>
             <Button
-              label="Cancel"
+              label={t("common.cancel")}
               icon="pi pi-times"
               onClick={() => {
                 setRejectDialogVisible(false);
@@ -335,7 +320,7 @@ export default function AdminPendingEmployers() {
               className="p-button-text"
             />
             <Button
-              label="Reject"
+              label={t("employers.reject")}
               icon="pi pi-times"
               onClick={handleReject}
               loading={processing}
@@ -347,11 +332,11 @@ export default function AdminPendingEmployers() {
         {selectedEmployer && (
           <div>
             <p>
-              Are you sure you want to reject <strong>{selectedEmployer.companyName}</strong>?
+              {t("employers.rejectConfirm")} <strong>{selectedEmployer.companyName}</strong>?
             </p>
             <div className="mt-3">
               <label htmlFor="reject-reason" className="block mb-2">
-                Reason <span className="text-red-500">*</span>
+                {t("employers.reasonRequired")} <span className="text-red-500">*</span>
               </label>
               <InputTextarea
                 id="reject-reason"
@@ -359,13 +344,13 @@ export default function AdminPendingEmployers() {
                 onChange={(e) => setActionReason(e.target.value)}
                 rows={3}
                 className="w-full"
-                placeholder="Please provide a reason for rejection..."
+                placeholder={t("employers.provideRejectionReason")}
                 required
               />
             </div>
             <div className="mt-3">
               <label htmlFor="reject-notes" className="block mb-2">
-                Additional Notes (optional)
+                {t("employers.additionalNotes")}
               </label>
               <InputTextarea
                 id="reject-notes"
@@ -373,7 +358,7 @@ export default function AdminPendingEmployers() {
                 onChange={(e) => setActionNotes(e.target.value)}
                 rows={3}
                 className="w-full"
-                placeholder="Add any additional notes..."
+                placeholder={t("employers.addAdditionalNotes")}
               />
             </div>
           </div>

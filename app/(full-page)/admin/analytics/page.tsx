@@ -9,6 +9,7 @@ import { Toast } from "primereact/toast";
 import { useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { apiClient } from "@/lib/apiClient";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface AnalyticsData {
   totalEmployers: number;
@@ -25,6 +26,7 @@ interface AnalyticsData {
 
 export default function AdminAnalytics() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState("30");
   const [selectedMetric, setSelectedMetric] = useState("overview");
@@ -58,7 +60,7 @@ export default function AdminAnalytics() {
       }
     } catch (error) {
       console.error("Error loading analytics:", error);
-      showToast("error", "Error", "Failed to load analytics");
+      showToast("error", t("common.error"), t("analytics.failedToLoad"));
     } finally {
       setLoading(false);
     }

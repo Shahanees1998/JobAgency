@@ -16,6 +16,7 @@ import { useRef } from "react";
 import { apiClient } from "@/lib/apiClient";
 import { useDebounce } from "@/hooks/useDebounce";
 import TableLoader from "@/components/TableLoader";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface Announcement {
   id: string;
@@ -30,6 +31,7 @@ interface Announcement {
 }
 
 export default function AdminAnnouncements() {
+  const { t } = useLanguage();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -92,7 +94,7 @@ export default function AdminAnnouncements() {
       }
     } catch (error) {
       console.error("Error loading announcements:", error);
-      showToast("error", "Error", "Failed to load announcements");
+      showToast("error", t("common.error"), t("announcements.failedToLoad"));
       setAnnouncements([]);
       setTotalRecords(0);
     } finally {
@@ -106,7 +108,7 @@ export default function AdminAnnouncements() {
 
   const handleCreateAnnouncement = async () => {
     if (!newAnnouncement.title.trim() || !newAnnouncement.content.trim()) {
-      showToast("warn", "Warning", "Please fill in all required fields");
+      showToast("warn", t("common.warning"), t("announcements.fillRequiredFields"));
       return;
     }
 
@@ -123,13 +125,13 @@ export default function AdminAnnouncements() {
       const notificationsSent = (response as any).data?.notificationsSent;
       showToast(
         "success",
-        "Success",
+        t("common.success"),
         notificationsSent === false
-          ? "Announcement created, but notifications could not be sent to users."
-          : "Announcement created and notifications sent to all users."
+          ? t("announcements.createdNoNotify")
+          : t("announcements.createdAndSent")
       );
     } catch (error) {
-      showToast("error", "Error", error instanceof Error ? error.message : "Failed to create announcement");
+      showToast("error", t("common.error"), error instanceof Error ? error.message : t("announcements.failedToCreate"));
     } finally {
       setCreating(false);
     }
@@ -149,12 +151,12 @@ export default function AdminAnnouncements() {
     setUpdating(true);
     try {
       await apiClient.updateAnnouncement(statusModalAnnouncement.id, { status: newStatus as "DRAFT" | "PUBLISHED" | "ARCHIVED" });
-      showToast("success", "Success", "Announcement status updated");
+      showToast("success", t("common.success"), t("announcements.statusUpdated"));
       setShowStatusModal(false);
       setStatusModalAnnouncement(null);
       loadAnnouncements();
     } catch (error) {
-      showToast("error", "Error", "Failed to update announcement status");
+      showToast("error", t("common.error"), t("announcements.failedToUpdateStatus"));
     } finally {
       setUpdating(false);
     }
@@ -167,8 +169,8 @@ export default function AdminAnnouncements() {
 
   const confirmDeleteAnnouncement = (announcement: Announcement) => {
     confirmDialog({
-      message: `Are you sure you want to delete "${announcement.title}"?`,
-      header: "Delete Confirmation",
+      message: t("announcements.deleteConfirmMessage").replace("{title}", announcement.title),
+      header: t("announcements.deleteConfirmHeader"),
       icon: "pi pi-exclamation-triangle",
       acceptClassName: "p-button-danger",
       accept: () => handleDeleteAnnouncement(announcement.id),
@@ -183,10 +185,10 @@ export default function AdminAnnouncements() {
         throw new Error((response as any).error);
       }
       setAnnouncements(prev => prev.filter(announcement => announcement.id !== announcementId));
-      showToast("success", "Success", "Announcement deleted successfully");
+      showToast("success", t("common.success"), t("announcements.deletedSuccess"));
       loadAnnouncements();
     } catch (error) {
-      showToast("error", "Error", error instanceof Error ? error.message : "Failed to delete announcement");
+      showToast("error", t("common.error"), error instanceof Error ? error.message : t("announcements.failedToDelete"));
     } finally {
       setDeletingId(null);
     }
@@ -257,7 +259,7 @@ export default function AdminAnnouncements() {
           size="small"
           className="p-button-outlined p-button-sm"
           onClick={() => openStatusModal(rowData)}
-          tooltip="Change Status"
+          tooltip={t("announcements.changeStatus")}
           loading={updating && statusModalAnnouncement?.id === rowData.id}
           disabled={updating}
         />
@@ -273,14 +275,14 @@ export default function AdminAnnouncements() {
           size="small"
           className="p-button-outlined p-button-sm"
           onClick={() => openViewModal(rowData)}
-          tooltip="View Details"
+          tooltip={t("announcements.viewDetails")}
         />
         <Button
           icon="pi pi-trash"
           size="small"
           className="p-button-outlined p-button-sm p-button-danger"
           onClick={() => confirmDeleteAnnouncement(rowData)}
-          tooltip="Delete"
+          tooltip={t("common.delete")}
           loading={deletingId === rowData.id}
           disabled={deletingId === rowData.id}
         />
@@ -289,19 +291,19 @@ export default function AdminAnnouncements() {
   };
 
   const typeOptions = [
-    { label: "All Types", value: "" },
-    { label: "General", value: "GENERAL" },
-    { label: "Important", value: "IMPORTANT" },
-    { label: "Urgent", value: "URGENT" },
-    { label: "Event", value: "EVENT" },
-    { label: "Update", value: "UPDATE" },
+    { label: t("announcements.allTypes"), value: "" },
+    { label: t("announcements.general"), value: "GENERAL" },
+    { label: t("announcements.important"), value: "IMPORTANT" },
+    { label: t("announcements.urgent"), value: "URGENT" },
+    { label: t("announcements.event"), value: "EVENT" },
+    { label: t("announcements.update"), value: "UPDATE" },
   ];
 
   const statusOptions = [
-    { label: "All Statuses", value: "" },
-    { label: "Draft", value: "DRAFT" },
-    { label: "Published", value: "PUBLISHED" },
-    { label: "Archived", value: "ARCHIVED" },
+    { label: t("announcements.allStatuses"), value: "" },
+    { label: t("announcements.draft"), value: "DRAFT" },
+    { label: t("announcements.published"), value: "PUBLISHED" },
+    { label: t("announcements.archived"), value: "ARCHIVED" },
   ];
 
   return (
@@ -310,18 +312,18 @@ export default function AdminAnnouncements() {
       <div className="col-12">
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center gap-3 mb-4">
           <div>
-            <h1 className="text-3xl font-bold m-0">System Announcements</h1>
-            <p className="text-600 mt-2 mb-0">Manage system-wide announcements and notifications.</p>
+            <h1 className="text-3xl font-bold m-0">{t("announcements.systemAnnouncements")}</h1>
+            <p className="text-600 mt-2 mb-0">{t("announcements.subtitle")}</p>
           </div>
           <div className="flex gap-2">
             <Button
-              label="Create Announcement"
+              label={t("announcements.createAnnouncement")}
               icon="pi pi-plus"
               onClick={() => setShowCreateModal(true)}
               className="p-button-success"
             />
             <Button
-              label="Refresh"
+              label={t("common.refresh")}
               icon="pi pi-refresh"
               onClick={loadAnnouncements}
               loading={loading}
@@ -333,38 +335,38 @@ export default function AdminAnnouncements() {
 
       {/* Filters */}
       <div className="col-12">
-        <Card title="Filters" className="mb-4">
+        <Card title={t("common.filter")} className="mb-4">
           <div className="grid">
             <div className="col-12 md:col-4">
-              <label className="block text-900 font-medium mb-2">Search Announcements</label>
+              <label className="block text-900 font-medium mb-2">{t("announcements.searchAnnouncements")}</label>
               <InputText
                 value={filters.search}
                 onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                placeholder="Search by title or content..."
+                placeholder={t("announcements.searchPlaceholder")}
                 className="w-full"
               />
             </div>
             <div className="col-12 md:col-4">
-              <label className="block text-900 font-medium mb-2">Type</label>
+              <label className="block text-900 font-medium mb-2">{t("common.type")}</label>
               <Dropdown
                 value={filters.type}
                 options={typeOptions}
                 optionLabel="label"
                 optionValue="value"
                 onChange={(e) => setFilters(prev => ({ ...prev, type: e.value ?? "" }))}
-                placeholder="All Types"
+                placeholder={t("announcements.allTypes")}
                 className="w-full"
               />
             </div>
             <div className="col-12 md:col-4">
-              <label className="block text-900 font-medium mb-2">Status</label>
+              <label className="block text-900 font-medium mb-2">{t("common.status")}</label>
               <Dropdown
                 value={filters.status}
                 options={statusOptions}
                 optionLabel="label"
                 optionValue="value"
                 onChange={(e) => setFilters(prev => ({ ...prev, status: e.value ?? "" }))}
-                placeholder="All Statuses"
+                placeholder={t("announcements.allStatuses")}
                 className="w-full"
               />
             </div>
@@ -376,13 +378,13 @@ export default function AdminAnnouncements() {
       <div className="col-12">
         <Card>
           {loading ? (
-            <TableLoader message="Loading announcements..." />
+            <TableLoader message={t("announcements.loading")} />
           ) : announcements.length === 0 ? (
             <div className="text-center py-6">
               <i className="pi pi-megaphone text-4xl text-400 mb-3"></i>
-              <h3 className="text-900 mb-2">No Announcements Found</h3>
+              <h3 className="text-900 mb-2">{t("announcements.noAnnouncementsFound")}</h3>
               <p className="text-600 mb-4">
-                No announcements have been created yet or match your filters.
+                {t("announcements.noAnnouncementsDesc")}
               </p>
             </div>
           ) : (
@@ -399,19 +401,19 @@ export default function AdminAnnouncements() {
                 setCurrentPage((e.page ?? 0) + 1);
                 setRowsPerPage(e.rows ?? 10);
               }}
-              emptyMessage="No announcements found"
+              emptyMessage={t("announcements.emptyMessage")}
             >
-              <Column field="content" header="Announcement" body={contentBodyTemplate} sortable />
-              <Column field="type" header="Type" body={typeBodyTemplate} sortable />
-              <Column field="status" header="Status" body={statusBodyTemplate} sortable />
-              <Column field="createdByName" header="Created By" sortable />
+              <Column field="content" header={t("announcements.announcement")} body={contentBodyTemplate} sortable />
+              <Column field="type" header={t("common.type")} body={typeBodyTemplate} sortable />
+              <Column field="status" header={t("common.status")} body={statusBodyTemplate} sortable />
+              <Column field="createdByName" header={t("announcements.createdBy")} sortable />
               <Column 
                 field="createdAt" 
-                header="Created" 
+                header={t("announcements.created")} 
                 body={(rowData) => formatDate(rowData.createdAt)}
                 sortable 
               />
-              <Column header="Actions" body={actionsBodyTemplate} />
+              <Column header={t("common.actions")} body={actionsBodyTemplate} />
             </DataTable>
           )}
         </Card>
@@ -419,7 +421,7 @@ export default function AdminAnnouncements() {
 
       {/* Create Announcement Dialog */}
       <Dialog
-        header="Create New Announcement"
+        header={t("announcements.createNewAnnouncement")}
         visible={showCreateModal}
         style={{ width: '50vw' }}
         onHide={() => setShowCreateModal(false)}
@@ -428,46 +430,46 @@ export default function AdminAnnouncements() {
         blockScroll
       >
         <div className="mb-4">
-          <label className="block text-900 font-medium mb-2">Title *</label>
+          <label className="block text-900 font-medium mb-2">{t("announcements.titleLabel")}</label>
           <InputText
             value={newAnnouncement.title}
             onChange={(e) => setNewAnnouncement(prev => ({ ...prev, title: e.target.value }))}
-            placeholder="Enter announcement title..."
+            placeholder={t("announcements.enterTitlePlaceholder")}
             className="w-full"
           />
         </div>
         <div className="mb-4">
-          <label className="block text-900 font-medium mb-2">Type</label>
+          <label className="block text-900 font-medium mb-2">{t("common.type")}</label>
           <Dropdown
             value={newAnnouncement.type}
             options={typeOptions.filter(opt => opt.value !== "")}
             optionLabel="label"
             optionValue="value"
             onChange={(e) => setNewAnnouncement(prev => ({ ...prev, type: e.value }))}
-            placeholder="Select type..."
+            placeholder={t("announcements.selectTypePlaceholder")}
             className="w-full"
           />
         </div>
         <div className="mb-4">
-          <label className="block text-900 font-medium mb-2">Content *</label>
+          <label className="block text-900 font-medium mb-2">{t("announcements.contentLabel")}</label>
           <InputTextarea
             value={newAnnouncement.content}
             onChange={(e) => setNewAnnouncement(prev => ({ ...prev, content: e.target.value }))}
             rows={6}
-            placeholder="Enter announcement content..."
+            placeholder={t("announcements.enterContentPlaceholder")}
             className="w-full"
           />
         </div>
         <div className="flex justify-content-end gap-2">
           <Button
-            label="Cancel"
+            label={t("common.cancel")}
             icon="pi pi-times"
             className="p-button-outlined"
             onClick={() => setShowCreateModal(false)}
             disabled={creating}
           />
           <Button
-            label="Create Announcement"
+            label={t("announcements.createAnnouncement")}
             icon="pi pi-check"
             onClick={handleCreateAnnouncement}
             loading={creating}
@@ -478,21 +480,21 @@ export default function AdminAnnouncements() {
 
       {/* Change Status Dialog */}
       <Dialog
-        header="Change Status"
+        header={t("announcements.changeStatus")}
         visible={showStatusModal && !!statusModalAnnouncement}
         style={{ width: "400px" }}
         onHide={() => { setShowStatusModal(false); setStatusModalAnnouncement(null); }}
         footer={
           <div>
-            <Button label="Cancel" icon="pi pi-times" className="p-button-text" onClick={() => setShowStatusModal(false)} />
-            <Button label="Update Status" icon="pi pi-check" onClick={handleStatusChange} loading={updating} disabled={!newStatus || newStatus === statusModalAnnouncement?.status} />
+            <Button label={t("common.cancel")} icon="pi pi-times" className="p-button-text" onClick={() => setShowStatusModal(false)} />
+            <Button label={t("announcements.updateStatus")} icon="pi pi-check" onClick={handleStatusChange} loading={updating} disabled={!newStatus || newStatus === statusModalAnnouncement?.status} />
           </div>
         }
       >
         {statusModalAnnouncement && (
           <div>
-            <p className="mb-3"><strong>Announcement:</strong> {statusModalAnnouncement.title}</p>
-            <label className="block text-900 font-medium mb-2">New Status</label>
+            <p className="mb-3"><strong>{t("announcements.announcementLabel")}:</strong> {statusModalAnnouncement.title}</p>
+            <label className="block text-900 font-medium mb-2">{t("announcements.newStatus")}</label>
             <Dropdown
               value={newStatus}
               options={statusOptions.filter((o) => o.value !== "")}
@@ -507,20 +509,20 @@ export default function AdminAnnouncements() {
 
       {/* View Details Dialog */}
       <Dialog
-        header="Announcement Details"
+        header={t("announcements.announcementDetails")}
         visible={showViewModal && !!viewAnnouncement}
         style={{ width: "600px" }}
         onHide={() => { setShowViewModal(false); setViewAnnouncement(null); }}
-        footer={<Button label="Close" icon="pi pi-times" onClick={() => setShowViewModal(false)} />}
+        footer={<Button label={t("common.close")} icon="pi pi-times" onClick={() => setShowViewModal(false)} />}
       >
         {viewAnnouncement && (
           <div className="flex flex-column gap-3">
-            <div><strong>Title:</strong> {viewAnnouncement.title}</div>
-            <div><strong>Type:</strong> <Tag value={viewAnnouncement.type} severity={getTypeSeverity(viewAnnouncement.type) as any} /></div>
-            <div><strong>Status:</strong> <Tag value={viewAnnouncement.status} severity={getStatusSeverity(viewAnnouncement.status) as any} /></div>
-            <div><strong>Created By:</strong> {viewAnnouncement.createdByName}</div>
-            <div><strong>Created:</strong> {formatDate(viewAnnouncement.createdAt)}</div>
-            <div><strong>Content:</strong></div>
+            <div><strong>{t("announcements.titleStrong")}:</strong> {viewAnnouncement.title}</div>
+            <div><strong>{t("announcements.typeStrong")}:</strong> <Tag value={viewAnnouncement.type} severity={getTypeSeverity(viewAnnouncement.type) as any} /></div>
+            <div><strong>{t("announcements.statusStrong")}:</strong> <Tag value={viewAnnouncement.status} severity={getStatusSeverity(viewAnnouncement.status) as any} /></div>
+            <div><strong>{t("announcements.createdBy")}:</strong> {viewAnnouncement.createdByName}</div>
+            <div><strong>{t("announcements.created")}:</strong> {formatDate(viewAnnouncement.createdAt)}</div>
+            <div><strong>{t("announcements.contentStrong")}:</strong></div>
             <div className="p-3 bg-gray-50 border-round line-height-3">{viewAnnouncement.content}</div>
           </div>
         )}

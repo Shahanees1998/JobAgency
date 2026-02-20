@@ -29,7 +29,7 @@ interface RootLayoutProps {
 export default function RootLayout({ children }: RootLayoutProps) {
     return (
         <html
-            lang="en"
+            lang="es"
             suppressHydrationWarning
             className={`${kanit.variable} ${kanit.className}`}
         >

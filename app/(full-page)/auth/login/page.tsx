@@ -3,14 +3,15 @@ import type { Page } from "@/types/index";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
-import { useContext, useState, Suspense, useEffect, useRef } from "react";
-import { LayoutContext } from "../../../../layout/context/layoutcontext";
+import { useState, Suspense, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Toast } from "primereact/toast";
 import { getDefaultRedirectPath } from "@/lib/rolePermissions";
 import { AuthSplitLayout } from "@/components/auth/AuthSplitLayout";
+import { useLanguage } from "@/context/LanguageContext";
 
 const LoginContent = () => {
+    const { t, locale, setLocale } = useLanguage();
     const [rememberMe, setRememberMe] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -95,7 +96,7 @@ const LoginContent = () => {
             <div className="min-h-screen flex justify-content-center align-items-center">
                 <div className="text-center">
                     <i className="pi pi-spinner pi-spin text-4xl mb-3"></i>
-                    <p>Loading...</p>
+                    <p>{t("common.loading")}</p>
                 </div>
             </div>
         );
@@ -107,7 +108,7 @@ const LoginContent = () => {
             <div className="min-h-screen flex justify-content-center align-items-center">
                 <div className="text-center">
                     <i className="pi pi-spinner pi-spin text-4xl mb-3"></i>
-                    <p>Redirecting...</p>
+                    <p>{t("auth.redirecting")}</p>
                 </div>
             </div>
         );
@@ -121,15 +122,15 @@ const LoginContent = () => {
         // Validate inputs
         let hasError = false;
         if (!email) {
-            setEmailError("Email is required");
+            setEmailError(t("auth.emailRequired"));
             hasError = true;
         } else if (!email.includes('@')) {
-            setEmailError("Please enter a valid email address");
+            setEmailError(t("auth.validEmail"));
             hasError = true;
         }
 
         if (!password) {
-            setPasswordError("Password is required");
+            setPasswordError(t("auth.passwordRequired"));
             hasError = true;
         }
 
@@ -178,8 +179,8 @@ const LoginContent = () => {
                 if (message) {
                     toast.current?.show({
                         severity: 'info',
-                        summary: 'Dashboard Coming Soon',
-                        detail: 'Your dashboard is under development. Please contact admin for access.',
+                        summary: t('auth.dashboardComingSoon'),
+                        detail: t('auth.dashboardUnderDevelopment'),
                         life: 5000
                     });
                 }
@@ -197,27 +198,27 @@ const LoginContent = () => {
             window.location.replace(callbackUrl);
         } catch (error) {
             console.error('Login error:', error);
-            let errorMessage = 'An unexpected error occurred. Please try again.';
+            let errorMessage = t('auth.unexpectedError');
 
             if (error instanceof Error) {
                 errorMessage = error.message;
                 if (error.message === 'Invalid email or password') {
-                    setPasswordError('Invalid email or password');
+                    setPasswordError(t('auth.invalidCredentials'));
                 } else if (error.message === 'No account found with this email address') {
-                    setEmailError('No account found with this email address');
+                    setEmailError(t('auth.noAccountFound'));
                 } else if (error.message === 'Incorrect password') {
-                    setPasswordError('Incorrect password');
+                    setPasswordError(t('auth.incorrectPassword'));
                 } else if (error.message === 'Account is not active. Please contact admin.') {
-                    errorMessage = 'Account is not active. Please contact admin.';
+                    errorMessage = t('auth.accountInactive');
                 } else if (error.message.includes('Only admin users can access')) {
-                    errorMessage = 'Only admin users can access this panel. Please contact administrator.';
-                    setEmailError('Admin access required');
+                    errorMessage = t('auth.onlyAdminAccess');
+                    setEmailError(t('auth.adminAccessRequired'));
                 }
             }
 
             toast.current?.show({
                 severity: 'error',
-                summary: 'Login Failed',
+                summary: t('auth.loginFailed'),
                 detail: errorMessage,
                 life: 5000
             });
@@ -230,12 +231,31 @@ const LoginContent = () => {
             <Toast ref={toast} />
             <AuthSplitLayout>
                 <div className="auth-form-content">
+                    <div className="flex justify-content-end align-items-center gap-2 mb-3">
+                        <button
+                            type="button"
+                            className={`p-button p-button-text p-button-rounded text-white ${locale === 'en' ? 'font-semibold opacity-100' : 'opacity-70'}`}
+                            onClick={() => setLocale('en')}
+                            aria-label="English"
+                        >
+                            EN
+                        </button>
+                        <span className="text-white-alpha-70">|</span>
+                        <button
+                            type="button"
+                            className={`p-button p-button-text p-button-rounded text-white ${locale === 'es' ? 'font-semibold opacity-100' : 'opacity-70'}`}
+                            onClick={() => setLocale('es')}
+                            aria-label="Español"
+                        >
+                            ES
+                        </button>
+                    </div>
                     <div className="mb-4">
                         <h1 className="text-2xl font-bold mb-2 text-white m-0">
-                            Log in
+                            {t("auth.loginTitle")}
                         </h1>
                         <span className="text-white-alpha-90 font-medium text-lg">
-                            Please enter your details
+                            {t("auth.pleaseEnterDetails")}
                         </span>
                     </div>
                     <div className="flex flex-column">
@@ -245,7 +265,7 @@ const LoginContent = () => {
                                 id="email"
                                 type="email"
                                 className={`w-full ${emailError ? 'p-invalid' : ''}`}
-                                placeholder="Email"
+                                placeholder={t("auth.emailPlaceholder")}
                                 value={email}
                                 onChange={(e) => {
                                     setEmail(e.target.value);
@@ -262,7 +282,7 @@ const LoginContent = () => {
                                 id="password"
                                 type={showPassword ? "text" : "password"}
                                 className={`w-full auth-password-input ${passwordError ? 'p-invalid' : ''}`}
-                                placeholder="Password"
+                                placeholder={t("auth.passwordPlaceholder")}
                                 value={password}
                                 onChange={(e) => {
                                     setPassword(e.target.value);
@@ -276,7 +296,7 @@ const LoginContent = () => {
                                 tabIndex={-1}
                                 className="auth-password-toggle"
                                 onClick={() => setShowPassword((v) => !v)}
-                                aria-label={showPassword ? "Hide password" : "Show password"}
+                                aria-label={showPassword ? t("common.hidePassword") : t("common.showPassword")}
                             >
                                 <i className={`pi ${showPassword ? "pi-eye-slash" : "pi-eye"}`}></i>
                             </button>
@@ -306,11 +326,11 @@ const LoginContent = () => {
                                 className="text-white-alpha-90 cursor-pointer hover:text-white ml-auto transition-colors transition-duration-300 text-lg"
                                 onClick={() => router.push('/auth/forgotpassword')}
                             >
-                                Reset password
+                                {t("auth.resetPassword")}
                             </a>
                         </div>
                         <Button
-                            label={loading || authLoading ? "Logging In..." : "Log In"}
+                            label={loading || authLoading ? t("auth.loggingIn") : t("auth.logIn")}
                             className="w-full mb-4"
                             onClick={handleLogin}
                             loading={loading || authLoading}

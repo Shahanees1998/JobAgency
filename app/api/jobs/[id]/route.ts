@@ -59,8 +59,9 @@ export async function GET(
         },
       });
 
-      // For authenticated candidates, include whether they have already applied
+      // For authenticated candidates, include hasApplied and saved
       let hasApplied = false;
+      let saved = false;
       const authUser = authenticatedReq.user;
       if (authUser?.userId && authUser?.role === 'CANDIDATE') {
         const candidate = await prisma.candidate.findUnique({
@@ -68,13 +69,22 @@ export async function GET(
           select: { id: true },
         });
         if (candidate) {
-          const application = await prisma.application.findUnique({
-            where: {
-              jobId_candidateId: { jobId: id, candidateId: candidate.id },
-            },
-            select: { id: true },
-          });
+          const [application, savedJob] = await Promise.all([
+            prisma.application.findUnique({
+              where: {
+                jobId_candidateId: { jobId: id, candidateId: candidate.id },
+              },
+              select: { id: true },
+            }),
+            prisma.savedJob.findUnique({
+              where: {
+                candidateId_jobId: { candidateId: candidate.id, jobId: id },
+              },
+              select: { id: true },
+            }),
+          ]);
           hasApplied = !!application;
+          saved = !!savedJob;
         }
       }
 
@@ -84,6 +94,7 @@ export async function GET(
           id: job.id,
           title: job.title,
           hasApplied,
+          saved,
           description: job.description,
           requirements: job.requirements,
           responsibilities: job.responsibilities,

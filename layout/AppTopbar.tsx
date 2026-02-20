@@ -12,10 +12,12 @@ import { apiClient } from "@/lib/apiClient";
 import { getProfileImageUrl } from "@/lib/cloudinary-client";
 import { Avatar } from "primereact/avatar";
 import NotificationCenter from "@/components/NotificationCenter";
+import { useLanguage } from "@/context/LanguageContext";
 
 const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
     const { onMenuToggle, showProfileSidebar, showConfigSidebar } =
         useContext(LayoutContext);
+    const { locale, setLocale } = useLanguage();
     const menubuttonRef = useRef(null);
     const { user } = useAuth();
     const [profile, setProfile] = useState<any | null>(null);
@@ -93,6 +95,26 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
 
             <div className="topbar-end">
                 <ul className="topbar-menu">
+                    {/* Language switch */}
+                    <li className="ml-3 flex align-items-center gap-1">
+                        <button
+                            type="button"
+                            className={`p-button p-button-text p-button-rounded ${locale === 'en' ? 'p-button-primary font-semibold' : 'p-button-secondary'}`}
+                            onClick={() => setLocale('en')}
+                            aria-label="English"
+                        >
+                            EN
+                        </button>
+                        <span className="text-500">|</span>
+                        <button
+                            type="button"
+                            className={`p-button p-button-text p-button-rounded ${locale === 'es' ? 'p-button-primary font-semibold' : 'p-button-secondary'}`}
+                            onClick={() => setLocale('es')}
+                            aria-label="Español"
+                        >
+                            ES
+                        </button>
+                    </li>
                     {/* Notification Bell */}
                     <li className="ml-3">
                         <NotificationCenter />

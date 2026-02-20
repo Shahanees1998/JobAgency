@@ -8,6 +8,7 @@ import { Toast } from "primereact/toast";
 import { useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { canAccessSection } from "@/lib/rolePermissions";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface SystemHealth {
   database: 'healthy' | 'warning' | 'error';
@@ -23,6 +24,7 @@ interface SystemHealth {
 export default function AdminHealth() {
   const toast = useRef<Toast>(null);
   const { user, loading: authLoading } = useAuth();
+  const { t } = useLanguage();
   const [healthData, setHealthData] = useState<SystemHealth>({
     database: 'healthy',
     api: 'healthy',
@@ -59,7 +61,7 @@ export default function AdminHealth() {
       });
     } catch (error) {
       console.error("Error loading health data:", error);
-      showToast("error", "Error", "Failed to load system health data");
+      showToast("error", t("common.error"), t("health.failedToLoad"));
     } finally {
       setLoading(false);
     }
@@ -92,7 +94,7 @@ export default function AdminHealth() {
       <div className="flex align-items-center justify-content-center min-h-screen">
         <div className="text-center">
           <i className="pi pi-spinner pi-spin text-4xl mb-3"></i>
-          <p>Loading...</p>
+          <p>{t("health.loading")}</p>
         </div>
       </div>
     );
@@ -103,8 +105,8 @@ export default function AdminHealth() {
       <div className="flex align-items-center justify-content-center min-h-screen">
         <div className="text-center">
           <i className="pi pi-exclamation-triangle text-4xl text-red-500 mb-3"></i>
-          <h2>Access Denied</h2>
-          <p>You don't have permission to access this page.</p>
+          <h2>{t("health.accessDenied")}</h2>
+          <p>{t("health.noPermission")}</p>
         </div>
       </div>
     );
@@ -116,12 +118,12 @@ export default function AdminHealth() {
       <div className="col-12">
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center gap-3 mb-4">
           <div>
-            <h1 className="text-3xl font-bold m-0">System Health</h1>
-            <p className="text-600 mt-2 mb-0">Monitor system performance and service status.</p>
+            <h1 className="text-3xl font-bold m-0">{t("health.title")}</h1>
+            <p className="text-600 mt-2 mb-0">{t("health.subtitle")}</p>
           </div>
           <div className="flex gap-2">
             <Button
-              label="Refresh"
+              label={t("health.refresh")}
               icon="pi pi-refresh"
               onClick={loadHealthData}
               loading={loading}
@@ -132,13 +134,13 @@ export default function AdminHealth() {
 
       {/* Service Status */}
       <div className="col-12">
-        <Card title="Service Status" className="mb-4">
+        <Card title={t("health.serviceStatus")} className="mb-4">
           <div className="grid">
             <div className="col-12 md:col-6 lg:col-3">
               <div className="flex align-items-center gap-3 p-3 border-1 border-200 border-round">
                 <i className={`${getStatusIcon(healthData.database)} text-2xl text-${getSeverity(healthData.database)}-500`}></i>
                 <div>
-                  <div className="font-semibold">Database</div>
+                  <div className="font-semibold">{t("health.database")}</div>
                   <Tag value={healthData.database.toUpperCase()} severity={getSeverity(healthData.database)} />
                 </div>
               </div>
@@ -147,7 +149,7 @@ export default function AdminHealth() {
               <div className="flex align-items-center gap-3 p-3 border-1 border-200 border-round">
                 <i className={`${getStatusIcon(healthData.api)} text-2xl text-${getSeverity(healthData.api)}-500`}></i>
                 <div>
-                  <div className="font-semibold">API Services</div>
+                  <div className="font-semibold">{t("health.apiServices")}</div>
                   <Tag value={healthData.api.toUpperCase()} severity={getSeverity(healthData.api)} />
                 </div>
               </div>
@@ -156,7 +158,7 @@ export default function AdminHealth() {
               <div className="flex align-items-center gap-3 p-3 border-1 border-200 border-round">
                 <i className={`${getStatusIcon(healthData.storage)} text-2xl text-${getSeverity(healthData.storage)}-500`}></i>
                 <div>
-                  <div className="font-semibold">File Storage</div>
+                  <div className="font-semibold">{t("health.fileStorage")}</div>
                   <Tag value={healthData.storage.toUpperCase()} severity={getSeverity(healthData.storage)} />
                 </div>
               </div>
@@ -165,7 +167,7 @@ export default function AdminHealth() {
               <div className="flex align-items-center gap-3 p-3 border-1 border-200 border-round">
                 <i className={`${getStatusIcon(healthData.email)} text-2xl text-${getSeverity(healthData.email)}-500`}></i>
                 <div>
-                  <div className="font-semibold">Email Service</div>
+                  <div className="font-semibold">{t("health.emailService")}</div>
                   <Tag value={healthData.email.toUpperCase()} severity={getSeverity(healthData.email)} />
                 </div>
               </div>
@@ -176,12 +178,12 @@ export default function AdminHealth() {
 
       {/* System Metrics */}
       <div className="col-12 md:col-6">
-        <Card title="System Metrics" className="mb-4">
+        <Card title={t("health.systemMetrics")} className="mb-4">
           <div className="grid">
             <div className="col-12">
               <div className="flex justify-content-between align-items-center p-3 border-1 border-200 border-round mb-3">
                 <div>
-                  <div className="font-semibold">System Uptime</div>
+                  <div className="font-semibold">{t("health.systemUptime")}</div>
                   <div className="text-600">{healthData.uptime}</div>
                 </div>
                 <i className="pi pi-clock text-2xl text-blue-500"></i>
@@ -190,8 +192,8 @@ export default function AdminHealth() {
             <div className="col-12">
               <div className="flex justify-content-between align-items-center p-3 border-1 border-200 border-round mb-3">
                 <div>
-                  <div className="font-semibold">Active Users</div>
-                  <div className="text-600">{healthData.activeUsers} users online</div>
+                  <div className="font-semibold">{t("health.activeUsers")}</div>
+                  <div className="text-600">{healthData.activeUsers} {t("health.usersOnline")}</div>
                 </div>
                 <i className="pi pi-users text-2xl text-green-500"></i>
               </div>
@@ -199,7 +201,7 @@ export default function AdminHealth() {
             <div className="col-12">
               <div className="flex justify-content-between align-items-center p-3 border-1 border-200 border-round mb-3">
                 <div>
-                  <div className="font-semibold">System Load</div>
+                  <div className="font-semibold">{t("health.systemLoad")}</div>
                   <div className="text-600">{healthData.systemLoad}%</div>
                 </div>
                 <i className="pi pi-chart-line text-2xl text-orange-500"></i>
@@ -208,7 +210,7 @@ export default function AdminHealth() {
             <div className="col-12">
               <div className="flex justify-content-between align-items-center p-3 border-1 border-200 border-round">
                 <div>
-                  <div className="font-semibold">Last Backup</div>
+                  <div className="font-semibold">{t("health.lastBackup")}</div>
                   <div className="text-600">{healthData.lastBackup}</div>
                 </div>
                 <i className="pi pi-download text-2xl text-purple-500"></i>
@@ -220,31 +222,31 @@ export default function AdminHealth() {
 
       {/* Quick Actions */}
       <div className="col-12 md:col-6">
-        <Card title="Quick Actions" className="mb-4">
+        <Card title={t("health.quickActions")} className="mb-4">
           <div className="flex flex-column gap-3">
             <Button
-              label="Run System Backup"
+              label={t("health.runBackup")}
               icon="pi pi-download"
               className="p-button-outlined"
-              onClick={() => showToast("info", "Info", "Backup initiated")}
+              onClick={() => showToast("info", t("common.info"), t("health.backupInitiated"))}
             />
             <Button
-              label="Clear Cache"
+              label={t("health.clearCache")}
               icon="pi pi-refresh"
               className="p-button-outlined"
-              onClick={() => showToast("info", "Info", "Cache cleared")}
+              onClick={() => showToast("info", t("common.info"), t("health.cacheCleared"))}
             />
             <Button
-              label="Test Email Service"
+              label={t("health.testEmail")}
               icon="pi pi-envelope"
               className="p-button-outlined"
-              onClick={() => showToast("info", "Info", "Email test sent")}
+              onClick={() => showToast("info", t("common.info"), t("health.emailTestSent"))}
             />
             <Button
-              label="View Logs"
+              label={t("health.viewLogs")}
               icon="pi pi-file"
               className="p-button-outlined"
-              onClick={() => showToast("info", "Info", "Opening system logs")}
+              onClick={() => showToast("info", t("common.info"), t("health.openingLogs"))}
             />
           </div>
         </Card>

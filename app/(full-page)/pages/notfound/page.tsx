@@ -1,7 +1,10 @@
+"use client";
 import type { Page } from "@/types/index";
 import Link from "next/link";
+import { useLanguage } from "@/context/LanguageContext";
 
 const NotFound: Page = () => {
+    const { t } = useLanguage();
     return (
         <>
             <svg
@@ -30,17 +33,17 @@ const NotFound: Page = () => {
             <div className="px-5 min-h-screen flex justify-content-center align-items-center">
                 <div className="z-1 text-center">
                     <div className="text-900 font-bold text-8xl mb-4">
-                        Oops!
+                        {t("notFound.oops")}
                     </div>
                     <p className="line-height-3 mt-0 mb-5 text-700 text-xl font-medium">
-                        There is nothing here
+                        {t("notFound.nothingHere")}
                     </p>
                     <Link href={"/"}>
                         <button
                             type="button"
                             className="p-button p-button-warning font-medium p-button-raised"
                         >
-                            Go to Dashboard
+                            {t("notFound.goToDashboard")}
                         </button>
                     </Link>
                 </div>
