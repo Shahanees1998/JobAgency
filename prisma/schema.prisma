@@ -254,6 +254,9 @@ model Employer {
   companyBannerPublicId String?    // Cloudinary public_id
   industry            String?
   companySize         String?       // e.g., "1-10", "11-50", "51-200", etc.
+  founded             String?       // e.g., "2012", "Founded 2015"
+  revenue             String?       // e.g., "$1M to $10M (USD)"
+  headquarter         String?       // Headquarters location
   address             String?
   city                String?
   country             String?
