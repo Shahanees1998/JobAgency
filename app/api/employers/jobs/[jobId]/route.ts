@@ -35,6 +35,7 @@ export async function GET(
       const job = await prisma.job.findFirst({
         where: { id: params.jobId, employerId: employer.id },
         include: {
+          employer: true,
           _count: { select: { applications: true } },
         },
       });
@@ -46,6 +47,7 @@ export async function GET(
         );
       }
 
+      const emp = job.employer as any;
       return NextResponse.json({
         success: true,
         data: {
@@ -66,6 +68,22 @@ export async function GET(
           expiresAt: job.expiresAt?.toISOString(),
           createdAt: job.createdAt.toISOString(),
           updatedAt: job.updatedAt.toISOString(),
+          employer: emp ? {
+            id: emp.id,
+            companyName: emp.companyName,
+            companyDescription: emp.companyDescription,
+            companyLogo: emp.companyLogo,
+            companyBanner: emp.companyBanner,
+            companyWebsite: emp.companyWebsite,
+            industry: emp.industry,
+            companySize: emp.companySize,
+            founded: emp.founded,
+            revenue: emp.revenue,
+            headquarter: emp.headquarter,
+            address: emp.address,
+            city: emp.city,
+            country: emp.country,
+          } : undefined,
         },
       });
     } catch (error) {
