@@ -149,6 +149,9 @@ export default function AdminNotifications() {
       case "EMPLOYER_REJECTED": return "danger";
       case "NEW_CHAT_MESSAGE": return "info";
       case "INTERVIEW_SCHEDULED": return "warning";
+      case "INTERVIEW_UPDATED": return "warning";
+      case "APPLICATION_VIEWED": return "info";
+      case "PROFILE_VIEWED": return "info";
       case "ESCALATION_RECEIVED": return "danger";
       case "ESCALATION_RESPONDED": return "info";
       case "SYSTEM_ALERT": return "warning";
@@ -169,6 +172,9 @@ export default function AdminNotifications() {
       case "EMPLOYER_REJECTED": return "Employer Rejected";
       case "NEW_CHAT_MESSAGE": return "New Chat Message";
       case "INTERVIEW_SCHEDULED": return "Interview Scheduled";
+      case "INTERVIEW_UPDATED": return "Interview Updated";
+      case "APPLICATION_VIEWED": return "Application Viewed";
+      case "PROFILE_VIEWED": return "Profile Viewed";
       case "ESCALATION_RECEIVED": return "Escalation Received";
       case "ESCALATION_RESPONDED": return "Escalation Responded";
       case "SYSTEM_ALERT": return "System Alert";

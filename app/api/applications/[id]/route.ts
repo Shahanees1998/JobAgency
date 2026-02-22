@@ -84,6 +84,17 @@ export async function GET(
             { status: 403 }
           );
         }
+        // Notify candidate that their application was viewed by the employer
+        await prisma.notification.create({
+          data: {
+            userId: application.candidate.userId,
+            title: 'Application Viewed',
+            message: `An employer viewed your application for ${application.job.title}.`,
+            type: 'APPLICATION_VIEWED',
+            relatedId: application.id,
+            relatedType: 'APPLICATION',
+          },
+        });
       } else if (userRole !== 'ADMIN') {
         return NextResponse.json(
           { success: false, error: 'Unauthorized' },

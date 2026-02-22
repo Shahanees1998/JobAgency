@@ -45,6 +45,10 @@ export async function GET(
       orderBy: { createdAt: 'desc' },
     });
 
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[GET /api/employers/[id]/reviews] employerId:', employerId, 'reviews count:', reviews.length);
+    }
+
     const data = reviews.map((r) => ({
       id: r.id,
       companyName: employer.companyName,

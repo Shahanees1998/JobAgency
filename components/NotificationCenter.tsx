@@ -29,6 +29,9 @@ interface Notification {
     | 'EMPLOYER_REJECTED'
     | 'NEW_CHAT_MESSAGE'
     | 'INTERVIEW_SCHEDULED'
+    | 'INTERVIEW_UPDATED'
+    | 'APPLICATION_VIEWED'
+    | 'PROFILE_VIEWED'
     | 'SUCCESS'
     | 'INFO'
     | 'WARNING'
@@ -124,10 +127,13 @@ export default function NotificationCenter() {
         return 'danger';
       case 'WARNING':
       case 'INTERVIEW_SCHEDULED':
+      case 'INTERVIEW_UPDATED':
         return 'warning';
       case 'INFO':
       case 'NEW_JOB_POSTING':
       case 'APPLICATION_RECEIVED':
+      case 'APPLICATION_VIEWED':
+      case 'PROFILE_VIEWED':
       case 'NEW_CHAT_MESSAGE':
       case 'ESCALATION_RESPONDED':
         return 'info';
@@ -148,6 +154,9 @@ export default function NotificationCenter() {
       case 'EMPLOYER_REJECTED': return 'Employer Rejected';
       case 'NEW_CHAT_MESSAGE': return 'New Chat Message';
       case 'INTERVIEW_SCHEDULED': return 'Interview Scheduled';
+      case 'INTERVIEW_UPDATED': return 'Interview Updated';
+      case 'APPLICATION_VIEWED': return 'Application Viewed';
+      case 'PROFILE_VIEWED': return 'Profile Viewed';
       case 'ESCALATION_RECEIVED': return 'Escalation Received';
       case 'ESCALATION_RESPONDED': return 'Escalation Responded';
       case 'SYSTEM_ALERT': return 'System Alert';

@@ -12,13 +12,20 @@ const JWT_SECRET = new TextEncoder().encode(
 const ACCESS_TOKEN_EXPIRY = '7d'; // 7 days
 const REFRESH_TOKEN_EXPIRY = '30d'; // 30 days
 
-export interface JWTPayload {
+/** Minimal claims stored in JWT to keep token small and avoid REQUEST_HEADER_TOO_LARGE (494) */
+export interface JWTClaims {
   userId: string;
   email: string;
   role: string;
-  firstName: string;
-  lastName: string;
-  status: string;
+  iat?: number;
+  exp?: number;
+}
+
+/** Full payload shape for backward compatibility; token now only contains JWTClaims */
+export interface JWTPayload extends JWTClaims {
+  firstName?: string;
+  lastName?: string;
+  status?: string;
   membershipNumber?: string;
   profileImage?: string;
   profileImagePublicId?: string;
@@ -28,8 +35,6 @@ export interface JWTPayload {
   lastLogin?: Date;
   createdAt?: Date;
   updatedAt?: Date;
-  iat?: number;
-  exp?: number;
 }
 
 export interface AuthTokens {
@@ -44,10 +49,15 @@ export interface LoginCredentials {
 
 export class AuthService {
   /**
-   * Generate access token
+   * Generate access token (minimal payload to avoid REQUEST_HEADER_TOO_LARGE)
    */
   static async generateAccessToken(payload: Omit<JWTPayload, 'iat' | 'exp'>): Promise<string> {
-    return await new SignJWT(payload)
+    const minimal: Pick<JWTPayload, 'userId' | 'email' | 'role'> = {
+      userId: payload.userId,
+      email: payload.email,
+      role: payload.role,
+    };
+    return await new SignJWT(minimal)
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
       .setExpirationTime(ACCESS_TOKEN_EXPIRY)
@@ -55,10 +65,15 @@ export class AuthService {
   }
 
   /**
-   * Generate refresh token
+   * Generate refresh token (minimal payload to keep size small)
    */
   static async generateRefreshToken(payload: Omit<JWTPayload, 'iat' | 'exp'>): Promise<string> {
-    return await new SignJWT(payload)
+    const minimal: Pick<JWTPayload, 'userId' | 'email' | 'role'> = {
+      userId: payload.userId,
+      email: payload.email,
+      role: payload.role,
+    };
+    return await new SignJWT(minimal)
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
       .setExpirationTime(REFRESH_TOKEN_EXPIRY)
@@ -71,7 +86,7 @@ export class AuthService {
   static async verifyToken(token: string): Promise<JWTPayload> {
     try {
       const { payload } = await jwtVerify(token, JWT_SECRET);
-      return payload as unknown as JWTPayload;
+      return payload as unknown as JWTPayload; // may only have userId, email, role
     } catch (error) {
       throw new Error('Invalid token');
     }
@@ -202,27 +217,11 @@ export class AuthService {
   static async refreshAccessToken(refreshToken: string): Promise<string> {
     try {
       const payload = await this.verifyToken(refreshToken);
-      
-      // Generate new access token
-      const newPayload: Omit<JWTPayload, 'iat' | 'exp'> = {
+      return await this.generateAccessToken({
         userId: payload.userId,
         email: payload.email,
         role: payload.role,
-        firstName: payload.firstName,
-        lastName: payload.lastName,
-        status: payload.status,
-        membershipNumber: payload.membershipNumber,
-        profileImage: payload.profileImage,
-        profileImagePublicId: payload.profileImagePublicId,
-        phone: payload.phone,
-        joinDate: payload.joinDate,
-        paidDate: payload.paidDate,
-        lastLogin: payload.lastLogin,
-        createdAt: payload.createdAt,
-        updatedAt: payload.updatedAt,
-      };
-
-      return await this.generateAccessToken(newPayload);
+      });
     } catch (error) {
       throw new Error('Invalid refresh token');
     }

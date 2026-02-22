@@ -200,12 +200,33 @@ export async function PUT(
           },
         });
       } else if (status === 'INTERVIEW_SCHEDULED') {
+        const isInterviewUpdate = application.status === 'INTERVIEW_SCHEDULED';
+        const notifType = isInterviewUpdate ? 'INTERVIEW_UPDATED' : 'INTERVIEW_SCHEDULED';
+        const candidateTitle = isInterviewUpdate ? 'Interview Updated' : 'Interview Scheduled';
+        const candidateMessage = isInterviewUpdate
+          ? `Your interview for ${job.title} has been updated.`
+          : `Your interview for ${job.title} has been scheduled.`;
+        const employerTitle = isInterviewUpdate ? 'Interview Updated' : 'Interview Scheduled';
+        const employerMessage = isInterviewUpdate
+          ? `Interview details for ${application.candidate.user.firstName} ${application.candidate.user.lastName} (${job.title}) have been updated.`
+          : `You scheduled an interview with ${application.candidate.user.firstName} ${application.candidate.user.lastName} for ${job.title}.`;
+
         await prisma.notification.create({
           data: {
             userId: application.candidate.userId,
-            title: 'Interview Scheduled',
-            message: `Your interview for ${job.title} has been scheduled.`,
-            type: 'INTERVIEW_SCHEDULED',
+            title: candidateTitle,
+            message: candidateMessage,
+            type: notifType,
+            relatedId: applicationId,
+            relatedType: 'APPLICATION',
+          },
+        });
+        await prisma.notification.create({
+          data: {
+            userId: job.employer.userId,
+            title: employerTitle,
+            message: employerMessage,
+            type: notifType,
             relatedId: applicationId,
             relatedType: 'APPLICATION',
           },
