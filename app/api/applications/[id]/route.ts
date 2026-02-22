@@ -142,6 +142,8 @@ export async function GET(
             location: application.candidate.location,
             availability: application.candidate.availability,
             expectedSalary: application.candidate.expectedSalary,
+            languages: application.candidate.languages ?? [],
+            certifications: application.candidate.certifications ?? [],
             user: application.candidate.user,
           },
         },
