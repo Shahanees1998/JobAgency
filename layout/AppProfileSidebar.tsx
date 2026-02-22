@@ -104,14 +104,20 @@ const AppProfileSidebar = () => {
     };
 
     const formatRelativeTime = (dateString: string) => {
-        const date = new Date(dateString);
+        const d = new Date(dateString);
         const now = new Date();
-        const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-        
-        if (diffInMinutes < 1) return t("profileSidebar.justNow");
-        if (diffInMinutes < 60) return t("profileSidebar.minutesAgo").replace("{n}", String(diffInMinutes));
-        if (diffInMinutes < 1440) return t("profileSidebar.hoursAgo").replace("{n}", String(Math.floor(diffInMinutes / 60)));
-        return t("profileSidebar.daysAgo").replace("{n}", String(Math.floor(diffInMinutes / 1440)));
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const dateOnly = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        if (dateOnly.getTime() === today.getTime()) return `Today, ${timeStr}`;
+        if (dateOnly.getTime() === yesterday.getTime()) return `Yesterday, ${timeStr}`;
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        const yyyy = d.getFullYear();
+        return `${mm}/${dd}/${yyyy}, ${timeStr}`;
     };
 
     const getNotificationIcon = (type: string) => {

@@ -169,22 +169,20 @@ export default function NotificationCenter() {
   };
 
   const formatTime = (timestamp: string) => {
+    const d = new Date(timestamp);
     const now = new Date();
-    const time = new Date(timestamp);
-    const diffInSeconds = Math.floor((now.getTime() - time.getTime()) / 1000);
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const dateOnly = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-    if (diffInSeconds < 60) {
-      return t("notifications.secondsAgo").replace("{n}", String(diffInSeconds));
-    } else if (diffInSeconds < 3600) {
-      const minutes = Math.floor(diffInSeconds / 60);
-      return t("notifications.minutesAgo").replace("{n}", String(minutes));
-    } else if (diffInSeconds < 86400) {
-      const hours = Math.floor(diffInSeconds / 3600);
-      return t("notifications.hoursAgo").replace("{n}", String(hours));
-    } else {
-      const days = Math.floor(diffInSeconds / 86400);
-      return t("notifications.daysAgo").replace("{n}", String(days));
-    }
+    if (dateOnly.getTime() === today.getTime()) return `Today, ${timeStr}`;
+    if (dateOnly.getTime() === yesterday.getTime()) return `Yesterday, ${timeStr}`;
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    return `${mm}/${dd}/${yyyy}, ${timeStr}`;
   };
 
   const handleViewAll = () => {
