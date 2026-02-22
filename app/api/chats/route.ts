@@ -55,6 +55,7 @@ export async function GET(request: NextRequest) {
                           select: {
                             id: true,
                             companyName: true,
+                            companyLogo: true,
                           },
                         },
                       },

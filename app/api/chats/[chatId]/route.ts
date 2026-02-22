@@ -31,7 +31,7 @@ export async function GET(
                       id: true,
                       title: true,
                       employer: {
-                        select: { id: true, companyName: true },
+                        select: { id: true, companyName: true, companyLogo: true },
                       },
                     },
                   },

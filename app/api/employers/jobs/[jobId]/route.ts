@@ -48,6 +48,16 @@ export async function GET(
       }
 
       const emp = job.employer as any;
+      const reviewStats = emp?.id
+        ? await prisma.companyReview.aggregate({
+            where: { employerId: emp.id },
+            _avg: { rating: true },
+            _count: true,
+          })
+        : null;
+      const averageRating = reviewStats?._avg?.rating != null ? Math.round(reviewStats._avg.rating * 10) / 10 : null;
+      const reviewCount = reviewStats?._count ?? 0;
+
       return NextResponse.json({
         success: true,
         data: {
@@ -83,6 +93,8 @@ export async function GET(
             address: emp.address,
             city: emp.city,
             country: emp.country,
+            averageRating,
+            reviewCount,
           } : undefined,
         },
       });

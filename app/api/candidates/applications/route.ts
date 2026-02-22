@@ -100,6 +100,7 @@ export async function GET(request: NextRequest) {
           location: app.job.location,
           employmentType: app.job.employmentType,
           salaryRange: app.job.salaryRange,
+          benefits: app.job.benefits ?? [],
           employer: app.job.employer,
         },
       }));

@@ -59,6 +59,14 @@ export async function GET(
         },
       });
 
+      const reviewStats = await prisma.companyReview.aggregate({
+        where: { employerId: job.employer.id },
+        _avg: { rating: true },
+        _count: true,
+      });
+      const averageRating = reviewStats._avg.rating != null ? Math.round(reviewStats._avg.rating * 10) / 10 : null;
+      const reviewCount = reviewStats._count ?? 0;
+
       // For authenticated candidates, include hasApplied and saved
       let hasApplied = false;
       let saved = false;
@@ -120,6 +128,8 @@ export async function GET(
             address: job.employer.address,
             city: job.employer.city,
             country: job.employer.country,
+            averageRating,
+            reviewCount,
           },
         },
       });
