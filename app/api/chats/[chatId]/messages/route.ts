@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, AuthenticatedRequest } from '@/lib/authMiddleware';
 import { prisma } from '@/lib/prisma';
-import { pusherServer, chatChannelName } from '@/lib/realtime';
+import { getPusherServer, chatChannelName } from '@/lib/realtime';
 import { sendFcmToUser } from '@/lib/fcmService';
 
 /**
@@ -245,14 +245,17 @@ export async function POST(
 
       // Real-time 1-1 chat: Pusher so both web and mobile can receive live messages
       try {
-        await pusherServer.trigger(chatChannelName(chatId), 'new-message', {
-          id: message.id,
-          senderId: message.senderId,
-          content: message.content,
-          messageType: message.messageType,
-          createdAt: message.createdAt.toISOString(),
-          sender: message.sender,
-        });
+        const pusher = await getPusherServer();
+        if (pusher) {
+          await pusher.trigger(chatChannelName(chatId), 'new-message', {
+            id: message.id,
+            senderId: message.senderId,
+            content: message.content,
+            messageType: message.messageType,
+            createdAt: message.createdAt.toISOString(),
+            sender: message.sender,
+          });
+        }
       } catch (pusherErr) {
         console.warn('[Chat] Pusher trigger failed:', (pusherErr as Error).message);
       }
