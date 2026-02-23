@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, AuthenticatedRequest } from '@/lib/authMiddleware';
 import { prisma } from '@/lib/prisma';
+import { sendUserNotification } from '@/lib/notificationService';
+import { NotificationTemplates } from '@/lib/notificationService';
 
 /**
  * PUT /api/employers/jobs/[jobId]/applications/[applicationId]
@@ -176,61 +178,67 @@ export async function PUT(
           });
         }
 
-        // Create notification for candidate
-        await prisma.notification.create({
-          data: {
-            userId: application.candidate.userId,
-            title: 'Application Approved',
-            message: `Your application for ${job.title} has been approved! You can now chat with the employer.`,
-            type: 'APPLICATION_APPROVED',
-            relatedId: applicationId,
-            relatedType: 'APPLICATION',
-          },
-        });
+        // Notify candidate (in-app + FCM)
+        const approvedTpl = NotificationTemplates.applicationApproved(job.title, job.employer.companyName ?? '');
+        sendUserNotification({
+          id: applicationId,
+          userId: application.candidate.userId,
+          title: approvedTpl.title,
+          message: approvedTpl.message,
+          type: 'SUCCESS',
+          relatedId: applicationId,
+          relatedType: 'application',
+        }).catch((e) => console.error('[FCM] Application approved notify:', e));
       } else if (status === 'REJECTED') {
-        // Create notification for candidate
-        await prisma.notification.create({
-          data: {
-            userId: application.candidate.userId,
-            title: 'Application Rejected',
-            message: `Your application for ${job.title} has been rejected.`,
-            type: 'APPLICATION_REJECTED',
-            relatedId: applicationId,
-            relatedType: 'APPLICATION',
-          },
-        });
+        const rejectionReason = (notes || '').trim() || undefined;
+        const rejectedTpl = NotificationTemplates.applicationRejected(job.title, job.employer.companyName ?? '', rejectionReason);
+        sendUserNotification({
+          id: applicationId,
+          userId: application.candidate.userId,
+          title: rejectedTpl.title,
+          message: rejectedTpl.message,
+          type: 'ERROR',
+          relatedId: applicationId,
+          relatedType: 'application',
+          metadata: rejectedTpl.metadata,
+        }).catch((e) => console.error('[FCM] Application rejected notify:', e));
       } else if (status === 'INTERVIEW_SCHEDULED') {
         const isInterviewUpdate = application.status === 'INTERVIEW_SCHEDULED';
-        const notifType = isInterviewUpdate ? 'INTERVIEW_UPDATED' : 'INTERVIEW_SCHEDULED';
-        const candidateTitle = isInterviewUpdate ? 'Interview Updated' : 'Interview Scheduled';
+        const interviewDateStr = interviewDateValue ? interviewDateValue.toLocaleString() : '';
+        const candidateTpl = NotificationTemplates.interviewScheduled(
+          job.title,
+          job.employer.companyName ?? '',
+          interviewDateStr,
+          interviewLocation ?? undefined
+        );
+        const candidateTitle = isInterviewUpdate ? 'Interview Updated' : candidateTpl.title;
         const candidateMessage = isInterviewUpdate
           ? `Your interview for ${job.title} has been updated.`
-          : `Your interview for ${job.title} has been scheduled.`;
+          : candidateTpl.message;
+        sendUserNotification({
+          id: applicationId,
+          userId: application.candidate.userId,
+          title: candidateTitle,
+          message: candidateMessage,
+          type: 'INFO',
+          relatedId: applicationId,
+          relatedType: 'application',
+          metadata: candidateTpl.metadata,
+        }).catch((e) => console.error('[FCM] Interview scheduled notify candidate:', e));
+        // Notify employer (in-app + FCM) for their record
         const employerTitle = isInterviewUpdate ? 'Interview Updated' : 'Interview Scheduled';
         const employerMessage = isInterviewUpdate
           ? `Interview details for ${application.candidate.user.firstName} ${application.candidate.user.lastName} (${job.title}) have been updated.`
           : `You scheduled an interview with ${application.candidate.user.firstName} ${application.candidate.user.lastName} for ${job.title}.`;
-
-        await prisma.notification.create({
-          data: {
-            userId: application.candidate.userId,
-            title: candidateTitle,
-            message: candidateMessage,
-            type: notifType,
-            relatedId: applicationId,
-            relatedType: 'APPLICATION',
-          },
-        });
-        await prisma.notification.create({
-          data: {
-            userId: job.employer.userId,
-            title: employerTitle,
-            message: employerMessage,
-            type: notifType,
-            relatedId: applicationId,
-            relatedType: 'APPLICATION',
-          },
-        });
+        sendUserNotification({
+          id: applicationId,
+          userId: job.employer.userId,
+          title: employerTitle,
+          message: employerMessage,
+          type: 'INFO',
+          relatedId: applicationId,
+          relatedType: 'application',
+        }).catch((e) => console.error('[FCM] Interview scheduled notify employer:', e));
       }
 
       return NextResponse.json({

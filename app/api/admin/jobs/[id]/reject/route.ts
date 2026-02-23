@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, AuthenticatedRequest } from '@/lib/authMiddleware';
 import { prisma } from '@/lib/prisma';
+import { sendUserNotification } from '@/lib/notificationService';
+import { NotificationTemplates } from '@/lib/notificationService';
 
 /**
  * PUT /api/admin/jobs/[id]/reject
@@ -72,8 +74,18 @@ export async function PUT(
         },
       });
 
-      // TODO: Send notification to employer
-      // await createNotification(...)
+      // Notify employer (in-app + FCM)
+      const reasonStr = typeof reason === 'string' ? reason : '';
+      sendUserNotification({
+        id: updatedJob.id,
+        userId: job.employer.userId,
+        title: NotificationTemplates.jobRejected(job.title, reasonStr).title,
+        message: NotificationTemplates.jobRejected(job.title, reasonStr).message,
+        type: 'ERROR',
+        relatedId: id,
+        relatedType: 'job',
+        metadata: { reason: reasonStr },
+      }).catch((e) => console.error('[FCM] Job rejected notify:', e));
 
       return NextResponse.json({
         data: {

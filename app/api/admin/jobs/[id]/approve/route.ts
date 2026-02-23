@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, AuthenticatedRequest } from '@/lib/authMiddleware';
 import { prisma } from '@/lib/prisma';
+import { sendUserNotification } from '@/lib/notificationService';
+import { NotificationTemplates } from '@/lib/notificationService';
 
 /**
  * PUT /api/admin/jobs/[id]/approve
@@ -65,8 +67,16 @@ export async function PUT(
         },
       });
 
-      // TODO: Send notification to employer
-      // await createNotification(...)
+      // Notify employer (in-app + FCM)
+      sendUserNotification({
+        id: updatedJob.id,
+        userId: job.employer.userId,
+        title: NotificationTemplates.jobApproved(updatedJob.title).title,
+        message: NotificationTemplates.jobApproved(updatedJob.title).message,
+        type: 'SUCCESS',
+        relatedId: id,
+        relatedType: 'job',
+      }).catch((e) => console.error('[FCM] Job approved notify:', e));
 
       return NextResponse.json({
         data: {

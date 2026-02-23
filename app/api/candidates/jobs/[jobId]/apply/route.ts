@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, AuthenticatedRequest } from '@/lib/authMiddleware';
 import { prisma } from '@/lib/prisma';
+import { sendUserNotification } from '@/lib/notificationService';
+import { NotificationTemplates } from '@/lib/notificationService';
 
 /**
  * POST /api/candidates/jobs/[jobId]/apply
@@ -133,17 +135,19 @@ export async function POST(
         },
       });
 
-      // Create notification for employer
-      await prisma.notification.create({
-        data: {
-          userId: job.employer.user.id,
-          title: 'New Application',
-          message: `${application.candidate.user.firstName} ${application.candidate.user.lastName} applied to ${job.title}`,
-          type: 'APPLICATION_RECEIVED',
-          relatedId: application.id,
-          relatedType: 'APPLICATION',
-        },
-      });
+      // Notify employer (in-app + FCM)
+      const candidateName = `${application.candidate.user.firstName} ${application.candidate.user.lastName}`.trim() || 'A candidate';
+      const template = NotificationTemplates.applicationReceived(candidateName, job.title, application.id);
+      sendUserNotification({
+        id: application.id,
+        userId: job.employer.user.id,
+        title: template.title,
+        message: template.message,
+        type: 'INFO',
+        relatedId: application.id,
+        relatedType: 'application',
+        metadata: template.metadata,
+      }).catch((e) => console.error('[FCM] Job applied notify employer:', e));
 
       return NextResponse.json({
         success: true,

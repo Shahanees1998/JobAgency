@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, AuthenticatedRequest } from '@/lib/authMiddleware';
 import { prisma } from '@/lib/prisma';
+import { sendAdminNotification } from '@/lib/notificationService';
+import { NotificationTemplates } from '@/lib/notificationService';
 
 /**
  * GET /api/employers/jobs
@@ -196,6 +198,11 @@ export async function POST(request: NextRequest) {
           },
         },
       });
+
+      // Notify admins (in-app + FCM) for new job to moderate
+      sendAdminNotification(
+        NotificationTemplates.jobPosted(job.title, job.employer.companyName, job.id)
+      ).catch((e) => console.error('[FCM] Job posted notify admins:', e));
 
       return NextResponse.json({
         success: true,

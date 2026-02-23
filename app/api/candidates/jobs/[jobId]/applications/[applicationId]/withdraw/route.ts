@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, AuthenticatedRequest } from '@/lib/authMiddleware';
 import { prisma } from '@/lib/prisma';
+import { sendUserNotification } from '@/lib/notificationService';
 
 /**
  * POST /api/candidates/jobs/[jobId]/applications/[applicationId]/withdraw
@@ -69,18 +70,17 @@ export async function POST(
         }
       });
 
-      // Notify employer
-      await prisma.notification.create({
-        data: {
-          userId: application.job.employer.user.id,
-          title: 'Application withdrawn',
-          message: `${candidateName} withdrew their application for ${application.job.title}.`,
-          type: 'SYSTEM_ALERT',
-          relatedId: applicationId,
-          relatedType: 'APPLICATION',
-          metadata: JSON.stringify({ jobId }),
-        },
-      });
+      // Notify employer (in-app + FCM)
+      sendUserNotification({
+        id: applicationId,
+        userId: application.job.employer.user.id,
+        title: 'Application Withdrawn',
+        message: `${candidateName} withdrew their application for ${application.job.title}.`,
+        type: 'INFO',
+        relatedId: applicationId,
+        relatedType: 'application',
+        metadata: { jobId },
+      }).catch((e) => console.error('[FCM] Application withdrawn notify employer:', e));
 
       return NextResponse.json({
         success: true,
