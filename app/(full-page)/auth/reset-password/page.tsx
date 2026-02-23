@@ -197,10 +197,10 @@ const ResetPasswordContent = () => {
     if (!tokenValid) {
         return (
             <AuthSplitLayout>
-                <div className="flex justify-content-center align-items-center py-8">
+                <div className="auth-form-content flex justify-content-center align-items-center py-8">
                     <div className="text-center">
-                        <i className="pi pi-spinner pi-spin text-4xl mb-3"></i>
-                        <p>{t("auth.validatingResetLink")}</p>
+                        <i className="pi pi-spinner pi-spin text-4xl mb-3 text-white"></i>
+                        <p className="text-white-alpha-90 m-0">{t("auth.validatingResetLink")}</p>
                     </div>
                 </div>
             </AuthSplitLayout>
@@ -211,12 +211,12 @@ const ResetPasswordContent = () => {
         <>
             <Toast ref={toast} />
             <AuthSplitLayout>
-                <div className="border-1 surface-border surface-card border-round py-7 px-4 md:px-7 shadow-2">
+                <div className="auth-form-content">
                     <div className="mb-4">
-                        <div className="text-900 text-xl font-bold mb-2">
+                        <h1 className="text-2xl font-bold mb-2 text-white m-0">
                             {t("auth.resetPasswordTitle")}
-                        </div>
-                        <span className="text-600 font-medium">
+                        </h1>
+                        <span className="text-white-alpha-90 font-medium">
                             {t("auth.enterNewPassword")}
                         </span>
                     </div>
@@ -269,19 +269,19 @@ const ResetPasswordContent = () => {
                         {confirmPasswordError && (
                             <small className="p-error block mb-3">{confirmPasswordError}</small>
                         )}
-                        <div className="flex flex-wrap gap-2 justify-content-between">
+                        <div className="flex flex-column gap-2 mb-2">
                             <Button
-                                label={t("common.cancel")}
-                                outlined
-                                className="flex-auto"
-                                onClick={() => router.push("/auth/login")}
+                                label={loading ? t("auth.resetting") : t("auth.resetPasswordTitle")}
+                                className="w-full mb-2"
+                                onClick={handleSubmit}
+                                loading={loading}
                                 disabled={loading}
                             ></Button>
                             <Button
-                                label={loading ? t("auth.resetting") : t("auth.resetPasswordTitle")}
-                                className="flex-auto"
-                                onClick={handleSubmit}
-                                loading={loading}
+                                label={t("auth.backToLogin")}
+                                outlined
+                                className="w-full auth-btn-outlined"
+                                onClick={() => router.push("/auth/login")}
                                 disabled={loading}
                             ></Button>
                         </div>
