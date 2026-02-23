@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
 
 const RESET_JWT_SECRET =
-  '6ac1ce8466e02c6383fb70103b51cdffd9cb3394970606ef0b2e2835afe77a7e';
+  process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET || '';
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,6 +32,12 @@ export async function POST(request: NextRequest) {
     // Password reset OTP flow:
     // If resetToken matches, issue a short-lived JWT to be used on /api/auth/reset-password
     if (email && user.resetToken && user.resetTokenExpiry) {
+      if (!RESET_JWT_SECRET) {
+        return NextResponse.json(
+          { success: false, error: 'Server misconfiguration: NEXTAUTH_SECRET required' },
+          { status: 500 }
+        );
+      }
       if (user.resetToken !== otp) {
         return NextResponse.json({ success: false, error: 'Invalid OTP' }, { status: 400 });
       }

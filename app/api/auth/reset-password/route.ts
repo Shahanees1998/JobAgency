@@ -21,12 +21,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify JWT token
+    const jwtSecret = process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET || '';
+    if (!jwtSecret) {
+      return NextResponse.json(
+        { error: 'Server misconfiguration: missing NEXTAUTH_SECRET' },
+        { status: 500 }
+      );
+    }
     let decoded;
     try {
-      decoded = jwt.verify(token, 
-        '6ac1ce8466e02c6383fb70103b51cdffd9cb3394970606ef0b2e2835afe77a7e') as any;
-        // process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
+      decoded = jwt.verify(token, jwtSecret) as any;
     } catch (error) {
       return NextResponse.json(
         { error: 'Invalid or expired token' },

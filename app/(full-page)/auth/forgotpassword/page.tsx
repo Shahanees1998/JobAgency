@@ -56,7 +56,7 @@ const ForgotPassword: Page = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ email }),
+                body: JSON.stringify({ email, sendLink: true }),
             });
 
             const data = await response.json();

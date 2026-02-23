@@ -22,7 +22,7 @@ export async function sendEmail(options: EmailOptions): Promise<void> {
       throw new Error('Email service not configured');
     }
 
-    const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'noreply@example.com';
+    const fromEmail = process.env.SENDGRID_FROM_EMAIL || process.env.FROM_EMAIL || 'noreply@example.com';
     const fromName = process.env.SENDGRID_FROM_NAME || 'Job Portal';
 
     const msg = {
