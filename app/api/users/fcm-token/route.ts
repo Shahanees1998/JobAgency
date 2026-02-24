@@ -12,20 +12,29 @@ export async function POST(request: NextRequest) {
     try {
       const userId = authenticatedReq.user?.userId;
       if (!userId) {
+        console.warn('[FCM] POST fcm-token: no userId on request');
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
 
-      const body = await request.json();
+      let body: { token?: string; platform?: string };
+      try {
+        body = await request.json();
+      } catch {
+        console.warn('[FCM] POST fcm-token: invalid JSON body');
+        return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+      }
       const token = typeof body.token === 'string' ? body.token.trim() : '';
       const platform = body.platform === 'ios' || body.platform === 'android' ? body.platform : undefined;
 
       if (!token) {
+        console.warn('[FCM] POST fcm-token: missing or empty token, userId:', userId);
         return NextResponse.json(
           { error: 'FCM token is required' },
           { status: 400 }
         );
       }
 
+      console.info('[FCM] POST fcm-token: upserting token for userId:', userId, 'platform:', platform ?? 'unknown');
       await prisma.fcmToken.upsert({
         where: {
           userId_token: { userId, token },
