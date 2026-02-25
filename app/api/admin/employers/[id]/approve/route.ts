@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, AuthenticatedRequest } from '@/lib/authMiddleware';
 import { prisma } from '@/lib/prisma';
+import { sendUserNotification } from '@/lib/notificationService';
+import { NotificationTemplates } from '@/lib/notificationService';
 
 /**
  * PUT /api/admin/employers/[id]/approve
@@ -70,8 +72,17 @@ export async function PUT(
         },
       });
 
-      // TODO: Send notification to employer
-      // await createNotification(...)
+      // Notify employer (DB + Pusher + FCM)
+      const template = NotificationTemplates.employerApproved(updatedEmployer.companyName);
+      sendUserNotification({
+        id: `employer-approved-${id}`,
+        userId: employer.userId,
+        title: template.title,
+        message: template.message,
+        type: template.type as 'EMPLOYER_APPROVED',
+        relatedId: id,
+        relatedType: 'employer',
+      }).catch((e) => console.error('[FCM] Employer approved notify:', e));
 
       return NextResponse.json({
         data: {

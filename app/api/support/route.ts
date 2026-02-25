@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, AuthenticatedRequest } from '@/lib/authMiddleware';
 import { prisma } from '@/lib/prisma';
+import { sendAdminNotification } from '@/lib/notificationService';
 
 // GET /api/support - Get user's support requests
 export async function GET(request: NextRequest) {
@@ -51,7 +52,12 @@ export async function POST(request: NextRequest) {
       
       // Use the authenticated user's ID
       const userId = authenticatedReq.user!.userId;
-      
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { firstName: true, lastName: true },
+      });
+      const userName = user ? `${user.firstName} ${user.lastName}` : 'A user';
+
       const supportRequest = await prisma.supportRequest.create({
         data: {
           userId,
@@ -60,6 +66,17 @@ export async function POST(request: NextRequest) {
           priority,
         },
       });
+
+      // Notify all admins (DB + Pusher + FCM)
+      sendAdminNotification({
+        title: 'New Support Request',
+        message: `${userName}: ${subject}`,
+        type: 'SYSTEM_ALERT',
+        relatedId: supportRequest.id,
+        relatedType: 'support_request',
+        metadata: { subject, priority },
+      }).catch((e) => console.error('[FCM] Support request notify:', e));
+
       return NextResponse.json(supportRequest, { status: 201 });
     } catch (error) {
       console.error('Submit support request error:', error);

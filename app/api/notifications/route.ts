@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, AuthenticatedRequest } from '@/lib/authMiddleware';
 import { prisma } from '@/lib/prisma';
+import { sendUserNotification } from '@/lib/notificationService';
+import { NotificationType } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
 
@@ -117,16 +119,20 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const notification = await prisma.notification.create({
-        data: {
-          userId,
-          title,
-          message,
-          type,
-          relatedId,
-          relatedType,
-          metadata: metadata ? JSON.stringify(metadata) : null,
-        },
+      // Use notification service so FCM + Pusher fire (real-time + push)
+      const notification = await sendUserNotification({
+        id: `notif-${Date.now()}`,
+        userId,
+        title,
+        message,
+        type: type as NotificationType,
+        relatedId,
+        relatedType,
+        metadata,
+      });
+
+      const withUser = await prisma.notification.findUnique({
+        where: { id: notification.id },
         include: {
           user: {
             select: {
@@ -140,7 +146,7 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      return NextResponse.json(notification, { status: 201 });
+      return NextResponse.json(withUser ?? notification, { status: 201 });
     } catch (error) {
       console.error('Create notification error:', error);
       return NextResponse.json(
