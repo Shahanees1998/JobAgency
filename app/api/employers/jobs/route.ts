@@ -59,7 +59,21 @@ export async function GET(request: NextRequest) {
       const [jobs, total] = await Promise.all([
         prisma.job.findMany({
           where,
-          include: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            location: true,
+            salaryRange: true,
+            employmentType: true,
+            category: true,
+            benefits: true,
+            status: true,
+            views: true,
+            applicationCount: true,
+            expiresAt: true,
+            createdAt: true,
+            updatedAt: true,
             _count: {
               select: {
                 applications: true,
@@ -73,12 +87,10 @@ export async function GET(request: NextRequest) {
         prisma.job.count({ where }),
       ]);
 
-      const transformedJobs = jobs.map(job => ({
+      const transformedJobs = jobs.map((job) => ({
         id: job.id,
         title: job.title,
-        description: job.description,
-        requirements: job.requirements,
-        responsibilities: job.responsibilities,
+        description: job.description ? job.description.slice(0, 200) : null,
         location: job.location,
         salaryRange: job.salaryRange,
         employmentType: job.employmentType,
@@ -88,7 +100,7 @@ export async function GET(request: NextRequest) {
         views: job.views,
         applicationCount: job.applicationCount,
         totalApplications: job._count.applications,
-        expiresAt: job.expiresAt?.toISOString(),
+        expiresAt: job.expiresAt?.toISOString() ?? null,
         createdAt: job.createdAt.toISOString(),
         updatedAt: job.updatedAt.toISOString(),
       }));

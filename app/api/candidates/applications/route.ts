@@ -54,9 +54,26 @@ export async function GET(request: NextRequest) {
       const [applications, total] = await Promise.all([
         prisma.application.findMany({
           where,
-          include: {
+          select: {
+            id: true,
+            status: true,
+            coverLetter: true,
+            appliedAt: true,
+            reviewedAt: true,
+            interviewScheduled: true,
+            interviewDate: true,
+            interviewLocation: true,
+            interviewNotes: true,
+            rejectionReason: true,
             job: {
-              include: {
+              select: {
+                id: true,
+                title: true,
+                description: true,
+                location: true,
+                employmentType: true,
+                salaryRange: true,
+                benefits: true,
                 employer: {
                   select: {
                     id: true,
@@ -74,29 +91,21 @@ export async function GET(request: NextRequest) {
         prisma.application.count({ where }),
       ]);
 
-      console.log('[GET /api/candidates/applications]', {
-        candidateId: candidate.id,
-        page,
-        limit,
-        total,
-        returned: applications.length,
-      });
-
-      const transformedApplications = applications.map(app => ({
+      const transformedApplications = applications.map((app) => ({
         id: app.id,
         status: app.status,
-        coverLetter: app.coverLetter,
+        coverLetter: app.coverLetter ? app.coverLetter.slice(0, 300) : null,
         appliedAt: app.appliedAt.toISOString(),
-        reviewedAt: app.reviewedAt?.toISOString(),
+        reviewedAt: app.reviewedAt?.toISOString() ?? null,
         interviewScheduled: app.interviewScheduled,
-        interviewDate: app.interviewDate?.toISOString(),
+        interviewDate: app.interviewDate?.toISOString() ?? null,
         interviewLocation: app.interviewLocation,
         interviewNotes: app.interviewNotes,
         rejectionReason: app.rejectionReason,
         job: {
           id: app.job.id,
           title: app.job.title,
-          description: app.job.description,
+          description: app.job.description ? app.job.description.slice(0, 200) : null,
           location: app.job.location,
           employmentType: app.job.employmentType,
           salaryRange: app.job.salaryRange,

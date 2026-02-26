@@ -152,7 +152,21 @@ export async function GET(request: NextRequest) {
       const [jobs, total] = await Promise.all([
         prisma.job.findMany({
           where,
-          include: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            location: true,
+            salaryRange: true,
+            employmentType: true,
+            category: true,
+            benefits: true,
+            status: true,
+            isSponsored: true,
+            isBoosted: true,
+            views: true,
+            expiresAt: true,
+            createdAt: true,
             employer: {
               select: {
                 id: true,
@@ -180,16 +194,15 @@ export async function GET(request: NextRequest) {
         prisma.job.count({ where }),
       ]);
 
-      // Increment view count for each job
+      // Increment view count in background (do not block response – list load is not a "view")
       if (jobs.length > 0) {
-        await prisma.job.updateMany({
-          where: {
-            id: { in: jobs.map(j => j.id) },
-          },
-          data: {
-            views: { increment: 1 },
-          },
-        });
+        const jobIds = jobs.map((j) => j.id);
+        prisma.job
+          .updateMany({
+            where: { id: { in: jobIds } },
+            data: { views: { increment: 1 } },
+          })
+          .catch(() => {});
       }
 
       // For authenticated candidates, get saved job IDs for this page
@@ -212,12 +225,11 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      const transformedJobs = jobs.map(job => ({
+      // List payload: omit full description/requirements/responsibilities to speed up response and reduce size
+      const transformedJobs = jobs.map((job) => ({
         id: job.id,
         title: job.title,
-        description: job.description,
-        requirements: job.requirements,
-        responsibilities: job.responsibilities,
+        description: job.description ? job.description.slice(0, 200) : null,
         location: job.location,
         salaryRange: job.salaryRange,
         employmentType: job.employmentType,
@@ -228,7 +240,7 @@ export async function GET(request: NextRequest) {
         isBoosted: job.isBoosted,
         views: job.views,
         applicationCount: job._count.applications,
-        expiresAt: job.expiresAt?.toISOString(),
+        expiresAt: job.expiresAt?.toISOString() ?? null,
         createdAt: job.createdAt.toISOString(),
         saved: savedJobIds.has(job.id),
         employer: {

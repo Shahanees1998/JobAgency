@@ -43,9 +43,25 @@ export async function GET(
       const [applications, total] = await Promise.all([
         prisma.application.findMany({
           where: { jobId },
-          include: {
+          select: {
+            id: true,
+            status: true,
+            coverLetter: true,
+            appliedAt: true,
+            reviewedAt: true,
+            interviewScheduled: true,
+            interviewDate: true,
+            interviewLocation: true,
+            interviewNotes: true,
+            rejectionReason: true,
             candidate: {
-              include: {
+              select: {
+                id: true,
+                cvUrl: true,
+                bio: true,
+                skills: true,
+                experience: true,
+                education: true,
                 user: {
                   select: {
                     id: true,
@@ -72,21 +88,21 @@ export async function GET(
         prisma.application.count({ where: { jobId } }),
       ]);
 
-      const transformedApplications = applications.map(app => ({
+      const transformedApplications = applications.map((app) => ({
         id: app.id,
         status: app.status,
-        coverLetter: app.coverLetter,
+        coverLetter: app.coverLetter ? app.coverLetter.slice(0, 400) : null,
         appliedAt: app.appliedAt.toISOString(),
-        reviewedAt: app.reviewedAt?.toISOString(),
+        reviewedAt: app.reviewedAt?.toISOString() ?? null,
         interviewScheduled: app.interviewScheduled,
-        interviewDate: app.interviewDate?.toISOString(),
+        interviewDate: app.interviewDate?.toISOString() ?? null,
         interviewLocation: app.interviewLocation,
         interviewNotes: app.interviewNotes,
         rejectionReason: app.rejectionReason,
         candidate: {
           id: app.candidate.id,
           cvUrl: app.candidate.cvUrl,
-          bio: app.candidate.bio,
+          bio: app.candidate.bio ? app.candidate.bio.slice(0, 200) : null,
           skills: app.candidate.skills,
           experience: app.candidate.experience,
           education: app.candidate.education,
