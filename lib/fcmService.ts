@@ -137,7 +137,11 @@ export async function sendFcmToUser(userId: string, payload: FcmPayload): Promis
         : undefined,
       android: {
         priority: 'high',
-        notification: { channelId: 'default', priority: 'high' as const },
+        notification: {
+          channelId: 'default',
+          priority: 'high' as const,
+          visibility: 'public' as const, // Show in status bar when app in background
+        },
       },
       apns: {
         payload: { aps: { sound: 'default', badge: 1 } },

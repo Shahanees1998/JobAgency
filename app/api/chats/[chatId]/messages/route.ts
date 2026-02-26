@@ -224,7 +224,7 @@ export async function POST(
       });
 
       if (otherParticipant) {
-        await prisma.notification.create({
+        const notification = await prisma.notification.create({
           data: {
             userId: otherParticipant.userId,
             title: 'New Message',
@@ -234,6 +234,23 @@ export async function POST(
             relatedType: 'CHAT',
           },
         });
+        // Real-time: so notifications list updates without refresh
+        try {
+          const pusher = await getPusherServer();
+          if (pusher) {
+            await pusher.trigger(`user-${otherParticipant.userId}`, 'new-notification', {
+              id: notification.id,
+              title: notification.title,
+              message: notification.message,
+              type: notification.type,
+              relatedId: notification.relatedId ?? undefined,
+              relatedType: notification.relatedType ?? undefined,
+              createdAt: notification.createdAt,
+            });
+          }
+        } catch (e) {
+          console.warn('[Chat] Pusher new-notification trigger failed:', (e as Error).message);
+        }
         // Mobile: FCM push for new message
         const senderName = message.sender ? `${message.sender.firstName} ${message.sender.lastName}` : 'Someone';
         sendFcmToUser(otherParticipant.userId, {

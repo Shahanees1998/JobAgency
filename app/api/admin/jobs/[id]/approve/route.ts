@@ -67,17 +67,19 @@ export async function PUT(
         },
       });
 
-      // Notify employer (in-app + FCM) – use JOB_APPROVED so Prisma saves correctly
+      // Notify employer (in-app + Pusher real-time + FCM push when app in background)
+      const employerUserId = job.employer.userId;
       try {
         await sendUserNotification({
           id: updatedJob.id,
-          userId: job.employer.userId,
+          userId: employerUserId,
           title: NotificationTemplates.jobApproved(updatedJob.title).title,
           message: NotificationTemplates.jobApproved(updatedJob.title).message,
           type: 'JOB_APPROVED',
           relatedId: id,
           relatedType: 'job',
         });
+        console.info('[Admin approve job] Notification sent to employer userId:', employerUserId);
       } catch (e) {
         console.error('[Admin approve job] Failed to send notification to employer:', e);
         // Still return success; job was approved

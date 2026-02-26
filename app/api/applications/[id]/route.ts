@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, AuthenticatedRequest } from '@/lib/authMiddleware';
 import { prisma } from '@/lib/prisma';
+import { getPusherServer } from '@/lib/realtime';
 
 /**
  * GET /api/applications/[id]
@@ -85,7 +86,7 @@ export async function GET(
           );
         }
         // Notify candidate that their application was viewed by the employer
-        await prisma.notification.create({
+        const notification = await prisma.notification.create({
           data: {
             userId: application.candidate.userId,
             title: 'Application Viewed',
@@ -95,6 +96,23 @@ export async function GET(
             relatedType: 'APPLICATION',
           },
         });
+        // Real-time: so notifications list updates without refresh
+        try {
+          const pusher = await getPusherServer();
+          if (pusher) {
+            await pusher.trigger(`user-${application.candidate.userId}`, 'new-notification', {
+              id: notification.id,
+              title: notification.title,
+              message: notification.message,
+              type: notification.type,
+              relatedId: notification.relatedId ?? undefined,
+              relatedType: notification.relatedType ?? undefined,
+              createdAt: notification.createdAt,
+            });
+          }
+        } catch (e) {
+          console.warn('[Applications] Pusher new-notification trigger failed:', (e as Error).message);
+        }
       } else if (userRole !== 'ADMIN') {
         return NextResponse.json(
           { success: false, error: 'Unauthorized' },
